@@ -35,7 +35,7 @@
           "value": "(?<mint>[1-9A-HJ-NP-Za-km-z]+)"
         }
       ],
-      "destination": "/verify/:mint",
+      "destination": "/verify/:mint?",
       "permanent": false
     }
   ]
