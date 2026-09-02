@@ -4,8 +4,8 @@
       "address": "burn111111111111111111111111111111111111111",
       "bps": 10000,
       "keyless": false,
-      "leg": "seal",
-      "reason": "grandfathered legacy seal address (PROTOCOL.md sec.3)"
+      "leg": "sol_burn",
+      "reason": "grandfathered legacy SOL-burn address (PROTOCOL.md sec.3)"
     }
   ],
   "backed_by": {
@@ -34,10 +34,10 @@
         "status": "UNCHECKED"
       }
     ],
-    "seal_total": [
+    "sol_burn_total": [
       {
-        "check": "SEAL_UNSPENDABLE",
-        "detail": "a SEAL destination is not program-derived. PROTOCOL.md sec.3 requires a seal vault to be a program-derived address; this one is a vanity address, and the protocol does not accept convention in place of the enforced property",
+        "check": "SOL_BURN_UNSPENDABLE",
+        "detail": "a SOL burn destination is not program-derived. PROTOCOL.md sec.3 requires a SOL burn vault to be a program-derived address; this one is a vanity address, and the protocol does not accept convention in place of the enforced property",
         "status": "FAIL"
       }
     ],
@@ -54,7 +54,7 @@
       "actual": "8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump",
       "backs": [
         "split",
-        "seal_total",
+        "sol_burn_total",
         "burn_total",
         "ops_total",
         "supply_destroyed"
@@ -71,7 +71,7 @@
         "split"
       ],
       "detail": "the split accounts for the whole fee stream",
-      "equation": "seal_bps + burn_bps + paid_bps == 10000",
+      "equation": "sol_burn_bps + burn_bps + paid_bps == 10000",
       "expected": "10000",
       "name": "SPLIT_SUM",
       "status": "PASS"
@@ -79,27 +79,27 @@
     {
       "actual": "not program-derived: burn111111111111111111111111111111111111111",
       "backs": [
-        "seal_total"
+        "sol_burn_total"
       ],
-      "detail": "a SEAL destination is not program-derived. PROTOCOL.md sec.3 requires a seal vault to be a program-derived address; this one is a vanity address, and the protocol does not accept convention in place of the enforced property",
-      "equation": "is_on_curve(seal_vault) == False",
+      "detail": "a SOL burn destination is not program-derived. PROTOCOL.md sec.3 requires a SOL burn vault to be a program-derived address; this one is a vanity address, and the protocol does not accept convention in place of the enforced property",
+      "equation": "is_on_curve(sol_burn_vault) == False",
       "expected": "program-derived",
-      "name": "SEAL_UNSPENDABLE",
+      "name": "SOL_BURN_UNSPENDABLE",
       "status": "FAIL"
     },
     {
       "actual": "burn111111111111111111111111111111111111111: 179668087718",
       "backs": [
-        "seal_total"
+        "sol_burn_total"
       ],
       "detail": "recorded inflows reconcile against the vault balance (burn111111111111111111111111111111111111111)",
       "equation": "per-destination: sum(recorded_inflows) == getBalance(vault) for a derived vault, <= for the grandfathered address",
       "expected": "burn111111111111111111111111111111111111111: 0",
-      "name": "SEAL_BALANCE",
+      "name": "SOL_BURN_BALANCE",
       "status": "PASS"
     },
     {
-      "actual": "956383374035954",
+      "actual": "956382187958914",
       "backs": [
         "burn_total",
         "supply_destroyed"
@@ -188,20 +188,20 @@
     "decimals": 6,
     "freeze_authority": null,
     "mint_authority": null,
-    "supply": 956383374035954,
+    "supply": 956382187958914,
     "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
   },
-  "observed_at": 1788294127.4943264,
+  "observed_at": 1788329335.6671672,
   "publishable": [
     "split"
   ],
   "schema": 3,
-  "seal_balances": {
+  "sol_burn_balances": {
     "burn111111111111111111111111111111111111111": 179668087718
   },
   "split": {
     "burn": 0,
     "paid": 0,
-    "seal": 10000
+    "sol_burn": 10000
   }
 }
