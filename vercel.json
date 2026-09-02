@@ -9,6 +9,10 @@
       "destination": "/coins-1.html"
     },
     {
+      "source": "/verify",
+      "destination": "/verify.html"
+    },
+    {
       "source": "/coin/:mint([1-9A-HJ-NP-Za-km-z]+).json",
       "destination": "/:mint.json"
     },
