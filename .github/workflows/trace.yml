@@ -63,7 +63,7 @@ jobs:
       # answer the way the fee-share program's own accounts are.
       - name: Do freshly launched coins have a sharing config
         continue-on-error: true
-        run: python tools/sample_new_coins.py --limit 14 --scan 40 --delay 0.8 --debug
+        run: python tools/sample_new_coins.py --limit 30 --scan 60 --delay 0.6
 
       # Who becomes admin, what the initial shareholders are, and whether the
       # bonding curve's creator moves to the config PDA. Simulated against
