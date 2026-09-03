@@ -1,0 +1,61 @@
+# Chain reads that this sandbox cannot make.
+#
+# Two questions this answers, both of which the repository currently answers
+# from documents rather than from the chain:
+#
+#   1. Does pump's fee-share program really allow a split to be changed only
+#      once? /enroll warns a dev about that before a one-way door, and pump's
+#      published IDL contains no such error. idl_dump reads the on-chain IDL
+#      and prints the error list, which settles it.
+#
+#   2. For a coin claiming to route "100% of creator fees" somewhere, is the
+#      destination a sharing config pump pays, or an ordinary address whose
+#      key somebody holds? trace_collector reads the byte that decides it,
+#      and can enumerate the other coins paying the same collector.
+#
+# Runs on push to the working branch so the answer arrives without anyone
+# clicking anything, and on demand with different mints.
+name: trace
+
+on:
+  push:
+    branches: [claude/charlie-posts-project-status-uyafps]
+    paths:
+      - "tools/**"
+      - ".github/workflows/trace.yml"
+  workflow_dispatch:
+    inputs:
+      mints:
+        description: "Space separated mints to trace"
+        required: false
+        default: "Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump"
+
+concurrency:
+  group: trace
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # The same gateway every other chain read in this repository goes
+      # through. Never a public endpoint directly.
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      MINTS: ${{ github.event.inputs.mints || 'Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # No install step. Standard library only, like the rest of it.
+
+      - name: The on-chain IDLs
+        run: python tools/idl_dump.py
+
+      - name: Trace the coins
+        run: python tools/trace_collector.py --siblings $MINTS
