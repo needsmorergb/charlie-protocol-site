@@ -831,9 +831,49 @@ _RISKS = (
     "No program is deployed.",
     "There is no funding, and Phase 5 is gated on SOL that does not exist yet.",
     "Revoking upgrade authority is a one-way door.",
-    "SOL_BURN_UNSPENDABLE fails permanently for this coin, not pending.",
     "The opening-balance mechanism is dormant on live data (D-07).",
 )
+
+
+def _sol_burn_risk(observation) -> str:
+    """The SOL burn leg's standing, read from this coin's own check.
+
+    This was a template constant: "SOL_BURN_UNSPENDABLE fails permanently
+    for this coin, not pending." It was written for $CHARLIE, rendered on
+    every coin's page, and then stopped being true for $CHARLIE as well when
+    the check stopped grading an unenrolled coin against the enrolled-coin
+    vault standard. Four branches, and which one applies is the
+    observation's to say, not this module's.
+    """
+    checks = {c.name: c for c in getattr(observation, "checks", None) or ()}
+    check = checks.get("SOL_BURN_UNSPENDABLE")
+    if check is None or check.status == invariants.UNCHECKED:
+        return (
+            "This split names no SOL burn destination, so no SOL burn claim is "
+            "available to this coin at all."
+        )
+    if check.status == invariants.FAIL:
+        return (
+            "SOL_BURN_UNSPENDABLE fails for this coin: a SOL burn destination is an "
+            "ordinary address someone can spend from, and no SOL burn total will be "
+            "published while that is so."
+        )
+    split = getattr(observation, "split", None)
+    destinations = [a.address for a in getattr(split, "attributions", ()) if a.leg == "sol_burn"]
+    # Through `invariants`, which is where the check itself reads the set:
+    # this module's package imports are `invariants` and `publish`, by rule.
+    grandfathered = invariants.Registry().grandfathered_sol_burn
+    if any(address in grandfathered for address in destinations):
+        return (
+            "This coin's SOL burn destination is the shared grandfathered address. "
+            "Attribution across the coins sharing it is not possible, so it carries "
+            "the weaker <= invariant and no SOL burn total is published for it."
+        )
+    return (
+        "SOL_BURN_UNSPENDABLE passes. A SOL burn total is still gated on "
+        "SOL_BURN_BALANCE, which reconciles recorded inflows against the live "
+        "balance and stays UNCHECKED until a walk of the destination completes."
+    )
 
 
 def _walk_risk(observation) -> str:
@@ -1300,6 +1340,7 @@ def _sections(observation) -> str:
     own source, never re-typed apart from it.
     """
     risk_items = [f"<li>{esc(text)}</li>" for text in _RISKS]
+    risk_items.append(f"<li>{esc(_sol_burn_risk(observation))}</li>")
     risk_items.append(f"<li>{esc(_walk_risk(observation))}</li>")
     risk_items.append(f'<li id="{RISK_GENERATOR_ANCHOR}">{esc(_GENERATOR_UNVERIFIED)}</li>')
     risks = '<section id="risks"><h2>Risks</h2><ol class="risks">' + "".join(risk_items) + "</ol></section>"
