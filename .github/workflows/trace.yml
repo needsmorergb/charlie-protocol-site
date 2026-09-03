@@ -62,3 +62,8 @@ jobs:
 
       - name: Are our burn destinations eligible recipients
         run: python tools/account_state.py
+
+      - name: Who already routes to the incinerator
+        run: |
+          python tools/trace_collector.py \
+            --collector 1nc1nerator11111111111111111111111111111111 --limit 40

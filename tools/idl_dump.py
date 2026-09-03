@@ -41,6 +41,16 @@ PUMP_FEE_SHARE_PROGRAM = "pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ"
 PUMP_PROGRAM = "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"
 IDL_SEED = "anchor:idl"
 
+# The instructions whose full account list this prints. These are the ones a
+# distribution actually goes through, and the order is load bearing: pump
+# answers 6054 when remaining accounts do not match the shareholders exactly.
+WITH_ACCOUNTS = (
+    "distribute_creator_fees",
+    "distribute_creator_fees_v2",
+    "collect_creator_fee",
+    "get_minimum_distributable_fee",
+)
+
 
 def idl_address(program_id: str) -> str:
     """`createWithSeed(base, "anchor:idl", program)`, where base is the
@@ -81,10 +91,29 @@ def report(idl: dict, program_id: str) -> str:
     lines.append(f"  instructions  {len(instructions)}")
     for entry in instructions:
         name = entry.get("name", "")
-        if "fee_share" in name or "distribute" in name or "creator" in name:
-            disc = bytes(entry.get("discriminator") or []).hex()
-            signers = [a["name"] for a in entry.get("accounts", []) if a.get("signer")]
-            lines.append(f"    {name}  disc={disc}  signers={signers or 'NONE'}")
+        if not ("fee_share" in name or "distribute" in name or "creator" in name):
+            continue
+        disc = bytes(entry.get("discriminator") or []).hex()
+        signers = [a["name"] for a in entry.get("accounts", []) if a.get("signer")]
+        lines.append(f"    {name}  disc={disc}  signers={signers or 'NONE'}")
+        # The account list AND ITS ORDER is what an instruction builder needs,
+        # and it is the thing no write-up ever records correctly.
+        if name in WITH_ACCOUNTS:
+            for index, account in enumerate(entry.get("accounts", [])):
+                flags = "".join(
+                    [
+                        "s" if account.get("signer") else "-",
+                        "w" if account.get("writable") else "-",
+                    ]
+                )
+                fixed = account.get("address")
+                pda = "pda" if account.get("pda") else ""
+                lines.append(
+                    f"      {index:>2} {flags} {account.get('name')}"
+                    + (f"  = {fixed}" if fixed else "")
+                    + (f"  [{pda}]" if pda else "")
+                )
+            lines.append(f"      args: {[a.get('name') for a in entry.get('args', [])]}")
 
     errors = idl.get("errors") or []
     lines.append(f"  errors        {len(errors)}")
