@@ -1220,7 +1220,20 @@ def _sections(observation) -> str:
         (
             _launch_mode(observation),
             _results_chart(observation),
-            _deflation(observation),
+            # `_deflation` is deliberately NOT rendered here.
+            #
+            # It stated a counterfactual: what a coin's recorded burns would
+            # have destroyed had that SOL gone to a burn instead of buying
+            # tokens. No check backs a counterfactual, because nothing
+            # happened for a check to read. Every other figure on this page is
+            # gated on a passing check; that one was gated on nothing, which
+            # is the rule this page exists to enforce.
+            #
+            # It also read as an accusation rather than a measurement. On a
+            # coin whose 17.58 SOL bought and burned 43.58M tokens, the
+            # largest number on the page was a hypothetical printed under the
+            # words "This did not happen".
+
             _how_it_works(),
             _the_burn(observation),
             _quiet(observation),
