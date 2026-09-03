@@ -57,6 +57,28 @@ jobs:
       - name: The on-chain IDLs
         run: python tools/idl_dump.py
 
+      # Whether a coin arrives with a fee split, or somebody has to make one.
+      # Sampled from pump's own launch stream -- the mint-authority PDA that
+      # only `create` touches -- so the population is not selected on the
+      # answer the way the fee-share program's own accounts are.
+      - name: Do freshly launched coins have a sharing config
+        continue-on-error: true
+        run: python tools/sample_new_coins.py --limit 25
+
+      # Who becomes admin, what the initial shareholders are, and whether the
+      # bonding curve's creator moves to the config PDA. Simulated against
+      # real mainnet state, post-simulation account bytes and all.
+      - name: Create a config for a coin that has none
+        continue-on-error: true
+        run: python tools/simulate_create_config.py --auto --auto-limit 20
+
+      # The same creation with update_fee_shares_v2 appended to the SAME
+      # transaction: if the update succeeds, creation did not spend the
+      # one-shot; if it fails already-updated, it did.
+      - name: Is the one-shot still unspent right after creation
+        continue-on-error: true
+        run: python tools/simulate_create_config.py --auto --auto-limit 20 --then-update
+
       - name: Trace the coins
         run: python tools/trace_collector.py --siblings $MINTS
 
