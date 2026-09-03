@@ -70,7 +70,7 @@ jobs:
       # real mainnet state, post-simulation account bytes and all.
       - name: Create a config for a coin that has none
         continue-on-error: true
-        run: python tools/simulate_create_config.py --auto --auto-limit 5 --raw-idl
+        run: python tools/simulate_create_config.py --auto --auto-limit 6
 
       # The same creation attempted by an address that is not the coin's
       # creator. If admin were simply whoever pays, this would succeed and
@@ -78,7 +78,7 @@ jobs:
       - name: Can a stranger create the config
         continue-on-error: true
         run: |
-          python tools/simulate_create_config.py --auto --auto-limit 5 \
+          python tools/simulate_create_config.py --auto --auto-limit 6 \
             --as burn111111111111111111111111111111111111111
 
       # The same creation with update_fee_shares_v2 appended to the SAME
@@ -86,7 +86,7 @@ jobs:
       # one-shot; if it fails already-updated, it did.
       - name: Is the one-shot still unspent right after creation
         continue-on-error: true
-        run: python tools/simulate_create_config.py --auto --auto-limit 5 --then-update
+        run: python tools/simulate_create_config.py --auto --auto-limit 6 --then-update
 
       - name: Trace the coins
         run: python tools/trace_collector.py --siblings $MINTS

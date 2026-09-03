@@ -93,11 +93,21 @@ def type_def(idl: dict, name: str) -> dict | None:
     return None
 
 
-def error_name(idls: dict[str, dict], code: int) -> str:
-    for program_id, idl in idls.items():
+def error_name(idls: dict[str, dict], code: int, program_id: str | None = None) -> str:
+    """The error, looked up in the IDL of the program that actually failed.
+
+    Both programs number their errors from 6000, so a search that takes the
+    first match reads pump's error list for a failure inside the fee-share
+    program -- which is how a run reported "InvalidCreator" for an error the
+    logs plainly called AmmAccountsRequiredForGraduatedCoin.
+    """
+    ordered = list(idls.items())
+    if program_id:
+        ordered.sort(key=lambda item: item[0] != program_id)
+    for owner, idl in ordered:
         for entry in idl.get("errors", []):
             if entry.get("code") == code:
-                return f"{entry.get('name')} - {entry.get('msg')}  [{program_id[:8]}...]"
+                return f"{entry.get('name')} - {entry.get('msg')}  [{owner[:8]}...]"
     return "not in either IDL's error list"
 
 
@@ -423,6 +433,8 @@ def simulate(rpc, idls, mint: str, *, payer: str | None, then_update: bool,
     print(f"  creator owner  {creator_owner}"
           f"   lamports={(creator_account or {}).get('lamports')}")
     print(f"  has config     {creator_owner == pump.PUMP_FEE_SHARE_PROGRAM}")
+    print(f"  graduated      {curve['complete']}"
+          "   (a graduated coin needs its AMM pool passed -- fee-share error 6019)")
     print(f"  config pda     {config_pda}  exists={rpc.accounts([config_pda])[0] is not None}")
 
     program_id, idl, instruction = find_instruction(idls, "create_fee_sharing_config")
@@ -490,6 +502,13 @@ def simulate(rpc, idls, mint: str, *, payer: str | None, then_update: bool,
                 print(f"  chained update UNRESOLVED {exc}")
             else:
                 update_data = bytes(update_ix["discriminator"]) + update_data_args
+                # 6013 NotEnoughRemainingAccounts: the program checks the new
+                # shareholders' accounts as Anchor remaining accounts, in the
+                # order of the vec, exactly as distribute_creator_fees does.
+                update_metas = update_metas + [
+                    (f"shareholder[{position}]", share["address"], False, True)
+                    for position, share in enumerate(shares)
+                ]
                 program_ixs.append((update_program, update_metas, update_data))
                 print(f"  chained        update_fee_shares_v2 -> {target} at 100%")
                 print(f"  update args    {update_notes}")
@@ -531,8 +550,14 @@ def simulate(rpc, idls, mint: str, *, payer: str | None, then_update: bool,
             custom = entry[1]
             if isinstance(custom, dict) and "Custom" in custom:
                 code = custom["Custom"]
-                print(f"  instruction    #{entry[0]}   custom error {code}")
-                print(f"  error          {error_name(idls, code)}")
+                index = entry[0]
+                failing = (
+                    program_ixs[index][0]
+                    if isinstance(index, int) and index < len(program_ixs)
+                    else None
+                )
+                print(f"  instruction    #{index}   in {failing}   custom error {code}")
+                print(f"  error          {error_name(idls, code, failing)}")
 
     print("  --- logs, verbatim ---")
     for line in logs:
@@ -653,8 +678,11 @@ def main(argv=None) -> int:
         rows = sample(rpc, want=args.auto_limit, scan=args.auto_scan, delay=args.auto_delay)
         candidates = [
             row for row in rows
-            if row.get("route") == "plain_creator" and row.get("creator_lamports", 0) > 0
+            if row.get("route") == "plain_creator"
+            and row.get("creator_lamports", 0) > 0
+            and not row["curve"]["complete"]
         ]
+        print(f"  config-less, un-graduated, funded creator: {len(candidates)} of {len(rows)}")
         candidates.sort(key=lambda row: row.get("creator_lamports", 0), reverse=True)
         if not candidates:
             print("  no config-less launch found in this window")
