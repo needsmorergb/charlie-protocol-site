@@ -75,7 +75,65 @@ def _instructions(tx: dict):
             yield entry
 
 
-def launches(rpc, idl: dict, *, want: int, scan: int, delay: float) -> list[dict]:
+def _account_keys(tx: dict) -> list[dict]:
+    message = ((tx or {}).get("transaction") or {}).get("message") or {}
+    keys = list(message.get("accountKeys") or [])
+    loaded = ((tx or {}).get("meta") or {}).get("loadedAddresses") or {}
+    for address in (loaded.get("writable") or []) + (loaded.get("readonly") or []):
+        keys.append({"pubkey": address, "signer": False, "writable": True})
+    return keys
+
+
+def candidates_from(tx: dict, by_discriminator: dict) -> tuple[list[str], list[str]]:
+    """`(mints, instruction names seen)` for one launch transaction.
+
+    Two ways of finding the mint, because relying on one of them silently
+    reported nothing at all on the first run: the IDL's own account index for
+    whichever create-shaped instruction the transaction actually used, and,
+    failing that, the account keys themselves. pump's `create` takes the new
+    mint as a SIGNER -- a fresh keypair -- so a signer that is not the fee
+    payer is a mint candidate, as is any key with pump's vanity suffix. Every
+    candidate is checked against a real bonding curve afterwards, so a wrong
+    guess is dropped rather than counted.
+    """
+    mints: list[str] = []
+    seen: list[str] = []
+    for candidate in _instructions(tx):
+        if candidate.get("programId") != pump.PUMP_PROGRAM:
+            continue
+        raw = candidate.get("data")
+        if not raw:
+            continue
+        try:
+            data = decode(raw)
+        except ValueError:
+            continue
+        entry = by_discriminator.get(data[:8].hex())
+        if entry is None:
+            seen.append(f"unknown:{data[:8].hex()}")
+            continue
+        seen.append(entry["name"])
+        if not entry["name"].startswith("create"):
+            continue
+        names = [a["name"] for a in entry.get("accounts", [])]
+        if "mint" not in names:
+            continue
+        accounts = candidate.get("accounts") or []
+        index = names.index("mint")
+        if len(accounts) > index:
+            mints.append(accounts[index])
+
+    keys = _account_keys(tx)
+    for position, key in enumerate(keys):
+        address = key.get("pubkey")
+        if not address:
+            continue
+        if address.endswith("pump") or (key.get("signer") and position):
+            mints.append(address)
+    return mints, seen
+
+
+def launches(rpc, idl: dict, *, want: int, scan: int, delay: float, debug: bool = False):
     """`{mint, signature, block_time}` for the most recent launches.
 
     `delay` paces the per-signature `getTransaction`. The project gateway
@@ -86,18 +144,21 @@ def launches(rpc, idl: dict, *, want: int, scan: int, delay: float) -> list[dict
     """
     instruction = create_instruction(idl)
     authority = const_pda(instruction, "mint_authority", pump.PUMP_PROGRAM)
-    discriminator = bytes(instruction["discriminator"])
-    names = [a["name"] for a in instruction["accounts"]]
-    mint_index = names.index("mint")
+    by_discriminator = {
+        bytes(entry.get("discriminator") or []).hex(): entry
+        for entry in idl.get("instructions", [])
+    }
 
     print(f"  mint authority {authority}   (seeds from the IDL, not pasted)")
-    print(f"  create disc    {discriminator.hex()}   mint is account #{mint_index}")
+    print(f"  create disc    {bytes(instruction['discriminator']).hex()}")
 
     found: list[dict] = []
     seen: set[str] = set()
     skipped = 0
+    instructions_seen: dict[str, int] = {}
+    transactions = 0
     for position, entry in enumerate(rpc.signatures_for_address(authority, limit=scan)):
-        if len(found) >= want:
+        if transactions >= want:
             break
         if entry.get("err"):
             continue
@@ -110,22 +171,14 @@ def launches(rpc, idl: dict, *, want: int, scan: int, delay: float) -> list[dict
             print(f"  skipped      {entry['signature'][:16]}... {exc}")
             time.sleep(delay * 2)
             continue
-        for candidate in _instructions(tx):
-            if candidate.get("programId") != pump.PUMP_PROGRAM:
-                continue
-            raw = candidate.get("data")
-            if not raw:
-                continue
-            try:
-                data = decode(raw)
-            except ValueError:
-                continue
-            if data[:8] != discriminator:
-                continue
-            accounts = candidate.get("accounts") or []
-            if len(accounts) <= mint_index:
-                continue
-            mint = accounts[mint_index]
+        transactions += 1
+        mints, names = candidates_from(tx, by_discriminator)
+        for name in names:
+            instructions_seen[name] = instructions_seen.get(name, 0) + 1
+        if debug and position < 2:
+            print(f"  debug        {entry['signature'][:20]}... instructions={names} "
+                  f"candidates={mints}")
+        for mint in mints:
             if mint in seen:
                 continue
             seen.add(mint)
@@ -136,7 +189,9 @@ def launches(rpc, idl: dict, *, want: int, scan: int, delay: float) -> list[dict
                     "block_time": entry.get("blockTime"),
                 }
             )
-    print(f"  launches     {len(found)} read, {skipped} signatures skipped on RPC failure")
+    print(f"  pump instructions in those transactions: {instructions_seen}")
+    print(f"  candidates   {len(found)} from launch transactions, "
+          f"{skipped} signatures skipped on RPC failure")
     return found
 
 
@@ -258,10 +313,17 @@ def endpoints_from(argument: str | None) -> tuple[str, ...]:
     return tuple(u.strip() for u in raw.split(",") if u.strip()) or DEFAULT_ENDPOINTS
 
 
-def sample(rpc, *, want: int = 12, scan: int = 40, delay: float = 1.0) -> list[dict]:
+def sample(rpc, *, want: int = 12, scan: int = 40, delay: float = 1.0,
+           debug: bool = False) -> list[dict]:
+    """Only rows whose bonding curve decodes: a candidate that is not a pump
+    mint is dropped here, not counted as a coin.
+    """
     idl = read_idl(rpc, pump.PUMP_PROGRAM)
-    rows = launches(rpc, idl, want=want, scan=scan, delay=delay)
-    return classify(rpc, rows)
+    rows = classify(rpc, launches(rpc, idl, want=want, scan=scan, delay=delay, debug=debug))
+    live = [row for row in rows if row.get("curve")]
+    dropped = len(rows) - len(live)
+    print(f"  dropped      {dropped} candidates with no bonding curve (not pump mints)")
+    return live
 
 
 def main(argv=None) -> int:
@@ -270,11 +332,12 @@ def main(argv=None) -> int:
     parser.add_argument("--limit", type=int, default=12, help="launches to read")
     parser.add_argument("--scan", type=int, default=40, help="launch signatures to walk")
     parser.add_argument("--delay", type=float, default=1.0, help="seconds between getTransaction")
+    parser.add_argument("--debug", action="store_true", help="print what the first transactions hold")
     args = parser.parse_args(argv)
 
     rpc = RpcClient(endpoints_from(args.rpc))
     print("sampling pump launches")
-    rows = sample(rpc, want=args.limit, scan=args.scan, delay=args.delay)
+    rows = sample(rpc, want=args.limit, scan=args.scan, delay=args.delay, debug=args.debug)
     print()
     print(render(rows))
     print()
