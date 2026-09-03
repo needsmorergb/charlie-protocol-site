@@ -488,7 +488,10 @@ def simulate(rpc, idls, mint: str, *, payer: str | None, then_update: bool,
             print("  update_fee_shares_v2 is in NEITHER IDL -- cannot chain it")
         else:
             target = update_target or creator
-            shares = [{"address": target, "bps": 10_000}]
+            # The field name is the IDL's own -- `share_bps`. Calling it
+            # `bps` here encoded a zero, and the program answered 6017
+            # ZeroShareNotAllowed, which says nothing about the one-shot.
+            shares = [{"address": target, "share_bps": 10_000}]
             arg_name = (update_ix.get("args") or [{}])[0].get("name")
             overrides = {arg_name: shares} if arg_name else {}
             # The update's own account list, resolved the same IDL-driven way.
@@ -509,6 +512,7 @@ def simulate(rpc, idls, mint: str, *, payer: str | None, then_update: bool,
                     (f"shareholder[{position}]", share["address"], False, True)
                     for position, share in enumerate(shares)
                 ]
+                print(f"  remaining      {[share['address'] for share in shares]}")
                 program_ixs.append((update_program, update_metas, update_data))
                 print(f"  chained        update_fee_shares_v2 -> {target} at 100%")
                 print(f"  update args    {update_notes}")
@@ -645,6 +649,8 @@ def main(argv=None) -> int:
     parser.add_argument("--pool", help="the AMM pool account, for a graduated coin")
     parser.add_argument("--raw-idl", action="store_true",
                         help="print the raw IDL JSON for the instruction")
+    parser.add_argument("--describe", action="store_true",
+                        help="print the IDL account lists before simulating")
     parser.add_argument("--then-update", action="store_true",
                         help="append update_fee_shares_v2 to the same transaction")
     parser.add_argument("--update-target", help="the 100%% share destination for the update")
@@ -659,7 +665,7 @@ def main(argv=None) -> int:
             print(f"{program_id}: IDL unreadable {exc}")
 
     program_id, idl, instruction = find_instruction(idls, "create_fee_sharing_config")
-    if instruction is not None:
+    if instruction is not None and (args.describe or args.raw_idl):
         print(describe(program_id, idl, instruction))
         print(describe_event(idls, "CreateFeeSharingConfigEvent"))
         if args.raw_idl:
@@ -668,9 +674,8 @@ def main(argv=None) -> int:
             for name in ("Shareholder", "ConfigStatus", "SharingConfig"):
                 print(f"type {name}: {json.dumps(type_def(idl, name))}")
     update_program, update_idl, update_ix = find_instruction(idls, "update_fee_shares_v2")
-    if update_ix is not None:
+    if update_ix is not None and (args.describe or args.raw_idl):
         print(describe(update_program, update_idl, update_ix))
-    print()
 
     mints = list(args.mints)
     if args.auto:
