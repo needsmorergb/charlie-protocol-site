@@ -66,4 +66,14 @@ jobs:
       - name: Who already routes to the incinerator
         run: |
           python tools/trace_collector.py \
-            --collector 1nc1nerator11111111111111111111111111111111 --limit 40
+            --collector 1nc1nerator11111111111111111111111111111111 --limit 6
+
+      # The question FEE-ROUTING section 6 exists for. Two coins that route
+      # to the incinerator, and one that does not, so a failure can be told
+      # apart from a distribution that was never going to work anyway.
+      - name: Would pump distribute to the incinerator
+        run: |
+          python tools/simulate_distribute.py \
+            9vAV2s4ujZ16yU6V334gQqpgo5a7swYRiUdiwRYvpump \
+            5vxYBj3qbAFCSQr2487AZEzNtmpdPRLZBKHpKuvfpump \
+            9MTfWK8chKHVJq1qnDvRZ2udovpzbP2N4tm2pFEipump
