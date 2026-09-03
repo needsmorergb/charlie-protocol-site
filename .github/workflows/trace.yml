@@ -28,7 +28,7 @@ on:
       mints:
         description: "Space separated mints to trace"
         required: false
-        default: "Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump"
+        default: "Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump 9MTfWK8chKHVJq1qnDvRZ2udovpzbP2N4tm2pFEipump CKofs75XK4PGncupA8wFYKNawYQyyrxQ9PYQPmPKv9tE"
 
 concurrency:
   group: trace
@@ -45,7 +45,7 @@ jobs:
       # The same gateway every other chain read in this repository goes
       # through. Never a public endpoint directly.
       CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
-      MINTS: ${{ github.event.inputs.mints || 'Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump' }}
+      MINTS: ${{ github.event.inputs.mints || 'Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump 9MTfWK8chKHVJq1qnDvRZ2udovpzbP2N4tm2pFEipump CKofs75XK4PGncupA8wFYKNawYQyyrxQ9PYQPmPKv9tE' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,3 +59,6 @@ jobs:
 
       - name: Trace the coins
         run: python tools/trace_collector.py --siblings $MINTS
+
+      - name: Are our burn destinations eligible recipients
+        run: python tools/account_state.py
