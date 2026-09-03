@@ -1,0 +1,96 @@
+# The submission queue, actually processed.
+#
+# The site tells a dev to open an issue and says the request and the answer
+# both sit on the record. That was true of the code and false of reality:
+# nothing ran the intake command, so an issue could sit open forever. A
+# promise on a public page that depends on someone remembering to run a
+# script locally is not a promise.
+#
+# Runs when an issue is opened or edited, and on a schedule so a submission
+# that arrived during an outage is retried rather than lost.
+name: intake
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+  schedule:
+    # Every six hours. A submission that failed on a transient RPC error is
+    # left open by `reply`, so the next run picks it up without anyone asking.
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  # Two runs measuring the same queue would both write pages and both try to
+  # push. Never cancel in progress: a half-finished run has already written
+  # evidence rows that the next run needs to see committed.
+  group: intake
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # No install step. The indexer is stdlib only, on purpose.
+
+      - name: Measure the queue
+        env:
+          # Every chain read goes through crowd-api, never a public endpoint
+          # directly -- provider selection, circuit breaking, and the
+          # method-level denials that stop a provider answering a signature
+          # query with an empty array instead of an error.
+          CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+        run: |
+          python -m indexer intake \
+            --repo "${{ github.repository }}" \
+            --evidence state/evidence.db \
+            --out web \
+            --site-url https://charlieprotocol.fun
+
+      - name: Commit what was measured
+        run: |
+          git config user.name  "charlie-intake"
+          git config user.email "needsmorergb@users.noreply.github.com"
+          git add web state
+          if git diff --cached --quiet; then
+            echo "nothing measured this run"
+            exit 0
+          fi
+          git commit -m "intake: measured submissions from the public queue"
+          git push
+
+      - name: Answer the issues
+        # Separate step, after the commit, because `reply` refuses to close an
+        # issue whose verdict link is not live yet -- and it cannot be live
+        # until the page above is pushed and deployed. A row it declines to
+        # answer is simply picked up by the next run.
+        #
+        # --answer-only, so this does not re-measure the whole queue just to
+        # reach the reply. Without it every observation is paid for twice.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+        run: |
+          python -m indexer intake \
+            --repo "${{ github.repository }}" \
+            --evidence state/evidence.db \
+            --out web \
+            --site-url https://charlieprotocol.fun \
+            --answer --answer-only
+
+      - name: Commit any reply state
+        run: |
+          git config user.name  "charlie-intake"
+          git config user.email "needsmorergb@users.noreply.github.com"
+          git add state
+          git diff --cached --quiet || git commit -m "intake: recorded answers"
+          git push || true
