@@ -60,23 +60,36 @@ MEANING = {
 }
 
 
-def _seed_bytes(seed: dict, resolved: dict, mint: str) -> bytes:
+def _seed_bytes(seed: dict, resolved: dict) -> bytes:
+    """One seed, resolved.
+
+    A seed path is either an account this instruction lists ("mint"), or a
+    FIELD of one ("bonding_curve.creator", which is how the creator vault is
+    derived). Both arrive as `kind: account`, so both are looked up in the
+    same map and the caller seeds it with the field values it has read.
+    """
     kind = seed.get("kind")
     if kind == "const":
         return bytes(seed.get("value") or [])
     if kind == "account":
         path = seed.get("path")
-        value = resolved.get(path) or (mint if path == "mint" else None)
+        value = resolved.get(path)
         if value is None:
             raise KeyError(f"seed refers to unresolved account {path!r}")
         return pubkey_bytes(value)
     raise KeyError(f"unsupported seed kind {kind!r}")
 
 
-def resolve_accounts(instruction: dict, program_id: str, mint: str) -> list[tuple[str, bool, bool]]:
+def resolve_accounts(
+    instruction: dict, program_id: str, mint: str, context: dict | None = None
+) -> list[tuple[str, bool, bool]]:
     """`(address, is_signer, is_writable)` for each account the IDL lists, in
-    the IDL's order, derived from the IDL's own seeds."""
-    resolved: dict[str, str] = {"mint": mint}
+    the IDL's order, derived from the IDL's own seeds.
+
+    `context` carries values a seed can reference that are not accounts of
+    this instruction, such as `bonding_curve.creator`.
+    """
+    resolved: dict[str, str] = {"mint": mint, **(context or {})}
     metas: list[tuple[str, bool, bool]] = []
     for account in instruction.get("accounts", []):
         name = account["name"]
@@ -90,7 +103,7 @@ def resolve_accounts(instruction: dict, program_id: str, mint: str) -> list[tupl
             owner = program_id
             if pda.get("program"):
                 owner = encode(bytes(pda["program"]["value"]))
-            seeds = [_seed_bytes(seed, resolved, mint) for seed in pda.get("seeds", [])]
+            seeds = [_seed_bytes(seed, resolved) for seed in pda.get("seeds", [])]
             address, _bump = find_program_address(seeds, owner)
         elif name == "system_program":
             address = SYSTEM_PROGRAM
@@ -155,7 +168,12 @@ def simulate(rpc, idl: dict, mint: str, *, payer: str, name: str = "distribute_c
     config = pump.read_sharing_config(rpc, curve)
     shareholders = [address for address, _bps in config.shareholders]
 
-    metas = resolve_accounts(instruction, pump.PUMP_PROGRAM, mint)
+    metas = resolve_accounts(
+        instruction,
+        pump.PUMP_PROGRAM,
+        mint,
+        context={"bonding_curve.creator": curve.creator},
+    )
     # Anchor remaining accounts. 6054 says they must be exactly the
     # shareholders, in the config's own order.
     metas = metas + [(address, False, True) for address in shareholders]
