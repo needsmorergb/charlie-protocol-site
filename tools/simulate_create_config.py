@@ -202,8 +202,21 @@ def _seed_bytes(seed: dict, resolved: dict) -> bytes:
 
 
 def resolve_accounts(instruction: dict, program_id: str, context: dict):
-    """`[(name, address, signer, writable)]` in the IDL's own order."""
-    resolved = dict(context)
+    """`[(name, address, signer, writable)]` in the IDL's own order.
+
+    Seeded before the walk, not during it: an ATA's seeds name
+    `token_program` and `quote_mint`, which appear LATER in the account list
+    than the ATA itself, so a strictly positional resolver fails on an
+    instruction whose account order is perfectly legal.
+    """
+    resolved = {}
+    for account in instruction.get("accounts", []):
+        name = account["name"]
+        if account.get("address"):
+            resolved[name] = account["address"]
+        elif name in WELL_KNOWN:
+            resolved[name] = WELL_KNOWN[name]
+    resolved.update(context)
     metas = []
     for account in instruction.get("accounts", []):
         name = account["name"]
@@ -355,7 +368,7 @@ def describe(program_id: str, idl: dict, instruction: dict) -> str:
     ]
     for position, account in enumerate(instruction.get("accounts", [])):
         flags = ("s" if account.get("signer") else "-") + ("w" if account.get("writable") else "-")
-        detail = ""
+        detail = "  OPTIONAL" if account.get("optional") else ""
         if account.get("address"):
             detail = f"  = {account['address']}"
         elif account.get("pda"):
@@ -395,7 +408,8 @@ def describe_event(idls: dict[str, dict], name: str) -> str:
 
 # -- the run --------------------------------------------------------------
 def simulate(rpc, idls, mint: str, *, payer: str | None, then_update: bool,
-             update_target: str | None) -> int:
+             update_target: str | None, as_account: str | None = None,
+             pool: str | None = None) -> int:
     curve_account = rpc.accounts([pump.bonding_curve(mint)])[0]
     curve = decode_curve(curve_account)
     creator = curve["creator"]
@@ -415,23 +429,36 @@ def simulate(rpc, idls, mint: str, *, payer: str | None, then_update: bool,
     if instruction is None:
         print("  create_fee_sharing_config is in NEITHER on-chain IDL")
         return 1
+    program_id_for_pool = program_id
 
+    # `pool` carries neither a fixed address nor PDA seeds in the IDL, and the
+    # fee-share program's own error 6019 says AMM accounts are required for
+    # GRADUATED coins -- so for a coin still on its bonding curve there is no
+    # pool, and Anchor's convention for an absent optional account is the
+    # program's own id. Overridable, and reported either way.
+    identity = as_account or creator
     context = {
         "mint": mint,
         "bonding_curve.creator": creator,
-        "creator": creator,
-        "payer": creator,
-        "user": creator,
-        "admin": creator,
-        "authority": creator,
-        "signer": creator,
-        "fee_payer": creator,
+        "creator": identity,
+        "payer": identity,
+        "user": identity,
+        "admin": identity,
+        "authority": identity,
+        "signer": identity,
+        "fee_payer": identity,
+        "pool": pool or program_id_for_pool,
     }
     try:
         metas = resolve_accounts(instruction, program_id, context)
     except KeyError as exc:
         print(f"  UNRESOLVED     {exc}")
         return 1
+    print(f"  acting as      {identity}"
+          + ("  (the coin's creator)" if identity == creator else "  (NOT the creator)"))
+    print(f"  pool account   {context['pool']}"
+          + ("  = the program id, Anchor's absent-optional-account convention"
+             if context["pool"] == program_id_for_pool else ""))
     data_args, notes = encode_args(instruction, idl, {})
     data = bytes(instruction["discriminator"]) + data_args
 
@@ -467,7 +494,7 @@ def simulate(rpc, idls, mint: str, *, payer: str | None, then_update: bool,
                 print(f"  chained        update_fee_shares_v2 -> {target} at 100%")
                 print(f"  update args    {update_notes}")
 
-    fee_payer = payer or creator
+    fee_payer = payer or identity
     blockhash = rpc.call("getLatestBlockhash", [{"commitment": "finalized"}])["value"]["blockhash"]
     message, signature_count, ordered = build_message(program_ixs, fee_payer, blockhash)
     unsigned = _compact_u16(signature_count) + b"\x00" * (64 * signature_count) + message
@@ -584,8 +611,15 @@ def main(argv=None) -> int:
     parser.add_argument("--rpc")
     parser.add_argument("--auto", action="store_true",
                         help="pick a freshly launched coin that has no config")
-    parser.add_argument("--auto-limit", type=int, default=20)
-    parser.add_argument("--payer", help="fee payer; defaults to the coin's creator")
+    parser.add_argument("--auto-limit", type=int, default=8)
+    parser.add_argument("--auto-scan", type=int, default=30)
+    parser.add_argument("--auto-delay", type=float, default=1.0)
+    parser.add_argument("--payer", help="fee payer; defaults to the acting identity")
+    parser.add_argument("--as", dest="as_account",
+                        help="act as this address instead of the coin's creator")
+    parser.add_argument("--pool", help="the AMM pool account, for a graduated coin")
+    parser.add_argument("--raw-idl", action="store_true",
+                        help="print the raw IDL JSON for the instruction")
     parser.add_argument("--then-update", action="store_true",
                         help="append update_fee_shares_v2 to the same transaction")
     parser.add_argument("--update-target", help="the 100%% share destination for the update")
@@ -603,6 +637,11 @@ def main(argv=None) -> int:
     if instruction is not None:
         print(describe(program_id, idl, instruction))
         print(describe_event(idls, "CreateFeeSharingConfigEvent"))
+        if args.raw_idl:
+            import json
+            print(json.dumps(instruction, indent=1))
+            for name in ("Shareholder", "ConfigStatus", "SharingConfig"):
+                print(f"type {name}: {json.dumps(type_def(idl, name))}")
     update_program, update_idl, update_ix = find_instruction(idls, "update_fee_shares_v2")
     if update_ix is not None:
         print(describe(update_program, update_idl, update_ix))
@@ -611,7 +650,7 @@ def main(argv=None) -> int:
     mints = list(args.mints)
     if args.auto:
         print("picking a freshly launched coin with no sharing config")
-        rows = sample(rpc, limit=args.auto_limit)
+        rows = sample(rpc, want=args.auto_limit, scan=args.auto_scan, delay=args.auto_delay)
         candidates = [
             row for row in rows
             if row.get("route") == "plain_creator" and row.get("creator_lamports", 0) > 0
@@ -634,6 +673,8 @@ def main(argv=None) -> int:
                 payer=args.payer,
                 then_update=args.then_update,
                 update_target=args.update_target,
+                as_account=args.as_account,
+                pool=args.pool,
             )
         except Exception as exc:                            # noqa: BLE001 - reported
             print(f"{mint}\n  unreadable     {type(exc).__name__}: {exc}")

@@ -31,6 +31,7 @@ import argparse
 import base64
 import os
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -39,7 +40,7 @@ from indexer import pump                                   # noqa: E402
 from indexer.base58 import decode, encode                  # noqa: E402
 from indexer.curve import find_program_address             # noqa: E402
 from indexer.enroll import sharing_config_address          # noqa: E402
-from indexer.rpc import DEFAULT_ENDPOINTS, RpcClient       # noqa: E402
+from indexer.rpc import DEFAULT_ENDPOINTS, RpcClient, RpcUnavailable   # noqa: E402
 from tools.idl_dump import read_idl                        # noqa: E402
 
 SYSTEM_PROGRAM = "11111111111111111111111111111111"
@@ -74,8 +75,15 @@ def _instructions(tx: dict):
             yield entry
 
 
-def launches(rpc, idl: dict, *, limit: int) -> list[dict]:
-    """`{mint, signature, block_time}` for the most recent `limit` launches."""
+def launches(rpc, idl: dict, *, want: int, scan: int, delay: float) -> list[dict]:
+    """`{mint, signature, block_time}` for the most recent launches.
+
+    `delay` paces the per-signature `getTransaction`. The project gateway
+    answers a burst of them with upstream HTTP 429, and a 429 is not an
+    answer about the chain -- a run that stopped there would report nothing
+    at all. So the walk is paced, a signature that still fails is SKIPPED and
+    counted, and the sample stops once `want` launches are in hand.
+    """
     instruction = create_instruction(idl)
     authority = const_pda(instruction, "mint_authority", pump.PUMP_PROGRAM)
     discriminator = bytes(instruction["discriminator"])
@@ -87,10 +95,21 @@ def launches(rpc, idl: dict, *, limit: int) -> list[dict]:
 
     found: list[dict] = []
     seen: set[str] = set()
-    for entry in rpc.signatures_for_address(authority, limit=limit):
+    skipped = 0
+    for position, entry in enumerate(rpc.signatures_for_address(authority, limit=scan)):
+        if len(found) >= want:
+            break
         if entry.get("err"):
             continue
-        tx = rpc.transaction(entry["signature"])
+        if position:
+            time.sleep(delay)
+        try:
+            tx = rpc.transaction(entry["signature"])
+        except RpcUnavailable as exc:
+            skipped += 1
+            print(f"  skipped      {entry['signature'][:16]}... {exc}")
+            time.sleep(delay * 2)
+            continue
         for candidate in _instructions(tx):
             if candidate.get("programId") != pump.PUMP_PROGRAM:
                 continue
@@ -117,6 +136,7 @@ def launches(rpc, idl: dict, *, limit: int) -> list[dict]:
                     "block_time": entry.get("blockTime"),
                 }
             )
+    print(f"  launches     {len(found)} read, {skipped} signatures skipped on RPC failure")
     return found
 
 
@@ -238,21 +258,23 @@ def endpoints_from(argument: str | None) -> tuple[str, ...]:
     return tuple(u.strip() for u in raw.split(",") if u.strip()) or DEFAULT_ENDPOINTS
 
 
-def sample(rpc, *, limit: int) -> list[dict]:
+def sample(rpc, *, want: int = 12, scan: int = 40, delay: float = 1.0) -> list[dict]:
     idl = read_idl(rpc, pump.PUMP_PROGRAM)
-    rows = launches(rpc, idl, limit=limit)
+    rows = launches(rpc, idl, want=want, scan=scan, delay=delay)
     return classify(rpc, rows)
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--rpc", help="comma-separated RPC endpoints (env CHARLIE_RPC_URLS)")
-    parser.add_argument("--limit", type=int, default=30, help="launch signatures to walk")
+    parser.add_argument("--limit", type=int, default=12, help="launches to read")
+    parser.add_argument("--scan", type=int, default=40, help="launch signatures to walk")
+    parser.add_argument("--delay", type=float, default=1.0, help="seconds between getTransaction")
     args = parser.parse_args(argv)
 
     rpc = RpcClient(endpoints_from(args.rpc))
     print("sampling pump launches")
-    rows = sample(rpc, limit=args.limit)
+    rows = sample(rpc, want=args.limit, scan=args.scan, delay=args.delay)
     print()
     print(render(rows))
     print()
