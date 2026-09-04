@@ -1,0 +1,57 @@
+# Is this repository running the same code as the one with the tests.
+#
+# This repository is what Vercel deploys. It carries a copy of the indexer
+# and the two API functions; `charlie-protocol-v1` carries the same files
+# plus 564 tests. Nothing generated the copy and nothing compared it, so the
+# two stayed in step only while somebody remembered.
+#
+# They stopped being in step. Found by comparing them for the first time:
+# `indexer/site.py` here had a whole section the other repository had never
+# seen, and `indexer/invariants.py` here had rewritten what a check means --
+# so the tests over there were passing against code nobody runs, and the code
+# that runs was tested by nothing.
+#
+# The list of files, and the comparison, come from the other repository at
+# the same ref, so there is one definition of "shared" rather than two.
+name: sync
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: sync-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Same branch where the source repository has it, main otherwise: a
+      # branch here that does not exist there is not drift.
+      - name: Compare against charlie-protocol-v1
+        run: |
+          branch="${{ github.head_ref || github.ref_name }}"
+          base="https://raw.githubusercontent.com/needsmorergb/charlie-protocol-v1"
+          if [ "$(curl -s -o /dev/null -w '%{http_code}' "${base}/${branch}/tools/shared_sync.py")" != "200" ]; then
+            echo "no ${branch} on charlie-protocol-v1; comparing against main"
+            branch=main
+          fi
+          mkdir -p tools
+          curl -sSf "${base}/${branch}/tools/shared_sync.py" -o tools/shared_sync.py
+          # Reads THIS checkout's files and fetches the other repository's, so
+          # a difference in either direction fails the run.
+          python tools/shared_sync.py \
+            --against-branch "$branch" \
+            --repo needsmorergb/charlie-protocol-v1

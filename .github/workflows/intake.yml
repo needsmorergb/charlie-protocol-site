@@ -65,11 +65,17 @@ jobs:
       #
       # It needs the chain, because the landing counters are an observation
       # rather than committed text, and this job is where the chain is.
+      #
+      # --require-counters is why this step can fail the run. Measured: with
+      # no endpoint reachable, the same command renders and writes a landing
+      # page whose six counters all read "unknown", reports success, and the
+      # commit step below pushes it. The flag makes that exit 1 instead, and
+      # the page already deployed stays up.
       - name: Regenerate the landing page
         env:
           CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
         run: |
-          python -m indexer site --write --landing \
+          python -m indexer site --write --landing --require-counters \
             --evidence state/evidence.db \
             --out web \
             8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump
