@@ -11,6 +11,7 @@ on:
     branches: [claude/charlie-posts-project-status-uyafps]
     paths:
       - "tools/fee_tiers.py"
+      - "tools/smoke_fixture_cashback.py"
       - ".github/workflows/fees.yml"
   workflow_dispatch:
 
@@ -34,3 +35,11 @@ jobs:
           python-version: "3.11"
       - name: The creator fee schedule
         run: python tools/fee_tiers.py
+
+      # The enrol preflight now refuses a coin whose bonding curve reports
+      # Trader Cashback true. scripts/smoke.py builds a real enrol
+      # transaction against one fixture coin on every deploy, so whether that
+      # fixture is a cashback coin decides whether the deploy check survives
+      # the change. Reads one account.
+      - name: Is the smoke fixture a cashback coin
+        run: python tools/smoke_fixture_cashback.py
