@@ -43,7 +43,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from indexer import pump                                    # noqa: E402
 from indexer.base58 import encode, pubkey_bytes             # noqa: E402
-from indexer.curve import find_program_address              # noqa: E402
+from indexer.curve import find_program_address, is_on_curve  # noqa: E402
 from indexer.rpc import RpcClient                           # noqa: E402
 from tools.idl_dump import read_idl                         # noqa: E402
 from tools.sample_new_coins import endpoints_from           # noqa: E402
@@ -578,10 +578,16 @@ def amm_side_census(rpc, idls, *, buckets: tuple[int, ...]) -> list[dict]:
         except Exception as exc:                            # noqa: BLE001 - reported
             print(f"  pool bucket 0x{byte:02x}: refused: {type(exc).__name__}: {exc}")
             continue
-        print(f"  pool bucket 0x{byte:02x}: {len(entries)} pool(s)")
+        short = 0
         for entry in entries:
             data = account_data(entry.get("account"))
-            if len(data) < POOL_BYTES:
+            # 243 bytes, not 245: `is_mayhem_mode` and `is_cashback_coin`
+            # were appended to Pool later, and a pool created before that is
+            # SHORTER. Requiring the full struct silently dropped 643 of 2764
+            # accounts in the first run of this -- the OLDEST pools, which are
+            # exactly the ones whose coin_creator is most likely to be stale.
+            if len(data) < POOL_COIN_CREATOR_OFFSET + 32:
+                short += 1
                 continue
             rows.append({
                 "pool": entry.get("pubkey"),
@@ -590,7 +596,10 @@ def amm_side_census(rpc, idls, *, buckets: tuple[int, ...]) -> list[dict]:
                 "coin_creator": encode(
                     data[POOL_COIN_CREATOR_OFFSET : POOL_COIN_CREATOR_OFFSET + 32]
                 ),
+                "pool_bytes": len(data),
             })
+        print(f"  pool bucket 0x{byte:02x}: {len(entries)} pool(s), "
+              f"{short} too short to carry a coin_creator at all")
     if not rows:
         return []
     # Does each pool's coin_creator happen to BE that coin's sharing config,
@@ -638,16 +647,28 @@ def enrol_graduated_probe(rpc, idls, rows: list[dict], *, payer: str) -> None:
     would otherwise fail for a reason that is not the one under test.
     """
     print("\n### 6019 -- enrolling a coin that has ALREADY graduated")
+    # The creating wallet signs and pays, so it has to BE a wallet. The first
+    # run of this picked a pool whose coin_creator is the zero pubkey -- the
+    # system program's address -- and the transaction died on
+    # ReadonlyLamportChange before pump was ever asked the question.
+    pool_candidates = [
+        r for r in rows
+        if not r.get("config_exists") and r.get("quote_mint") == WSOL_MINT
+        and r["coin_creator"] != SYSTEM_PROGRAM and is_on_curve(r["coin_creator"])
+    ][:40]
+    creators = batch_read(rpc, [r["coin_creator"] for r in pool_candidates],
+                          data_slice={"offset": 0, "length": 0})
     candidate = None
-    for row in rows:
-        if row.get("config_exists") or row.get("quote_mint") != WSOL_MINT:
-            continue
-        candidate = row
-        break
+    creator_account = None
+    for row, account in zip(pool_candidates, creators):
+        if account is not None and account.get("owner") == SYSTEM_PROGRAM \
+                and not account.get("executable"):
+            candidate, creator_account = row, account
+            break
     if candidate is None:
-        print("  no graduated, unenrolled, wSOL-quoted pool in the sample")
+        print("  no graduated, unenrolled, wSOL-quoted pool with a real wallet "
+              "creator in the sample")
         return
-    creator_account = read_accounts(rpc, [candidate["coin_creator"]])[0]
     print(f"  mint           {candidate['mint']}")
     print(f"  pool           {candidate['pool']}")
     print(f"  coin_creator   {candidate['coin_creator']}  "
