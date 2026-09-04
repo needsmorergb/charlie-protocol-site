@@ -121,8 +121,21 @@ jobs:
             echo "nothing measured this run"
             exit 0
           fi
+          # These pages carry the moment they were generated, and the
+          # landing page carries the moment it was observed, so the diff is
+          # never empty: every run commits at least a timestamp. That is
+          # accepted rather than filtered. A filter would have to tell a
+          # timestamp-only change from a real one, and each page is a single
+          # long line of HTML carrying both -- so the obvious filter (drop
+          # changed lines mentioning the timestamp) drops real changes with
+          # them, which is the one outcome worse than the churn.
           git commit -m "intake: measured submissions from the public queue"
-          git push
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME" && git push && exit 0
+            sleep $((attempt * 5))
+          done
+          echo "::error::what this run measured was not pushed"
+          exit 1
 
       - name: Answer the issues
         # Separate step, after the commit, because `reply` refuses to close an

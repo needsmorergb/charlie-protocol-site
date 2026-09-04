@@ -2,7 +2,7 @@
 #
 # This repository is what Vercel deploys. It carries a copy of the indexer
 # and the two API functions; `charlie-protocol-v1` carries the same files
-# plus 564 tests. Nothing generated the copy and nothing compared it, so the
+# plus the tests. Nothing generated the copy and nothing compared it, so the
 # two stayed in step only while somebody remembered.
 #
 # They stopped being in step. Found by comparing them for the first time:
