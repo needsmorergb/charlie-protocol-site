@@ -13,6 +13,19 @@
       "maxDuration": 20
     }
   },
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "(www\\.)?charlie-protocol\\.fun"
+        }
+      ],
+      "destination": "https://charlieprotocol.fun/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/verify",
