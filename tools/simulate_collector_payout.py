@@ -444,38 +444,53 @@ def describe_row(row: dict) -> str:
     )
 
 
-def discover(rpc, *, want: int, scan: int, delay: float) -> list[str]:
-    """Coins sampled from pump's own launch stream that already carry a
-    sharing config. Not from the fee-share program's accounts: enumerating
-    603k configs to find one is a response no gateway will serve."""
+def discover(rpc, *, want: int, scan: int, delay: float) -> tuple[list[str], list[dict]]:
+    """`(coins that already carry a config, coins that carry none)` from
+    pump's own launch stream.
+
+    Not from the fee-share program's accounts: enumerating 603k configs to
+    find one is a response no gateway will serve, and the launch stream is
+    the population the other tools here already sample.
+    """
     rows = sample(rpc, want=want, scan=scan, delay=delay)
-    shared = [r for r in rows if r.get("route") == "fee_share" and not r["curve"]["complete"]]
-    print(f"  launch sample: {len(shared)} of {len(rows)} carry a sharing config")
-    return [r["mint"] for r in shared]
+    live = [r for r in rows if not r["curve"]["complete"]]
+    shared = [r for r in live if r.get("route") == "fee_share"]
+    plain = [r for r in live if r.get("route") == "plain_creator"]
+    plain.sort(key=lambda r: r.get("creator_lamports", 0), reverse=True)
+    print(f"  launch sample: {len(shared)} of {len(rows)} carry a sharing config, "
+          f"{len(plain)} un-graduated coins carry none")
+    return [r["mint"] for r in shared], plain
 
 
 # -- the run --------------------------------------------------------------
-def recipient_shapes(rpc, row: dict, *, wallet: str | None, program_owned: str | None,
+# A wallet that is neither the fee payer nor the acting identity, so the
+# control's balance moves for exactly one reason. Observed live: system
+# owned, on curve, and already the 100% shareholder of two other coins.
+CONTROL_WALLET = "GYrPAaSNLuyrtAkwsC5pvBXekS15PCrXJcR1UAPkWxs6"
+
+
+def recipient_shapes(rpc, plan: dict, *, wallet: str | None, program_owned: str | None,
                      derive_under: str) -> list[tuple[str, str, str]]:
     """`(key, label, address)` for each shape under test.
 
-    (a) an ordinary existing system-owned wallet   -- the control
-    (b) an EXISTING program-owned, non-executable account
-    (c) a PDA that has never been funded           -- `collector(mint)` today
+    (a)  an ordinary existing system-owned wallet -- the control
+    (b)  an EXISTING program-owned account that is not executable
+    (b2) the same, owned by a second program, so the answer is not a fact
+         about one program
+    (c)  a PDA that has never been funded -- `collector(mint)` today
+    (x)  the pump program itself -- the executable control, which must fail
     """
-    mint = row["mint"]
+    mint = plan["mint"]
+    excluded = {plan["identity"], plan["payer"], plan["vault"], plan["config"]}
     shapes: list[tuple[str, str, str]] = []
 
-    candidate_wallets = [wallet] if wallet else []
-    candidate_wallets += [row["admin"]]
-    chosen_wallet = None
-    for address in [a for a in candidate_wallets if a]:
+    for address in [a for a in (wallet, CONTROL_WALLET, plan["identity"]) if a]:
+        if address in excluded:
+            continue
         account = read_accounts(rpc, [address])[0]
         if account and account.get("owner") == SYSTEM_PROGRAM and not account.get("executable"):
-            chosen_wallet = address
+            shapes.append(("a", "ordinary existing system-owned wallet", address))
             break
-    if chosen_wallet:
-        shapes.append(("a", "ordinary existing system-owned wallet", chosen_wallet))
     else:
         print("  (a) no system-owned wallet available -- the control is not scored")
 
@@ -489,26 +504,24 @@ def recipient_shapes(rpc, row: dict, *, wallet: str | None, program_owned: str |
                 [b"sharing-config", pubkey_bytes(other)], pump.PUMP_FEE_SHARE_PROGRAM
             )[0]
             account = read_accounts(rpc, [address])[0]
-            if account and not account.get("executable") and account.get("owner") not in (
-                SYSTEM_PROGRAM, None
-            ):
+            if (account and not account.get("executable")
+                    and account.get("owner") == pump.PUMP_FEE_SHARE_PROGRAM
+                    and address not in excluded):
                 shapes.append(
-                    ("b", f"existing PDA owned by {account['owner'][:8]}..., not executable",
+                    ("b", "existing PDA owned by the fee-share program, not executable",
                      address)
                 )
                 break
         else:
             print("  (b) no existing program-owned account found -- not scored")
 
-    # (b2) a second program owner, so the answer is not a fact about one
-    # program. A bonding curve is owned by pump itself and is not executable.
     for other in KNOWN_CONFIGURED:
         if other == mint:
             continue
         address = pump.bonding_curve(other)
         account = read_accounts(rpc, [address])[0]
-        if account and not account.get("executable"):
-            shapes.append(("b2", f"existing PDA owned by pump ({address[:8]}...)", address))
+        if account and not account.get("executable") and address not in excluded:
+            shapes.append(("b2", "existing PDA owned by pump itself, not executable", address))
             break
 
     shapes.append(
@@ -519,64 +532,122 @@ def recipient_shapes(rpc, row: dict, *, wallet: str | None, program_owned: str |
     return shapes
 
 
-def probe_minimum(rpc, idls, row, *, payer: str, top_up: int) -> None:
-    """pump's own floor for THIS coin, in pump's own words."""
-    mint, creator, config = row["mint"], row["creator"], row["config"].address
-    vault = row["vault"]
+# -- plans ----------------------------------------------------------------
+def existing_plan(row: dict, payer: str) -> dict:
+    """A coin whose config exists and whose one-shot is still unspent."""
+    return {
+        "mode": "existing",
+        "mint": row["mint"],
+        "identity": row["admin"],        # update_fee_shares_v2's `authority`
+        "config": row["config"].address,
+        "curve_creator": row["creator"],  # what bonding_curve.creator says NOW
+        "vault": row["vault"],
+        "payer": payer,
+        "vault_lamports": row["vault_lamports"],
+    }
+
+
+def create_plan(row: dict, payer: str) -> dict:
+    """A coin with NO config: the config is created in the same transaction.
+
+    Every freshly launched coin that arrives WITH a config arrives with its
+    one-shot already spent -- ten of ten in the sample -- so the only way to
+    hold an unspent one-shot is to create the config here. After
+    `create_fee_sharing_config` the bonding curve's creator IS the config
+    PDA, which is what the creator vault is keyed by, so the vault under test
+    is the config's, not the wallet's.
+    """
+    mint = row["mint"]
+    config = find_program_address(
+        [b"sharing-config", pubkey_bytes(mint)], pump.PUMP_FEE_SHARE_PROGRAM
+    )[0]
+    return {
+        "mode": "create",
+        "mint": mint,
+        "identity": row["curve"]["creator"],   # the wallet; becomes payer and admin
+        "config": config,
+        "curve_creator": config,               # AFTER the create instruction
+        "vault": creator_vault(config),
+        "payer": payer,
+        "vault_lamports": 0,
+        "creator_lamports": row.get("creator_lamports", 0),
+    }
+
+
+def create_config_instruction(idls, plan: dict):
+    program_id, idl, entry = find_instruction(idls, "create_fee_sharing_config")
+    if entry is None:
+        raise LookupError("create_fee_sharing_config is in neither on-chain IDL")
+    context = context_for(plan["mint"], plan["identity"], plan["identity"], plan["config"])
+    # The fee-share program's own 6019 says AMM accounts are required for
+    # GRADUATED coins, so a coin still on its bonding curve has no pool, and
+    # Anchor's convention for an absent optional account is the program id.
+    context["pool"] = program_id
+    metas = resolve_accounts(entry, program_id, context)
+    return (program_id, metas, bytes(entry["discriminator"]))
+
+
+def prelude(idls, plan: dict) -> list:
+    """The instructions that must run before anything can be distributed."""
+    return [create_config_instruction(idls, plan)] if plan["mode"] == "create" else []
+
+
+def probe_minimum(rpc, idls, plan: dict, *, top_up: int, verbose_logs: bool) -> None:
+    """pump's own floor for THIS coin, in pump's own words, with and without
+    the top-up -- so the floor is never an unexamined explanation."""
     for amount in (0, top_up):
-        ixs = []
+        ixs = prelude(idls, plan)
         if amount:
-            ixs.append(transfer_instruction(payer, vault, amount))
-        ixs.append(minimum_instruction(idls, mint, creator, config, payer))
-        outcome = run(rpc, idls, ixs, payer=payer, watch=[vault],
+            ixs.append(transfer_instruction(plan["payer"], plan["vault"], amount))
+        ixs.append(
+            minimum_instruction(idls, plan["mint"], plan["curve_creator"], plan["config"],
+                                plan["identity"])
+        )
+        outcome = run(rpc, idls, ixs, payer=plan["payer"], watch=[plan["vault"]],
                       label=f"minimum top_up={amount}")
         print(f"\n  get_minimum_distributable_fee   vault top-up {amount} lamports")
-        print_result(idls, outcome, recipient=None, vault=vault, verbose_logs=False)
+        print_result(idls, outcome, recipient=None, vault=plan["vault"],
+                     verbose_logs=verbose_logs)
 
 
-def case(rpc, idls, row, *, key: str, label: str, recipient: str, payer: str, top_up: int,
-         with_update: bool, verbose_logs: bool) -> dict:
-    mint, creator = row["mint"], row["creator"]
-    config = row["config"].address
-    vault = row["vault"]
-
+def case(rpc, idls, plan: dict, *, key: str, label: str, recipient: str, top_up: int,
+         verbose_logs: bool) -> dict:
+    vault = plan["vault"]
     account = read_accounts(rpc, [recipient])[0]
     print(f"\n=== ({key}) {label}")
     print(f"  recipient      {recipient}")
     print(f"  shape          {shape_of(recipient, account)}")
 
-    ixs = []
-    if top_up:
-        ixs.append(transfer_instruction(payer, vault, top_up))
-    shares_note = "config's existing shareholders (no update)"
-    recipients = [recipient]
-    if with_update:
-        try:
-            update_ix, notes, shares = update_instruction(
-                idls, mint, creator, config, row["admin"], recipients
-            )
-        except (KeyError, ValueError, LookupError) as exc:
-            print(f"  UNRESOLVED     update_fee_shares_v2: {exc}")
-            return {"key": key, "label": label, "recipient": recipient,
-                    "verdict": f"UNRESOLVED {exc}"}
-        ixs.append(update_ix)
-        shares_note = f"update_fee_shares_v2 -> {[(s['address'], s['share_bps']) for s in shares]}"
-    else:
-        recipients = [address for address, _bps in row["shareholders"]]
     try:
-        ixs.append(distribute_instruction(idls, mint, creator, config, payer, recipients))
+        ixs = prelude(idls, plan)
+        update_ix, notes, shares = update_instruction(
+            idls, plan["mint"], plan["curve_creator"], plan["config"], plan["identity"],
+            [recipient],
+        )
+        ixs.append(update_ix)
+        # AFTER the update, never before. `update_fee_shares_v2` CPIs into
+        # pump's DistributeCreatorFeesV2 to flush the vault to the OUTGOING
+        # shareholders first -- measured, in the logs of the run that put the
+        # transfer first -- so a vault funded ahead of it is paid to the old
+        # split and the instruction under test finds an empty vault.
+        if top_up:
+            ixs.append(transfer_instruction(plan["payer"], vault, top_up))
+        ixs.append(
+            distribute_instruction(idls, plan["mint"], plan["curve_creator"], plan["config"],
+                                   plan["identity"], [recipient])
+        )
     except (KeyError, ValueError, LookupError) as exc:
-        print(f"  UNRESOLVED     distribute_creator_fees: {exc}")
+        print(f"  UNRESOLVED     {type(exc).__name__}: {exc}")
         return {"key": key, "label": label, "recipient": recipient,
                 "verdict": f"UNRESOLVED {exc}"}
 
-    print(f"  shares         {shares_note}")
-    print(f"  instructions   {len(ixs)}"
-          + ("  [transfer, update, distribute]" if top_up and with_update
-             else "  [transfer, distribute]" if top_up
-             else "  [update, distribute]" if with_update else "  [distribute]"))
-    outcome = run(rpc, idls, ixs, payer=payer, watch=[recipient, vault] + recipients,
-                  label=label)
+    order = (["create_fee_sharing_config"] if plan["mode"] == "create" else []) \
+        + ["update_fee_shares_v2"] + (["transfer"] if top_up else []) \
+        + ["distribute_creator_fees"]
+    print(f"  instructions   {order}")
+    print(f"  shares         {[(s['address'], s['share_bps']) for s in shares]}")
+    outcome = run(rpc, idls, ixs, payer=plan["payer"],
+                  watch=[recipient, vault, plan["identity"]], label=label)
     print_result(idls, outcome, recipient=recipient, vault=vault, verbose_logs=verbose_logs)
     distributed = distributed_from(outcome)
     answer = verdict(outcome, recipient, distributed)
@@ -627,18 +698,17 @@ def incinerator_case(rpc, idls, mint: str, *, payer: str, top_up: int, verbose_l
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("mints", nargs="*", help="coins to test; the first usable one is used")
+    parser.add_argument("mints", nargs="*", help="coins to try before the launch stream")
     parser.add_argument("--rpc")
     parser.add_argument("--payer", default=DEFAULT_PAYER)
     parser.add_argument("--auto", action="store_true",
-                        help="also sample pump's launch stream for a usable coin")
+                        help="sample pump's launch stream for a usable coin")
     parser.add_argument("--auto-limit", type=int, default=25)
     parser.add_argument("--auto-scan", type=int, default=60)
     parser.add_argument("--auto-delay", type=float, default=0.6)
     parser.add_argument("--top-up", type=int, default=DEFAULT_TOP_UP,
                         help="lamports transferred into the creator vault in the same "
                              "transaction, so pump's floor cannot explain a zero")
-    parser.add_argument("--coins", type=int, default=1, help="usable coins to test")
     parser.add_argument("--wallet", help="the (a) control recipient")
     parser.add_argument("--program-owned", help="the (b) recipient")
     parser.add_argument("--derive-under", default=pump.PUMP_FEE_SHARE_PROGRAM,
@@ -661,8 +731,6 @@ def main(argv=None) -> int:
     print(f"fee payer        {args.payer}")
     print(f"  shape          {shape_of(args.payer, payer_account)}")
     print(f"  lamports       {lamports_of(payer_account)}")
-    if lamports_of(payer_account) < args.top_up + 10_000_000:
-        print("  WARNING: payer may not cover the top-up")
     print(f"  top-up         {args.top_up} lamports into the creator vault "
           f"(rent-exempt minimum for an empty account is {RENT_EXEMPT_EMPTY})")
 
@@ -679,14 +747,17 @@ def main(argv=None) -> int:
             except Exception as exc:                        # noqa: BLE001 - reported
                 print(f"  incinerator test unreadable: {type(exc).__name__}: {exc}")
 
-    candidates = list(args.mints)
+    configured = list(args.mints)
+    unconfigured: list[dict] = []
     if args.auto:
-        candidates += discover(rpc, want=args.auto_limit, scan=args.auto_scan,
-                               delay=args.auto_delay)
+        found, unconfigured = discover(rpc, want=args.auto_limit, scan=args.auto_scan,
+                                       delay=args.auto_delay)
+        configured += found
 
-    print(f"\n### candidate funnel -- {len(candidates)} coin(s)")
-    usable = []
-    for mint in candidates:
+    print(f"\n### funnel A -- {len(configured)} coin(s) that already have a config")
+    print("  a usable one has admin_revoked false: the one-shot update is still unspent")
+    plan = None
+    for mint in configured:
         try:
             row = inspect(rpc, mint)
         except Exception as exc:                            # noqa: BLE001 - reported
@@ -694,50 +765,47 @@ def main(argv=None) -> int:
             continue
         print(describe_row(row))
         if row.get("usable"):
-            usable.append(row)
-        if len(usable) >= args.coins:
+            plan = existing_plan(row, args.payer)
             break
 
-    if not usable:
-        print("\nNO USABLE COIN: need a config with admin_revoked false, status Active, "
-              "and an un-graduated curve. The recipient question is UNRESOLVED, not answered.")
+    if plan is None:
+        print(f"\n### funnel B -- {len(unconfigured)} coin(s) with NO config")
+        print("  none of the configured coins had an unspent one-shot, so the config is")
+        print("  created in the same transaction, which is where an unspent one-shot")
+        print("  demonstrably exists (`--then-update` measured that on 2026-09-03).")
+        # The config account costs 8017920 lamports of rent and the creating
+        # wallet pays it, so a creator that cannot afford its own config is
+        # not a candidate.
+        for row in unconfigured:
+            funds = row.get("creator_lamports", 0)
+            print(f"  {row['mint']}  creator={row['curve']['creator']} lamports={funds}")
+            if funds >= 15_000_000:
+                plan = create_plan(row, args.payer)
+                break
+
+    if plan is None:
+        print("\nNO USABLE COIN. The recipient question is UNRESOLVED, not answered.")
         return 1
 
-    for row in usable:
-        print(f"\n### {row['mint']}   config {row['config'].address}   "
-              f"admin {row['admin']}   one-shot unspent")
-        probe_minimum(rpc, idls, row, payer=args.payer, top_up=args.top_up)
+    print(f"\n### {plan['mint']}   mode={plan['mode']}")
+    print(f"  config         {plan['config']}")
+    print(f"  admin/identity {plan['identity']}")
+    print(f"  creator vault  {plan['vault']}  natural lamports {plan['vault_lamports']}")
+    probe_minimum(rpc, idls, plan, top_up=args.top_up, verbose_logs=args.logs)
 
-        # The update alone, so a vault emptied by the update itself cannot be
-        # mistaken for a distribution that paid nothing.
-        print("\n=== baseline: update_fee_shares_v2 alone, no distribution")
-        control = row["admin"]
+    for key, label, recipient in recipient_shapes(
+        rpc, plan, wallet=args.wallet, program_owned=args.program_owned,
+        derive_under=args.derive_under
+    ):
         try:
-            update_ix, _notes, _shares = update_instruction(
-                idls, row["mint"], row["creator"], row["config"].address, row["admin"], [control]
+            summary.append(
+                case(rpc, idls, plan, key=key, label=label, recipient=recipient,
+                     top_up=args.top_up, verbose_logs=args.logs)
             )
-            ixs = [transfer_instruction(args.payer, row["vault"], args.top_up), update_ix]
-            outcome = run(rpc, idls, ixs, payer=args.payer,
-                          watch=[row["vault"], control], label="update only")
-            print_result(idls, outcome, recipient=None, vault=row["vault"],
-                         verbose_logs=args.logs)
         except Exception as exc:                            # noqa: BLE001 - reported
-            print(f"  baseline unreadable: {type(exc).__name__}: {exc}")
-
-        for key, label, recipient in recipient_shapes(
-            rpc, row, wallet=args.wallet, program_owned=args.program_owned,
-            derive_under=args.derive_under
-        ):
-            try:
-                summary.append(
-                    case(rpc, idls, row, key=key, label=label, recipient=recipient,
-                         payer=args.payer, top_up=args.top_up, with_update=True,
-                         verbose_logs=args.logs)
-                )
-            except Exception as exc:                        # noqa: BLE001 - reported
-                print(f"  ({key}) unreadable: {type(exc).__name__}: {exc}")
-                summary.append({"key": key, "label": label, "recipient": recipient,
-                                "verdict": f"UNREADABLE {type(exc).__name__}: {exc}"})
+            print(f"  ({key}) unreadable: {type(exc).__name__}: {exc}")
+            summary.append({"key": key, "label": label, "recipient": recipient,
+                            "verdict": f"UNREADABLE {type(exc).__name__}: {exc}"})
 
     print("\n### SUMMARY")
     for entry in summary:
