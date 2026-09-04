@@ -42,6 +42,17 @@ jobs:
           python-version: "3.11"
       # No install step. The indexer is stdlib only, on purpose.
 
+      # The evidence store this repository commits is an empty `.db`: the
+      # `.db` is a cache and the record is the committed text export, which
+      # until now only the other repository loaded. Measured on a real run of
+      # this job: with the chain reachable and the store empty, five of the
+      # six landing counters came out "unknown", because they are read from
+      # the walk rather than from the chain.
+      #
+      # Idempotent, so the schedule does not accumulate duplicate burn rows.
+      - name: Load the committed evidence export
+        run: python -m indexer load --db state/evidence.db --source state/evidence
+
       - name: Measure the queue
         env:
           # Every chain read goes through crowd-api, never a public endpoint
