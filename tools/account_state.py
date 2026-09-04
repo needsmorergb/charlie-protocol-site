@@ -6,11 +6,21 @@ rather than on the payer:
     6052  UnableToDistributeCreatorFeesToExecutableRecipient
     6070  UnableToDistributeCreatorFeesToUninitializedAccount
 
-Both matter to a protocol that routes fees to keyless addresses. A shareholder
-that does not exist yet, or that is a program rather than a program-owned
-account, makes `distribute_creator_fees` fail -- and it pays every shareholder
-in one instruction, so one bad recipient blocks the whole coin's distribution,
-the dev's own share included.
+Only ONE of them is real for our purposes, and this file used to claim the
+wrong one. Simulated on mainnet 2026-09-03 against four recipient shapes,
+each verified by the lamports that moved rather than by the absence of an
+error: an ordinary wallet, a non-executable PDA owned by the fee-share
+program, a non-executable PDA owned by pump, and a PDA that DOES NOT EXIST
+were all paid 49,189,376 lamports. Only the pump program itself, an
+executable account, was refused:
+
+    Unable to distribute to 6EF8rrec... Shareholder is a program account
+    Error Code: UnableToDistributeCreatorFeesToExecutableRecipient. 6052.
+
+So `6070` did not fire on anything, including an account with no existence
+at all, and the guard keys on `executable` rather than on ownership. A
+keyless destination does not need to exist before a coin routes to it, which
+is what makes the incinerator payable and a collector PDA payable too.
 
 This prints the state that decides it.
 
@@ -40,8 +50,8 @@ def describe(address: str, account: dict | None) -> str:
     if account is None:
         return (
             f"{address}\n"
-            "  state          UNINITIALIZED -- does not exist\n"
-            "  distribution   would FAIL with 6070 if named as a shareholder"
+            "  state          does not exist, so it has never held a lamport\n"
+            "  distribution   eligible: a non-existent recipient is PAID, measured"
         )
     executable = bool(account.get("executable"))
     lamports = account.get("lamports")
@@ -54,7 +64,7 @@ def describe(address: str, account: dict | None) -> str:
         f"  keyless        {not is_on_curve(address)}",
     ]
     if executable:
-        lines.append("  distribution   would FAIL with 6052 (executable recipient)")
+        lines.append("  distribution   would FAIL with 6052, the one refusal there is")
     else:
         lines.append("  distribution   recipient is eligible")
     return "\n".join(lines)
