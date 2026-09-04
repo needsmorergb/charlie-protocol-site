@@ -173,29 +173,6 @@ def decode_pool(idls, account) -> dict | None:
     return out
 
 
-def read_curve(rpc, mint: str) -> dict | None:
-    address = pump.bonding_curve(mint)
-    account = read_accounts(rpc, [address])[0]
-    if not account or account.get("owner") != pump.PUMP_PROGRAM:
-        return None
-    data = account_data(account)
-    if len(data) <= CURVE_CREATOR_OFFSET + 32:
-        return None
-    quote = WSOL_MINT
-    if len(data) >= CURVE_QUOTE_MINT_OFFSET + 32:
-        candidate = encode(data[CURVE_QUOTE_MINT_OFFSET : CURVE_QUOTE_MINT_OFFSET + 32])
-        if candidate != "11111111111111111111111111111111":
-            quote = candidate
-    return {
-        "mint": mint,
-        "bonding_curve": address,
-        "graduated": bool(data[CURVE_COMPLETE_OFFSET]),
-        "creator": encode(data[CURVE_CREATOR_OFFSET : CURVE_CREATOR_OFFSET + 32]),
-        "quote_mint": quote,
-        "bytes": len(data),
-    }
-
-
 # -- Q5: the population ---------------------------------------------------
 def sample_population(rpc, *, buckets: tuple[int, ...]) -> dict:
     """An unbiased slice of every sharing config on chain.
@@ -235,12 +212,14 @@ def sample_population(rpc, *, buckets: tuple[int, ...]) -> dict:
                 # More than one shareholder: the slice cut the vec short. The
                 # mint and the header are still exact, and the mint is all
                 # this census needs.
-                rows.append({"config": address, "mint": exc.mint, "truncated": True})
+                rows.append({"config": address, "mint": exc.mint, "truncated": True,
+                             "bucket": byte})
                 continue
             except pump.DecodeError:
                 continue
             rows.append({
                 "config": address, "mint": config.mint, "truncated": False,
+                "bucket": byte,
                 "status": config.status, "admin": config.admin,
                 "admin_revoked": config.admin_revoked,
                 "shareholders": config.shareholders,
@@ -286,35 +265,82 @@ def census(rpc, sampled: dict) -> dict:
                 graduated_rows.append(row)
             else:
                 live += 1
+    # Per bucket, because the buckets disagreed on SIZE the first time this
+    # ran (1955 against 2942), which means the mint's first byte is not the
+    # uniform coin flip the sampler assumed. Sizes differing does not bias
+    # the graduated FRACTION unless graduation correlates with that byte --
+    # and the only way to see whether it does is to print the fraction per
+    # bucket and let the reader compare them.
+    by_bucket: dict[int, list[int]] = {}
+    for row in rows:
+        if row.get("graduated") is None:
+            continue
+        entry = by_bucket.setdefault(row.get("bucket"), [0, 0])
+        entry[0] += 1
+        entry[1] += 1 if row["graduated"] else 0
     return {
         "counted": graduated + live, "graduated": graduated, "live": live,
         "missing": missing, "creator_is_config": creator_is_config,
-        "graduated_rows": graduated_rows,
+        "graduated_rows": graduated_rows, "by_bucket": by_bucket,
     }
 
 
 # -- Q2: where the AMM sends a graduated coin's fee -----------------------
+def batch_read(rpc, addresses: list[str], *, data_slice: dict | None = None) -> list:
+    """`getMultipleAccounts` in chunks of 100. One round trip per hundred
+    accounts instead of one per account -- the difference between a run that
+    finishes and a run that times out against a rate-limited gateway."""
+    out: list = []
+    for start in range(0, len(addresses), 100):
+        chunk = addresses[start : start + 100]
+        options = {"encoding": "base64", "commitment": "processed"}
+        if data_slice is not None:
+            options["dataSlice"] = data_slice
+        result = rpc.call("getMultipleAccounts", [chunk, options])
+        values = list((result or {}).get("value") or [])
+        values.extend([None] * (len(chunk) - len(values)))
+        out.extend(values[: len(chunk)])
+    return out
+
+
 def pool_report(rpc, idls, rows: list[dict], *, limit: int) -> list[dict]:
     """For each graduated coin: the pool, its `coin_creator`, and whether
     that address is the coin's sharing config. Plus the AMM-side vault the
-    fee actually sits in and how much is in it right now."""
-    out = []
-    for row in rows[:limit]:
-        mint = row["mint"]
-        curve = read_curve(rpc, mint)
-        if curve is None:
+    fee actually sits in and how much is in it right now.
+
+    Four batched round trips for the whole set, not four per coin.
+    """
+    rows = rows[:limit]
+    if not rows:
+        return []
+
+    # 1. bonding curves, sliced from `complete` through `quote_mint`.
+    curves = batch_read(
+        rpc, [pump.bonding_curve(r["mint"]) for r in rows],
+        data_slice={"offset": CURVE_COMPLETE_OFFSET,
+                    "length": CURVE_QUOTE_MINT_OFFSET - CURVE_COMPLETE_OFFSET + 32},
+    )
+    for row, account in zip(rows, curves):
+        data = account_data(account)
+        if len(data) < 33:
             row["pool_note"] = "bonding curve unreadable"
-            out.append(row)
             continue
-        pool = canonical_pool(mint, curve["quote_mint"])
-        account = read_accounts(rpc, [pool])[0]
-        row["quote_mint"] = curve["quote_mint"]
-        row["curve_creator"] = curve["creator"]
-        row["graduated"] = curve["graduated"]
-        row["pool"] = pool
+        row["graduated"] = bool(data[0])
+        row["curve_creator"] = encode(data[1:33])
+        quote = WSOL_MINT
+        if len(data) >= 67:
+            candidate = encode(data[35:67])
+            if candidate != SYSTEM_PROGRAM:
+                quote = candidate
+        row["quote_mint"] = quote
+        row["pool"] = canonical_pool(row["mint"], quote)
+
+    # 2. the pools themselves.
+    have_pool = [r for r in rows if r.get("pool")]
+    pools = batch_read(rpc, [r["pool"] for r in have_pool])
+    for row, account in zip(have_pool, pools):
         if not account or account.get("owner") != pump.PUMP_AMM_PROGRAM:
-            row["pool_note"] = f"no canonical pool at {pool}"
-            out.append(row)
+            row["pool_note"] = f"no canonical pool at {row['pool']}"
             continue
         decoded = decode_pool(idls, account) or {}
         row["pool_creator"] = decoded.get("creator")
@@ -322,19 +348,24 @@ def pool_report(rpc, idls, rows: list[dict], *, limit: int) -> list[dict]:
         row["pool_base_mint"] = decoded.get("base_mint")
         row["pool_quote_mint"] = decoded.get("quote_mint")
         row["coin_creator_is_config"] = row.get("coin_creator") == row["config"]
-        row["coin_creator_is_curve_creator"] = row.get("coin_creator") == curve["creator"]
-        if row.get("coin_creator"):
-            authority = amm_vault_authority(row["coin_creator"])
-            vault_ata = ata(authority, row["quote_mint"])
-            row["amm_vault_authority"] = authority
-            row["amm_vault_ata"] = vault_ata
-            row["pump_creator_vault"] = creator_vault(row["coin_creator"])
-            accounts = read_accounts(rpc, [vault_ata, row["pump_creator_vault"]])
-            row["amm_vault_wsol"] = token_amount(accounts[0])
-            row["amm_vault_ata_exists"] = accounts[0] is not None
-            row["pump_vault_lamports"] = lamports_of(accounts[1])
-        out.append(row)
-    return out
+        row["coin_creator_is_curve_creator"] = (
+            row.get("coin_creator") == row.get("curve_creator")
+        )
+
+    # 3. the two vaults the fee can be sitting in, for whichever address the
+    #    pool actually names -- NOT for the config we hoped it would name.
+    live = [r for r in rows if r.get("coin_creator")]
+    for row in live:
+        row["amm_vault_authority"] = amm_vault_authority(row["coin_creator"])
+        row["amm_vault_ata"] = ata(row["amm_vault_authority"], row["quote_mint"])
+        row["pump_creator_vault"] = creator_vault(row["coin_creator"])
+    atas = batch_read(rpc, [r["amm_vault_ata"] for r in live])
+    vaults = batch_read(rpc, [r["pump_creator_vault"] for r in live])
+    for row, ata_account, vault_account in zip(live, atas, vaults):
+        row["amm_vault_wsol"] = token_amount(ata_account)
+        row["amm_vault_ata_exists"] = ata_account is not None
+        row["pump_vault_lamports"] = lamports_of(vault_account)
+    return rows
 
 
 def print_pool_row(row: dict) -> None:
@@ -515,19 +546,121 @@ def measure_coin(rpc, idls, row: dict, *, payer: str, top_up: int) -> None:
              label="THE CRANK: transfer_creator_fees_to_pump THEN distribute_creator_fees")
 
 
+def starvation_check(rpc, idls, rows: list[dict], *, payer: str, limit: int) -> None:
+    """The failure mode, on coins where it is currently live.
+
+    A graduated coin's fee accrues in the AMM's wSOL vault, not in pump's
+    `creator-vault`. So the crank as designed -- `distribute_creator_fees`
+    alone -- runs against an EMPTY pump vault: it returns success, emits its
+    event, and pays the shareholders nothing. Nothing errors. Nothing is
+    logged as wrong. The money is simply somewhere else.
+
+    Two simulations per coin, on the same accounts in the same minute:
+    distribute alone, then transfer-and-distribute. The pair is the whole
+    argument -- the second number is what the first one was supposed to be.
+    """
+    print("\n### Q1 -- distribute alone against transfer-then-distribute, "
+          "on coins with money waiting in the AMM")
+    candidates = [
+        r for r in rows
+        if r.get("coin_creator") and (r.get("amm_vault_wsol") or 0) > 0
+    ]
+    candidates.sort(key=lambda r: (r.get("pump_vault_lamports") or 0))
+    configs = batch_read(rpc, [r["config"] for r in candidates[: limit * 3]])
+    done = 0
+    for row, account in zip(candidates, configs):
+        try:
+            config = pump.decode_sharing_config(row["config"], account)
+        except Exception:                                   # noqa: BLE001
+            continue
+        holders = [a for a, _bps in config.shareholders]
+        if not holders:
+            continue
+        vault = row["pump_creator_vault"]
+        ata_address = row["amm_vault_ata"]
+        distribute = distribute_instruction(idls, row, payer, holders)
+        transfer_ix, _entry = amm_transfer_instruction(idls, row, payer)
+        watch = [vault, ata_address] + holders
+        alone = run(rpc, idls, [distribute], payer=payer, watch=watch, label="alone")
+        both = run(rpc, idls, [transfer_ix, distribute], payer=payer, watch=watch,
+                   label="both")
+
+        def paid(outcome):
+            if outcome["err"] is not None:
+                return None
+            return sum(outcome["after"].get(h, 0) - outcome["before"].get(h, 0)
+                       for h in holders)
+
+        print(f"  {row['mint']}")
+        print(f"    pump creator-vault {row.get('pump_vault_lamports')} lamports   "
+              f"AMM vault {row.get('amm_vault_wsol')} wSOL   "
+              f"{len(holders)} shareholder(s)")
+        print(f"    distribute alone              err={alone['err']}   "
+              f"shareholders {paid(alone)}")
+        print(f"    transfer THEN distribute      err={both['err']}   "
+              f"shareholders {paid(both)}")
+        done += 1
+        if done >= limit:
+            break
+    if not done:
+        print("  no graduated coin with a positive AMM vault was reachable")
+
+
+def floor_sweep(rpc, idls, rows: list[dict], *, payer: str, limit: int) -> None:
+    """Q4's second half: does the AMM-side transfer have a floor of its own?
+
+    One simulation per coin, the transfer ALONE, across the whole spread of
+    AMM vault balances the sample happens to contain -- smallest first, so
+    the smallest balance that still moves is visible rather than assumed.
+    An instruction with a floor returns success and moves nothing below it,
+    which is exactly what pump's own distribution does, so `err is None` is
+    not the measurement. The wSOL delta is.
+    """
+    print("\n### Q4b -- the AMM transfer against a spread of vault balances")
+    print("  wSOL in    -> lamports into pump's creator-vault, transfer alone")
+    candidates = [r for r in rows if r.get("coin_creator") and r.get("amm_vault_ata_exists")]
+    candidates.sort(key=lambda r: (r.get("amm_vault_wsol") or 0))
+    for row in candidates[:limit]:
+        vault = row["pump_creator_vault"]
+        ata_address = row["amm_vault_ata"]
+        try:
+            transfer_ix, _entry = amm_transfer_instruction(idls, row, payer)
+        except Exception as exc:                            # noqa: BLE001 - reported
+            print(f"  {row['mint']}  UNBUILDABLE {exc}")
+            continue
+        outcome = run(rpc, idls, [transfer_ix], payer=payer,
+                      watch=[vault, ata_address, row["amm_vault_authority"]],
+                      label="floor")
+        was = token_amount(outcome["before_accounts"].get(ata_address))
+        now = token_amount(outcome["after_accounts"].get(ata_address))
+        moved = (outcome["after"].get(vault, 0) - outcome["before"].get(vault, 0)
+                 if outcome["err"] is None else None)
+        print(f"  {row['mint']}  wSOL {was} -> {now}   pump vault delta "
+              f"{'NOT MEASURED (tx failed)' if moved is None else f'{moved:+d}'}"
+              f"   err={outcome['err']}"
+              + (f" [{error_name(idls, outcome['code'], outcome['failing_program'])}]"
+                 if outcome["code"] is not None else ""))
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--rpc")
     parser.add_argument("--payer", default=DEFAULT_PAYER)
     parser.add_argument("--mints", nargs="*", default=[],
                         help="graduated mints to measure before the sampled ones")
-    parser.add_argument("--buckets", type=int, default=2,
+    parser.add_argument("--buckets", type=int, default=1,
                         help="how many 1/256 slices of the config population to draw")
-    parser.add_argument("--pools", type=int, default=25,
+    parser.add_argument("--pools", type=int, default=60,
                         help="graduated coins whose Pool.coin_creator to read")
     parser.add_argument("--measure", type=int, default=2,
                         help="graduated coins to run the full simulation on")
     parser.add_argument("--top-up", type=int, default=50_000_000)
+    parser.add_argument("--starvation", type=int, default=5,
+                        help="graduated coins to run distribute-alone against "
+                             "transfer-then-distribute on")
+    parser.add_argument("--floor-sweep", type=int, default=8,
+                        help="graduated coins to run the AMM transfer alone against, "
+                             "smallest vault first, to find its floor")
     args = parser.parse_args(argv)
 
     rpc = RpcClient(endpoints_from(args.rpc), max_retries=10)
@@ -583,6 +716,9 @@ def main(argv=None) -> int:
           f"({100.0 * counted['live'] / total:.1f}%)")
     print(f"  bonding_curve.creator == its own sharing config: "
           f"{counted['creator_is_config']} of {counted['counted']}")
+    for byte, (n, grad) in sorted((counted.get("by_bucket") or {}).items()):
+        print(f"    bucket 0x{byte:02x}: {grad}/{n} graduated "
+              f"({100.0 * grad / max(n, 1):.1f}%)")
 
     # -- Q2 -------------------------------------------------------------
     print("\n### Q2 -- does Pool.coin_creator equal the sharing config PDA")
@@ -632,6 +768,18 @@ def main(argv=None) -> int:
     if not measured:
         print("  NO graduated coin with a readable pool and config was reachable. "
               "The crank question is UNRESOLVED, not answered.")
+
+    if args.starvation:
+        try:
+            starvation_check(rpc, idls, reported, payer=args.payer, limit=args.starvation)
+        except Exception as exc:                            # noqa: BLE001 - reported
+            print(f"  starvation check unreadable: {type(exc).__name__}: {exc}")
+
+    if args.floor_sweep:
+        try:
+            floor_sweep(rpc, idls, reported, payer=args.payer, limit=args.floor_sweep)
+        except Exception as exc:                            # noqa: BLE001 - reported
+            print(f"  floor sweep unreadable: {type(exc).__name__}: {exc}")
 
     # -- the 6019 probe --------------------------------------------------
     print("\n### where AmmAccountsRequiredForGraduatedCoin actually comes from")

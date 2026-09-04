@@ -54,5 +54,6 @@ jobs:
       - name: Graduation, the pool's coin_creator, and the whole crank
         run: |
           python tools/graduated_fee_routing.py \
-            --buckets 2 --pools 25 --measure 2 \
+            --buckets 4 --pools 120 --measure 1 \
+            --starvation 6 --floor-sweep 10 \
             ${MINTS:+--mints $MINTS}
