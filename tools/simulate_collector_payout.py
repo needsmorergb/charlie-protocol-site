@@ -228,11 +228,17 @@ def distribute_instruction(idls, mint, creator, config, identity, recipients):
     return (program_id, metas, bytes(entry["discriminator"]))
 
 
-def minimum_instruction(idls, mint, creator, config, identity):
+def minimum_instruction(idls, mint, creator, config, identity, shareholders=()):
+    """pump's floor for this coin. It declares four accounts and no args, but
+    it answers 6027 NotEnoughRemainingAccounts without the shareholders --
+    it walks the same remaining accounts a distribution would."""
     program_id, idl, entry = find_instruction(idls, "get_minimum_distributable_fee")
     if entry is None:
         raise LookupError("get_minimum_distributable_fee is in neither on-chain IDL")
     metas = resolve_accounts(entry, program_id, context_for(mint, creator, identity, config))
+    metas = metas + [
+        (f"shareholder[{i}]", address, False, False) for i, address in enumerate(shareholders)
+    ]
     return (program_id, metas, bytes(entry["discriminator"]))
 
 
@@ -654,7 +660,7 @@ def probe_minimum(rpc, idls, plan: dict, *, top_up: int, verbose_logs: bool) -> 
             ixs.append(transfer_instruction(plan["payer"], plan["vault"], amount))
         ixs.append(
             minimum_instruction(idls, plan["mint"], plan["curve_creator"], plan["config"],
-                                plan["identity"])
+                                plan["identity"], plan["current"])
         )
         outcome = run(rpc, idls, ixs, payer=plan["payer"], watch=[plan["vault"]],
                       label=f"minimum top_up={amount}")
