@@ -186,8 +186,22 @@ def context_for(mint: str, creator: str, identity: str, config: str) -> dict:
     }
 
 
-def update_instruction(idls, mint, creator, config, admin, recipients):
-    """`update_fee_shares_v2` naming exactly `recipients`, bps summing to 10000."""
+def update_instruction(idls, mint, creator, config, admin, recipients, current):
+    """`update_fee_shares_v2` naming exactly `recipients`, bps summing to 10000.
+
+    `current` is the config's OUTGOING shareholders, and they -- not the
+    incoming ones -- are what the remaining accounts must be. Measured, not
+    guessed: passing the new recipient produced
+
+        AnchorError ... update_fee_shares.rs:182 ShareholderAccountMismatch
+        Left: <the new recipient>   Right: <the current shareholder>
+
+    for all five recipients, with the same Right every time. It follows from
+    what the instruction does: it CPIs pump's DistributeCreatorFeesV2 to pay
+    the outgoing split off before replacing it, and those are the accounts it
+    needs in hand to pay. An earlier tool appeared to pass the new
+    shareholders successfully only because the coin's creator was both.
+    """
     program_id, idl, entry = find_instruction(idls, "update_fee_shares_v2")
     if entry is None:
         raise LookupError("update_fee_shares_v2 is in neither on-chain IDL")
@@ -197,11 +211,8 @@ def update_instruction(idls, mint, creator, config, admin, recipients):
     arg_name = (entry.get("args") or [{}])[0].get("name")
     data_args, notes = encode_args(entry, idl, {arg_name: shares} if arg_name else {})
     metas = resolve_accounts(entry, program_id, context_for(mint, creator, admin, config))
-    # 6013 NotEnoughRemainingAccounts / 6020 ShareholderAccountMismatch: the
-    # new shareholders are passed as Anchor remaining accounts, in the vec's
-    # own order.
     metas = metas + [
-        (f"shareholder[{i}]", address, False, True) for i, address in enumerate(recipients)
+        (f"outgoing[{i}]", address, False, True) for i, address in enumerate(current)
     ]
     return (program_id, metas, bytes(entry["discriminator"]) + data_args), notes, shares
 
@@ -350,6 +361,15 @@ def print_result(idls, outcome: dict, *, recipient: str | None, vault: str, verb
             tag = "  <- RECIPIENT"
         elif address == vault:
             tag = "  <- CREATOR VAULT"
+        if err is not None:
+            # A failed simulation returns no post-simulation accounts, and the
+            # zeros it fills in are not balances. Subtracting them would print
+            # a spectacular negative delta for a transaction that moved
+            # nothing at all.
+            print(f"  lamports       {address}{tag}\n"
+                  f"                 before {before}  after NOT MEASURED "
+                  f"(the transaction failed)")
+            continue
         print(
             f"  lamports       {address}{tag}\n"
             f"                 before {before}  after {after}  delta {after - before:+d}"
@@ -372,11 +392,11 @@ def print_result(idls, outcome: dict, *, recipient: str | None, vault: str, verb
 
 
 def verdict(outcome: dict, recipient: str, distributed: int | None) -> str:
-    delta = outcome["after"].get(recipient, 0) - outcome["before"].get(recipient, 0)
     if outcome["err"] is not None:
         if outcome["code"] in (6052, 6070):
             return f"REFUSED  {outcome['code']}"
         return f"FAILED   err={outcome['err']} code={outcome['code']}"
+    delta = outcome["after"].get(recipient, 0) - outcome["before"].get(recipient, 0)
     if delta > 0 and (distributed is None or distributed > 0):
         return f"CONFIRMED PAYABLE  +{delta} lamports"
     return f"NO PAYMENT (success, delta {delta:+d})"
@@ -553,6 +573,7 @@ def existing_plan(row: dict, payer: str) -> dict:
         "vault": row["vault"],
         "payer": payer,
         "vault_lamports": row["vault_lamports"],
+        "current": [address for address, _bps in row["shareholders"]],
     }
 
 
@@ -580,6 +601,9 @@ def create_plan(row: dict, payer: str) -> dict:
         "payer": payer,
         "vault_lamports": 0,
         "creator_lamports": row.get("creator_lamports", 0),
+        # CreateFeeSharingConfigEvent.initial_shareholders, measured on
+        # 2026-09-03: the creating wallet at 10000 bps, and nothing else.
+        "current": [row["curve"]["creator"]],
     }
 
 
@@ -631,7 +655,7 @@ def case(rpc, idls, plan: dict, *, key: str, label: str, recipient: str, top_up:
         ixs = prelude(idls, plan)
         update_ix, notes, shares = update_instruction(
             idls, plan["mint"], plan["curve_creator"], plan["config"], plan["identity"],
-            [recipient],
+            [recipient], plan["current"],
         )
         ixs.append(update_ix)
         # AFTER the update, never before. `update_fee_shares_v2` CPIs into
@@ -655,6 +679,7 @@ def case(rpc, idls, plan: dict, *, key: str, label: str, recipient: str, top_up:
         + ["distribute_creator_fees"]
     print(f"  instructions   {order}")
     print(f"  shares         {[(s['address'], s['share_bps']) for s in shares]}")
+    print(f"  outgoing       {plan['current']}  (the update's remaining accounts)")
     outcome = run(rpc, idls, ixs, payer=plan["payer"],
                   watch=[recipient, vault, plan["identity"]], label=label)
     print_result(idls, outcome, recipient=recipient, vault=vault, verbose_logs=verbose_logs)
