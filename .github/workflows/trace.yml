@@ -28,6 +28,9 @@ on:
       # and two jobs hitting the same gateway at once is how a run comes back
       # with upstream 429s instead of an answer.
       - "!tools/simulate_collector_payout.py"
+      # The reset question has its own workflow and its own RPC budget, for
+      # the same reason: two jobs on one gateway come back with 429s.
+      - "!tools/simulate_reset.py"
   workflow_dispatch:
     inputs:
       mints:
