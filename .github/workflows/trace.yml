@@ -23,6 +23,11 @@ on:
     paths:
       - "tools/**"
       - ".github/workflows/trace.yml"
+      # The collector question has its own workflow and its own RPC budget.
+      # Without this, every iteration of it re-runs this entire read as well,
+      # and two jobs hitting the same gateway at once is how a run comes back
+      # with upstream 429s instead of an answer.
+      - "!tools/simulate_collector_payout.py"
   workflow_dispatch:
     inputs:
       mints:
