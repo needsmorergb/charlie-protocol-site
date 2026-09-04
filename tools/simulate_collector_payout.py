@@ -402,12 +402,32 @@ def verdict(outcome: dict, recipient: str, distributed: int | None) -> str:
     return f"NO PAYMENT (success, delta {delta:+d})"
 
 
-def distributed_from(outcome: dict) -> int | None:
-    for _source, name, fields in outcome["events"]:
-        if name == "DistributeCreatorFeesEvent":
-            value = fields.get("distributed")
-            return value if isinstance(value, int) else None
-    return None
+def distributed_from(outcome: dict, recipient: str | None = None) -> int | None:
+    """`distributed` from the event that names THIS recipient.
+
+    There are two DistributeCreatorFeesEvents in a transaction that updates
+    the split: the one update_fee_shares_v2 emits when it flushes the vault
+    to the OUTGOING shareholders, which is zero on a config created moments
+    earlier, and the one the instruction under test emits. Taking the first
+    reported a payment of zero next to a recipient balance that had risen by
+    49189376 lamports. The event whose shareholder list contains the
+    recipient is the right one; the last event is the fallback.
+    """
+    candidates = [
+        fields for _source, name, fields in outcome["events"]
+        if name == "DistributeCreatorFeesEvent"
+    ]
+    if not candidates:
+        return None
+    chosen = candidates[-1]
+    if recipient is not None:
+        for fields in candidates:
+            holders = fields.get("shareholders") or []
+            if any(h.get("address") == recipient for h in holders if isinstance(h, dict)):
+                chosen = fields
+                break
+    value = chosen.get("distributed")
+    return value if isinstance(value, int) else None
 
 
 # -- candidates -----------------------------------------------------------
@@ -683,7 +703,7 @@ def case(rpc, idls, plan: dict, *, key: str, label: str, recipient: str, top_up:
     outcome = run(rpc, idls, ixs, payer=plan["payer"],
                   watch=[recipient, vault, plan["identity"]], label=label)
     print_result(idls, outcome, recipient=recipient, vault=vault, verbose_logs=verbose_logs)
-    distributed = distributed_from(outcome)
+    distributed = distributed_from(outcome, recipient)
     answer = verdict(outcome, recipient, distributed)
     print(f"  VERDICT        {answer}"
           + (f"   (event distributed={distributed})" if distributed is not None else ""))
@@ -720,7 +740,7 @@ def incinerator_case(rpc, idls, mint: str, *, payer: str, top_up: int, verbose_l
                       watch=[INCINERATOR, row["vault"]] + holders, label="incinerator")
         print_result(idls, outcome, recipient=INCINERATOR, vault=row["vault"],
                      verbose_logs=verbose_logs)
-        distributed = distributed_from(outcome)
+        distributed = distributed_from(outcome, INCINERATOR)
         answer = verdict(outcome, INCINERATOR, distributed)
         print(f"  VERDICT        {answer}"
               + (f"   (event distributed={distributed})" if distributed is not None else ""))
