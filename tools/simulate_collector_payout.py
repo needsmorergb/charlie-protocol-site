@@ -405,6 +405,7 @@ def inspect(rpc, mint: str) -> dict:
     row["creator"] = encode(data[49:81])
     creator_account = read_accounts(rpc, [row["creator"]])[0]
     row["creator_owner"] = (creator_account or {}).get("owner")
+    row["creator_lamports"] = lamports_of(creator_account)
     if row["creator_owner"] != pump.PUMP_FEE_SHARE_PROGRAM:
         row["skip"] = f"creator is not a sharing config (owner {row['creator_owner']})"
         return row
@@ -463,10 +464,18 @@ def discover(rpc, *, want: int, scan: int, delay: float) -> tuple[list[str], lis
 
 
 # -- the run --------------------------------------------------------------
-# A wallet that is neither the fee payer nor the acting identity, so the
-# control's balance moves for exactly one reason. Observed live: system
-# owned, on curve, and already the 100% shareholder of two other coins.
-CONTROL_WALLET = "GYrPAaSNLuyrtAkwsC5pvBXekS15PCrXJcR1UAPkWxs6"
+# Wallets for the (a) control. The control must be neither the fee payer nor
+# the acting identity, or its balance moves for two reasons at once and the
+# delta stops being evidence -- and the acting identity is whichever wallet
+# the sampled coin happens to belong to, so one candidate is not enough.
+# All four were read off chain by the other tools here: the first is the 100%
+# shareholder of two traced coins, the rest are sharing-config admins.
+CONTROL_WALLETS = (
+    "GYrPAaSNLuyrtAkwsC5pvBXekS15PCrXJcR1UAPkWxs6",
+    "AxqXBbPab4iRUMpUiCxKmkawUk77TR5mRVsTFDiUTsh",
+    "2xpKBkzBoAretBBsJYmhzouZR1WZuZFuT6jwoRSFz8Ed",
+    "7ZV54HcwtzRhZSEPskT8ox5hn9yNocK9xpe4BQXoziaP",
+)
 
 
 def recipient_shapes(rpc, plan: dict, *, wallet: str | None, program_owned: str | None,
@@ -484,7 +493,7 @@ def recipient_shapes(rpc, plan: dict, *, wallet: str | None, program_owned: str 
     excluded = {plan["identity"], plan["payer"], plan["vault"], plan["config"]}
     shapes: list[tuple[str, str, str]] = []
 
-    for address in [a for a in (wallet, CONTROL_WALLET, plan["identity"]) if a]:
+    for address in [a for a in ((wallet,) + CONTROL_WALLETS + (plan["identity"],)) if a]:
         if address in excluded:
             continue
         account = read_accounts(rpc, [address])[0]
@@ -718,7 +727,11 @@ def main(argv=None) -> int:
     parser.add_argument("--logs", action="store_true", help="print every log line")
     args = parser.parse_args(argv)
 
-    rpc = RpcClient(endpoints_from(args.rpc))
+    # The gateway answers a burst with an upstream 403 that the next attempt
+    # serves correctly, and RpcClient does not penalise the gateway for its
+    # upstream's refusal -- it just retries. Three attempts was not enough to
+    # get through one, and losing the whole run to it costs more than waiting.
+    rpc = RpcClient(endpoints_from(args.rpc), max_retries=10)
     idls = {}
     for program_id in (pump.PUMP_PROGRAM, pump.PUMP_FEE_SHARE_PROGRAM):
         try:
@@ -750,13 +763,20 @@ def main(argv=None) -> int:
     configured = list(args.mints)
     unconfigured: list[dict] = []
     if args.auto:
-        found, unconfigured = discover(rpc, want=args.auto_limit, scan=args.auto_scan,
-                                       delay=args.auto_delay)
-        configured += found
+        try:
+            found, unconfigured = discover(rpc, want=args.auto_limit, scan=args.auto_scan,
+                                           delay=args.auto_delay)
+            configured += found
+        except Exception as exc:                            # noqa: BLE001 - reported
+            # The gateway answers a burst of getTransaction with an upstream
+            # 403 often enough that a run has already died here. A sample is
+            # a convenience; the coins named on the command line are not.
+            print(f"  launch sample failed: {type(exc).__name__}: {exc}")
 
     print(f"\n### funnel A -- {len(configured)} coin(s) that already have a config")
     print("  a usable one has admin_revoked false: the one-shot update is still unspent")
     plan = None
+    named_without_config = []
     for mint in configured:
         try:
             row = inspect(rpc, mint)
@@ -767,6 +787,13 @@ def main(argv=None) -> int:
         if row.get("usable"):
             plan = existing_plan(row, args.payer)
             break
+        if (row.get("creator_owner") == SYSTEM_PROGRAM and not row.get("graduated")
+                and "creator" in row):
+            named_without_config.append(
+                {"mint": mint, "curve": {"creator": row["creator"]},
+                 "creator_lamports": row.get("creator_lamports", 0)}
+            )
+    unconfigured = named_without_config + unconfigured
 
     if plan is None:
         print(f"\n### funnel B -- {len(unconfigured)} coin(s) with NO config")

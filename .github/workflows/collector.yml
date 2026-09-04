@@ -44,7 +44,10 @@ jobs:
       # The same gateway every other chain read in this repository goes
       # through. Never a public endpoint directly.
       CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
-      MINTS: ${{ github.event.inputs.mints }}
+      # A coin already traced as having NO sharing config, so the run has a
+      # candidate for the create-it-here path even if the launch sample is
+      # refused by the gateway.
+      MINTS: ${{ github.event.inputs.mints || 'Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -58,6 +61,6 @@ jobs:
       - name: Will pump pay a program-owned PDA
         run: |
           python tools/simulate_collector_payout.py $MINTS \
-            --auto --auto-limit 40 --auto-scan 120 --auto-delay 0.5 \
+            --auto --auto-limit 30 --auto-scan 120 --auto-delay 0.6 \
             --logs \
             --incinerator 5vxYBj3qbAFCSQr2487AZEzNtmpdPRLZBKHpKuvfpump
