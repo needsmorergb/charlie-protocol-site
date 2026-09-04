@@ -42,15 +42,17 @@ jobs:
           python-version: "3.11"
       # No install step. The indexer is stdlib only, on purpose.
 
-      # The evidence store this repository commits is an empty `.db`: the
-      # `.db` is a cache and the record is the committed text export, which
-      # until now only the other repository loaded. Measured on a real run of
-      # this job: with the chain reachable and the store empty, five of the
-      # six landing counters came out "unknown", because they are read from
-      # the walk rather than from the chain.
+      # The record is `state/evidence/*.jsonl`; the `.db` is a working store
+      # rebuilt from it and never committed (D-01/D-03/D-04). Measured on a
+      # real run of this job, before this step existed: with the chain
+      # reachable and the store empty, five of the six landing counters came
+      # out "unknown", because they are read from the walk rather than from
+      # the chain.
       #
-      # Idempotent, so the schedule does not accumulate duplicate burn rows.
-      - name: Load the committed evidence export
+      # `INSERT OR IGNORE`, so the six-hourly schedule neither accumulates
+      # duplicate burn rows nor resets a submission this repository has
+      # already answered.
+      - name: Load the committed evidence record
         run: python -m indexer load --db state/evidence.db --source state/evidence
 
       # --refresh re-renders every coin page already under web/, not just the
@@ -89,6 +91,14 @@ jobs:
       # commit step below pushes it. The flag makes that exit 1 instead, and
       # the page already deployed stays up.
       - name: Regenerate the landing page
+        id: landing
+        # Deliberate, and not a swallowed failure: the step that reports it is
+        # below, after the commit. Without this a landing page that could not
+        # be rendered threw away the whole run -- refreshed coin pages, new
+        # evidence rows and the issue replies -- and the queue waited another
+        # six hours. The run still ends red; it ends red having kept what it
+        # measured.
+        continue-on-error: true
         env:
           CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
         run: |
@@ -97,11 +107,16 @@ jobs:
             --out web \
             8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump
 
+      # Back to text, so what this run measured is in the record rather than
+      # only in a binary nobody can read a diff of.
+      - name: Write the evidence record back
+        run: python -m indexer export --db state/evidence.db --out state/evidence
+
       - name: Commit what was measured
         run: |
           git config user.name  "charlie-intake"
           git config user.email "needsmorergb@users.noreply.github.com"
-          git add web state
+          git add web state/evidence
           if git diff --cached --quiet; then
             echo "nothing measured this run"
             exit 0
@@ -128,10 +143,30 @@ jobs:
             --site-url https://charlieprotocol.fun \
             --answer --answer-only
 
+      # `answered_at`/`closed_at` live only here. A push that failed silently
+      # meant the next run re-commented on and re-closed an issue it had
+      # already answered, so this one is retried and then reported.
       - name: Commit any reply state
         run: |
           git config user.name  "charlie-intake"
           git config user.email "needsmorergb@users.noreply.github.com"
-          git add state
-          git diff --cached --quiet || git commit -m "intake: recorded answers"
-          git push || true
+          python -m indexer export --db state/evidence.db --out state/evidence
+          git add state/evidence
+          git diff --cached --quiet && exit 0
+          git commit -m "intake: recorded answers"
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME" && git push && exit 0
+            sleep $((attempt * 5))
+          done
+          echo "::error::the answer record was not pushed; the next run will re-answer"
+          exit 1
+
+      # The landing step's failure, reported last: after everything else this
+      # run had to do, rather than instead of it. The run ends red, having
+      # kept what it measured and answered what it could.
+      - name: Was the landing page written
+        if: always() && steps.landing.outcome == 'failure'
+        run: |
+          echo "::error::the landing page was not regenerated -- see the step above."
+          echo "Everything else this run measured has been committed."
+          exit 1
