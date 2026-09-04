@@ -546,6 +546,139 @@ def measure_coin(rpc, idls, row: dict, *, payer: str, top_up: int) -> None:
              label="THE CRANK: transfer_creator_fees_to_pump THEN distribute_creator_fees")
 
 
+POOL_DISC = bytes([241, 154, 109, 4, 17, 177, 109, 188])
+POOL_BASE_MINT_OFFSET = 43
+POOL_COIN_CREATOR_OFFSET = 211
+POOL_BYTES = 245
+
+
+def amm_side_census(rpc, idls, *, buckets: tuple[int, ...]) -> list[dict]:
+    """The same question asked from the OTHER side.
+
+    Sampling sharing configs and then looking for their pools can only ever
+    find coins that HAVE a config, so it cannot see the case that would break
+    the design: a coin that graduated first, enrolled later, and left
+    `Pool.coin_creator` pointing at the wallet. Sampling POOLS finds those,
+    because it starts from coins whose enrolment status is unknown.
+
+    One byte of `base_mint` again, so the slice is ~1/256 of every pump AMM
+    pool rather than a list nobody will serve.
+    """
+    rows: list[dict] = []
+    for byte in buckets:
+        filters = [
+            {"memcmp": {"offset": 0, "bytes": encode(POOL_DISC)}},
+            {"memcmp": {"offset": POOL_BASE_MINT_OFFSET, "bytes": encode(bytes([byte]))}},
+        ]
+        try:
+            entries = rpc.program_accounts(
+                pump.PUMP_AMM_PROGRAM, filters=filters,
+                data_slice={"offset": 0, "length": POOL_BYTES},
+            )
+        except Exception as exc:                            # noqa: BLE001 - reported
+            print(f"  pool bucket 0x{byte:02x}: refused: {type(exc).__name__}: {exc}")
+            continue
+        print(f"  pool bucket 0x{byte:02x}: {len(entries)} pool(s)")
+        for entry in entries:
+            data = account_data(entry.get("account"))
+            if len(data) < POOL_BYTES:
+                continue
+            rows.append({
+                "pool": entry.get("pubkey"),
+                "mint": encode(data[POOL_BASE_MINT_OFFSET : POOL_BASE_MINT_OFFSET + 32]),
+                "quote_mint": encode(data[75:107]),
+                "coin_creator": encode(
+                    data[POOL_COIN_CREATOR_OFFSET : POOL_COIN_CREATOR_OFFSET + 32]
+                ),
+            })
+    if not rows:
+        return []
+    # Does each pool's coin_creator happen to BE that coin's sharing config,
+    # and does that config exist? Two different facts, both read.
+    for row in rows:
+        row["config"] = sharing_config_pda(row["mint"])
+        row["coin_creator_is_config"] = row["coin_creator"] == row["config"]
+    configs = batch_read(rpc, [r["config"] for r in rows],
+                         data_slice={"offset": 0, "length": 8})
+    for row, account in zip(rows, configs):
+        row["config_exists"] = (
+            account is not None
+            and account.get("owner") == pump.PUMP_FEE_SHARE_PROGRAM
+            and account_data(account)[:8] == DISC_SHARING_CONFIG
+        )
+    enrolled = [r for r in rows if r["config_exists"]]
+    stale = [r for r in enrolled if not r["coin_creator_is_config"]]
+    orphan = [r for r in rows if r["coin_creator_is_config"] and not r["config_exists"]]
+    print(f"  pools sampled                 {len(rows)}")
+    print(f"  carrying a sharing config     {len(enrolled)} "
+          f"({100.0 * len(enrolled) / max(len(rows), 1):.2f}%)")
+    print(f"  of those, Pool.coin_creator == the config: "
+          f"{len(enrolled) - len(stale)} yes, {len(stale)} NO")
+    for row in stale:
+        print(f"    STALE  {row['mint']}  pool {row['pool']}\n"
+              f"           coin_creator {row['coin_creator']}  "
+              f"config {row['config']}")
+    if orphan:
+        print(f"  pools naming a config that does not exist: {len(orphan)}")
+    return rows
+
+
+def enrol_graduated_probe(rpc, idls, rows: list[dict], *, payer: str) -> None:
+    """Where 6019 AmmAccountsRequiredForGraduatedCoin actually comes from.
+
+    `distribute_creator_fees` cannot raise it -- 6019 in pump's IDL is
+    `InvalidCreator`, and 6019 in the FEE-SHARE program is the graduation
+    error. The fee-share instruction that can raise it is
+    `create_fee_sharing_config`, whose last three accounts are optional. So:
+    the same enrolment, on the same already-graduated coin, built twice --
+    once with those three accounts dropped, once with them supplied.
+
+    The creating wallet pays the config's rent, so it is funded from the
+    burn address inside the same transaction; a wallet too poor to enrol
+    would otherwise fail for a reason that is not the one under test.
+    """
+    print("\n### 6019 -- enrolling a coin that has ALREADY graduated")
+    candidate = None
+    for row in rows:
+        if row.get("config_exists") or row.get("quote_mint") != WSOL_MINT:
+            continue
+        candidate = row
+        break
+    if candidate is None:
+        print("  no graduated, unenrolled, wSOL-quoted pool in the sample")
+        return
+    creator_account = read_accounts(rpc, [candidate["coin_creator"]])[0]
+    print(f"  mint           {candidate['mint']}")
+    print(f"  pool           {candidate['pool']}")
+    print(f"  coin_creator   {candidate['coin_creator']}  "
+          f"{shape_of(candidate['coin_creator'], creator_account)}")
+    print(f"  sharing config {candidate['config']}  (does not exist yet)")
+
+    program_id, _idl, entry = find_instruction(idls, "create_fee_sharing_config")
+    identity = candidate["coin_creator"]
+    context = context_for(candidate, identity)
+    context["payer"] = identity
+    context["pool"] = candidate["pool"]
+    for label, accounts in (
+        ("WITHOUT the optional AMM accounts",
+         [a for a in entry["accounts"] if not a.get("optional")]),
+        ("WITH pool, pump_amm_program, pump_amm_event_authority",
+         entry["accounts"]),
+    ):
+        try:
+            metas = resolve_accounts({**entry, "accounts": accounts}, program_id, context)
+        except Exception as exc:                            # noqa: BLE001 - reported
+            print(f"  {label}: UNRESOLVED {exc}")
+            continue
+        ixs = [
+            transfer_instruction(payer, identity, 30_000_000),
+            (program_id, metas, bytes(entry["discriminator"])),
+        ]
+        simulate(rpc, idls, ixs, payer=payer,
+                 watch=[candidate["config"], identity, candidate["pool"]],
+                 label=f"create_fee_sharing_config {label}")
+
+
 def starvation_check(rpc, idls, rows: list[dict], *, payer: str, limit: int) -> None:
     """The failure mode, on coins where it is currently live.
 
@@ -655,6 +788,12 @@ def main(argv=None) -> int:
     parser.add_argument("--measure", type=int, default=2,
                         help="graduated coins to run the full simulation on")
     parser.add_argument("--top-up", type=int, default=50_000_000)
+    parser.add_argument("--print-pools", type=int, default=5,
+                        help="agreeing pool rows to print in full; every "
+                             "disagreement is printed regardless")
+    parser.add_argument("--amm-buckets", type=int, default=1,
+                        help="1/256 slices of the AMM POOL population to sample, "
+                             "which finds graduated coins that never enrolled")
     parser.add_argument("--starvation", type=int, default=5,
                         help="graduated coins to run distribute-alone against "
                              "transfer-then-distribute on")
@@ -729,8 +868,12 @@ def main(argv=None) -> int:
     reported = pool_report(rpc, idls, rows, limit=args.pools + len(named))
     agree = 0
     disagree = 0
-    for row in reported:
-        print_pool_row(row)
+    for index, row in enumerate(reported):
+        # Every DISAGREEMENT is printed in full, however deep in the list --
+        # a summary count that hides the one exception is how a claim like
+        # this gets made wrongly. The agreeing rows are a sample.
+        if index < args.print_pools or row.get("coin_creator_is_config") is not True:
+            print_pool_row(row)
         if row.get("coin_creator_is_config") is True:
             agree += 1
         elif row.get("coin_creator") is not None:
@@ -768,6 +911,14 @@ def main(argv=None) -> int:
     if not measured:
         print("  NO graduated coin with a readable pool and config was reachable. "
               "The crank question is UNRESOLVED, not answered.")
+
+    if args.amm_buckets:
+        print("\n### Q2b -- the same question sampled from the AMM's own pools")
+        try:
+            pool_rows = amm_side_census(rpc, idls, buckets=tuple(range(args.amm_buckets)))
+            enrol_graduated_probe(rpc, idls, pool_rows, payer=args.payer)
+        except Exception as exc:                            # noqa: BLE001 - reported
+            print(f"  AMM-side census unreadable: {type(exc).__name__}: {exc}")
 
     if args.starvation:
         try:
