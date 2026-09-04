@@ -45,7 +45,7 @@ LAMPORTS = 1_000_000_000
 
 # The toll this spec settled on, so the table can state what each tier means
 # for the burn rather than leaving the reader to multiply.
-TOLL_BPS = 1000
+TOLL_BPS = 500
 
 
 def fee_config_address(config_program_id: str) -> str:
