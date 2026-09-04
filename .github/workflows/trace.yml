@@ -65,6 +65,13 @@ jobs:
       - name: The on-chain IDLs
         run: python tools/idl_dump.py
 
+      # The creator fee schedule itself, from pump's FeeConfig rather than
+      # from its documentation. Every dollar figure in BUILD.md section 3
+      # depends on which tier a real coin sits in.
+      - name: What the creator fee actually is
+        continue-on-error: true
+        run: python tools/fee_tiers.py
+
       # Whether a coin arrives with a fee split, or somebody has to make one.
       # Sampled from pump's own launch stream -- the mint-authority PDA that
       # only `create` touches -- so the population is not selected on the
