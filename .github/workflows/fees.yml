@@ -1,0 +1,36 @@
+# What pump actually charges, on its own, in a log short enough to read.
+#
+# Every dollar figure in BUILD.md section 3 is priced off the creator fee, and
+# the range the spec quotes came from pump's documentation rather than from
+# pump. This reads the FeeConfig accounts themselves. It is one RPC read per
+# schedule, so it is cheap enough to re-run whenever the number is questioned.
+name: fees
+
+on:
+  push:
+    branches: [claude/charlie-posts-project-status-uyafps]
+    paths:
+      - "tools/fee_tiers.py"
+      - ".github/workflows/fees.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: fees
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: The creator fee schedule
+        run: python tools/fee_tiers.py

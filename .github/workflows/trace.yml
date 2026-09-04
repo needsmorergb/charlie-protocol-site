@@ -31,6 +31,9 @@ on:
       # The reset question has its own workflow and its own RPC budget, for
       # the same reason: two jobs on one gateway come back with 429s.
       - "!tools/simulate_reset.py"
+      # The fee schedule has its own workflow so its answer is not buried
+      # a few hundred lines inside this one.
+      - "!tools/fee_tiers.py"
   workflow_dispatch:
     inputs:
       mints:
@@ -65,12 +68,6 @@ jobs:
       - name: The on-chain IDLs
         run: python tools/idl_dump.py
 
-      # The creator fee schedule itself, from pump's FeeConfig rather than
-      # from its documentation. Every dollar figure in BUILD.md section 3
-      # depends on which tier a real coin sits in.
-      - name: What the creator fee actually is
-        continue-on-error: true
-        run: python tools/fee_tiers.py
 
       # Whether a coin arrives with a fee split, or somebody has to make one.
       # Sampled from pump's own launch stream -- the mint-authority PDA that
