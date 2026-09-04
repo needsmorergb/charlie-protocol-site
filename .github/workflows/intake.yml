@@ -56,6 +56,24 @@ jobs:
             --out web \
             --site-url https://charlieprotocol.fun
 
+      # The landing page is the one surface no publish path wrote. `intake`
+      # writes coins-N, verify, 404 and enroll; `index.html` comes only from
+      # `site --write --landing`, which nothing ran. So a correction to the
+      # landing copy was source that production would never serve, which is
+      # the same failure as a broken page: the repository says one thing and
+      # the visitor reads another.
+      #
+      # It needs the chain, because the landing counters are an observation
+      # rather than committed text, and this job is where the chain is.
+      - name: Regenerate the landing page
+        env:
+          CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+        run: |
+          python -m indexer site --write --landing \
+            --evidence state/evidence.db \
+            --out web \
+            8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump
+
       - name: Commit what was measured
         run: |
           git config user.name  "charlie-intake"
