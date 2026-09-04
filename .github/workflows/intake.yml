@@ -53,6 +53,12 @@ jobs:
       - name: Load the committed evidence export
         run: python -m indexer load --db state/evidence.db --source state/evidence
 
+      # --refresh re-renders every coin page already under web/, not just the
+      # submissions measured this run. A committed page is a snapshot of a
+      # renderer that has since moved, and a submission is measured once: that
+      # left a live page printing "SOL_BURN_UNSPENDABLE fails permanently for
+      # this coin" above a check row on the same page reading PASS. A page
+      # whose chain read fails is kept rather than overwritten.
       - name: Measure the queue
         env:
           # Every chain read goes through crowd-api, never a public endpoint
@@ -61,7 +67,7 @@ jobs:
           # query with an empty array instead of an error.
           CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
         run: |
-          python -m indexer intake \
+          python -m indexer intake --refresh \
             --repo "${{ github.repository }}" \
             --evidence state/evidence.db \
             --out web \
