@@ -34,6 +34,8 @@ on:
       # The fee schedule has its own workflow so its answer is not buried
       # a few hundred lines inside this one.
       - "!tools/fee_tiers.py"
+      # The IDL viewer is dispatched by hand with its own inputs.
+      - "!tools/idl_show.py"
   workflow_dispatch:
     inputs:
       mints:

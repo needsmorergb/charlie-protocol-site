@@ -1,0 +1,41 @@
+# What a deployed program declares, on demand: the instructions and types
+# named in the inputs, printed from its on-chain IDL. The sandbox these
+# sessions run in cannot reach an RPC, so this is how a builder gets read
+# off the chain rather than off a write-up.
+name: idl
+
+on:
+  workflow_dispatch:
+    inputs:
+      program:
+        description: "Program id"
+        required: true
+        default: "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"
+      instructions:
+        description: "Space separated instruction names"
+        required: false
+        default: "buy"
+      types:
+        description: "Space separated type names"
+        required: false
+        default: "Global BondingCurve"
+
+permissions:
+  contents: read
+
+jobs:
+  show:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: The IDL, as deployed
+        run: |
+          python tools/idl_show.py "${{ github.event.inputs.program }}" \
+            --instruction ${{ github.event.inputs.instructions }} \
+            --type ${{ github.event.inputs.types }}
