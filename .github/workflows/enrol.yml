@@ -46,11 +46,13 @@ jobs:
       # The other half of the loop: the crank that pays a coin's shareholders
       # from its vault. Built and simulated against mainnet on three coins
       # with real sharing configs; nothing is sent. A refused simulation
-      # fails this step.
+      # fails this step. No --payer: a simulation needs a payer that exists,
+      # and without a key the crank stands pump's own fee wallet in (the
+      # protocol's collection wallet holds no SOL, and its first run here
+      # answered AccountNotFound for exactly that reason).
       - name: Simulate the crank on coins with a real config
         run: |
           python -m indexer distribute --min-lamports 1 \
-            --payer 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 \
             9vAV2s4ujZ16yU6V334gQqpgo5a7swYRiUdiwRYvpump \
             5vxYBj3qbAFCSQr2487AZEzNtmpdPRLZBKHpKuvfpump \
             9MTfWK8chKHVJq1qnDvRZ2udovpzbP2N4tm2pFEipump
