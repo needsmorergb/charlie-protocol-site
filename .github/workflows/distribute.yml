@@ -1,0 +1,59 @@
+# The crank that pays every enrolled coin's shareholders, the protocol's
+# share included.
+#
+# pump holds creator fees in a coin's vault until somebody calls
+# distribute_creator_fees. It is permissionless -- no signer, a wallet only
+# pays the network fee -- so this runs it hourly for every coin whose
+# committed record carries a passing PROTOCOL_SHARE.
+#
+# With the CHARLIE_CRANK_KEYPAIR secret set (a Solana key file's JSON array,
+# for a wallet holding a little SOL and nothing else) it sends. Without it,
+# it builds and simulates every payout and sends nothing, so the job is
+# honest in both states.
+name: distribute
+
+on:
+  schedule:
+    - cron: "23 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: distribute
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  crank:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: The fee payer's key, if one is configured
+        env:
+          CRANK_KEY: ${{ secrets.CHARLIE_CRANK_KEYPAIR }}
+        run: |
+          if [ -n "$CRANK_KEY" ]; then
+            umask 077
+            printf '%s' "$CRANK_KEY" > "$RUNNER_TEMP/crank.json"
+            echo "MODE=--keypair $RUNNER_TEMP/crank.json" >> "$GITHUB_ENV"
+            echo "a key is configured: payouts will be sent"
+          else
+            echo "MODE=" >> "$GITHUB_ENV"
+            echo "no CHARLIE_CRANK_KEYPAIR secret: building and simulating only"
+          fi
+
+      - name: Pay every enrolled coin's shareholders
+        run: |
+          python -m indexer distribute --all-enrolled --out web $MODE
+
+      - name: Forget the key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/crank.json"
