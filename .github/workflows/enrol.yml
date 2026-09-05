@@ -13,6 +13,7 @@ on:
     paths:
       - "tools/simulate_enrolment.py"
       - "indexer/enroll.py"
+      - "indexer/distribute.py"
       - ".github/workflows/enrol.yml"
   workflow_dispatch:
     inputs:
@@ -41,6 +42,18 @@ jobs:
           python-version: "3.11"
       - name: Simulate what a creator would sign
         run: python tools/simulate_enrolment.py --auto
+
+      # The other half of the loop: the crank that pays a coin's shareholders
+      # from its vault. Built and simulated against mainnet on three coins
+      # with real sharing configs; nothing is sent. A refused simulation
+      # fails this step.
+      - name: Simulate the crank on coins with a real config
+        run: |
+          python -m indexer distribute --min-lamports 1 \
+            --payer 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 \
+            9vAV2s4ujZ16yU6V334gQqpgo5a7swYRiUdiwRYvpump \
+            5vxYBj3qbAFCSQr2487AZEzNtmpdPRLZBKHpKuvfpump \
+            9MTfWK8chKHVJq1qnDvRZ2udovpzbP2N4tm2pFEipump
 
   # The deployed site, asked the questions a dev's browser asks. Dispatched
   # by hand after a deploy: the branch preview is behind Vercel's own
