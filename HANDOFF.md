@@ -23,6 +23,13 @@ What only this repository holds, as of 2026-09-05:
   pays every enrolled coin, and deletes the key from the runner. It pays
   fees only. The owner rotates it by replacing the secret; a session
   never generates or commits a key.
+- **Enrolled coins are found on the chain.** `distribute --all-enrolled`
+  unions the committed records with `indexer/enrolled.py`'s scan of pump's
+  fee-share program for configs paying the toll wallet, and refuses any
+  coin whose split pays less than the rate; `intake` gives every such coin
+  with no record yet a committed page (`enrolled.index_new`). A dev who
+  signs on the enroll page needs to open no issue. The first real
+  enrollment is `7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump`, issue #15.
 - **Committed evidence** is the text export under `state/evidence/`, never
   the binary db. Committed pages under `web/` must equal what the current
   renderer produces; a merge conflict on one is resolved by taking the
