@@ -61,11 +61,18 @@ def simulate(rpc, mint: str) -> int:
         return 1
 
     # Exactly what the page builds by default: the toll, the incinerator, the
-    # rest to the creator.
-    enroll.TOLL_DESTINATION = INCINERATOR
+    # rest to the creator. The real toll destination once it is set, so the
+    # push that sets it proves that address is one pump will pay; the
+    # incinerator stands in only while it is None.
+    if enroll.TOLL_DESTINATION is None:
+        print("  toll           unset -- simulating with the incinerator standing in")
+        enroll.TOLL_DESTINATION = INCINERATOR
+    else:
+        print(f"  toll           {enroll.TOLL_DESTINATION}  (the real destination)")
     shares = [
-        enroll.Share(INCINERATOR, enroll.TOLL_BPS),
-        enroll.Share(creator, 10_000 - enroll.TOLL_BPS),
+        enroll.Share(enroll.TOLL_DESTINATION, enroll.TOLL_BPS),
+        enroll.Share(INCINERATOR, 2000),
+        enroll.Share(creator, 10_000 - enroll.TOLL_BPS - 2000),
     ]
     try:
         enroll.preflight(None, creator, shares, curve=curve)

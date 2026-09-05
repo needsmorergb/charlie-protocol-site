@@ -74,10 +74,18 @@ jobs:
           body=$(curl -sSf "$BASE/api/enroll?mint=$MINT&authority=1nc1nerator11111111111111111111111111111111")
           echo "$body"
           echo "$body" | grep -q '"can_create": *false'
-      - name: Building refuses until the toll address is set
-        # Expected while TOLL_DESTINATION is None. The day it is set, this
-        # step should be changed to assert a simulated transaction instead.
+      - name: Building answers a transaction simulated against mainnet
+        # Reads the toll from the inspect response and builds with it, the
+        # way the page does. If the toll were ever unset again the server
+        # would refuse, and this step would fail with its words.
         run: |
-          body=$(curl -s "$BASE/api/enroll?mint=$MINT&authority=$CREATOR&shares=1nc1nerator11111111111111111111111111111111:500,$CREATOR:9500")
-          echo "$body"
-          echo "$body" | grep -q "not open yet"
+          inspect=$(curl -sSf "$BASE/api/enroll?mint=$MINT&authority=$CREATOR")
+          toll=$(echo "$inspect" | python3 -c 'import json,sys; t=json.load(sys.stdin).get("toll") or {}; print(t.get("address") or "")')
+          bps=$(echo "$inspect" | python3 -c 'import json,sys; t=json.load(sys.stdin).get("toll") or {}; print(t.get("bps") or 500)')
+          test -n "$toll"
+          rest=$((10000 - bps - 2000))
+          body=$(curl -sSf "$BASE/api/enroll?mint=$MINT&authority=$CREATOR&shares=$toll:$bps,1nc1nerator11111111111111111111111111111111:2000,$CREATOR:$rest")
+          echo "$body" | head -c 400; echo
+          echo "$body" | grep -q '"simulated": *true'
+          echo "$body" | grep -q '"creates_config": *true'
+          echo "enrolment is open: the server answered a transaction simulated against mainnet"
