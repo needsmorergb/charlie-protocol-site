@@ -1,25 +1,32 @@
 {
   "attribution": [
     {
-      "address": "FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu",
+      "address": "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8",
+      "bps": 500,
+      "keyless": false,
+      "leg": "paid",
+      "reason": "the protocol's collection wallet: the share every enrolled coin pays. A spendable wallet, so an OPS destination; what it is spent on is not something the chain shows and not something this page claims"
+    },
+    {
+      "address": "Wak5qWkdu5cTQFrKnMfYRDXy4nc244fZSkj3Ced2kuQ",
+      "bps": 2500,
+      "keyless": false,
+      "leg": "paid",
+      "reason": "an ordinary account, not program-derived"
+    },
+    {
+      "address": "1nc1nerator11111111111111111111111111111111",
+      "bps": 2000,
+      "keyless": true,
+      "leg": "sol_burn",
+      "reason": "Solana's incinerator: the runtime removes lamports credited here from the total supply at the end of the block. Not merely unspendable -- destroyed."
+    },
+    {
+      "address": "BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW",
       "bps": 5000,
       "keyless": false,
       "leg": "paid",
       "reason": "an ordinary account, not program-derived"
-    },
-    {
-      "address": "5YRgrP3mjGzrzirYYN5HAQH19cTYREYwGxW6XRJQUzij",
-      "bps": 2000,
-      "keyless": false,
-      "leg": "paid",
-      "reason": "an ordinary account, not program-derived"
-    },
-    {
-      "address": "3GcqSyYA3Bcik8o1fh78FnyADL4j4kxyyU3DvH9au26F",
-      "bps": 3000,
-      "keyless": true,
-      "leg": "paid",
-      "reason": "program-derived -- but it is some other program's PDA, and that program may be able to move it. Not provably burned."
     }
   ],
   "backed_by": {
@@ -44,19 +51,14 @@
     "ops_total": [
       {
         "check": "OPS_ROUTED",
-        "detail": "the walk of FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu is incomplete -- reached no signature yet; the walk of 5YRgrP3mjGzrzirYYN5HAQH19cTYREYwGxW6XRJQUzij is incomplete -- reached no signature yet; the walk of 3GcqSyYA3Bcik8o1fh78FnyADL4j4kxyyU3DvH9au26F is incomplete -- reached no signature yet",
+        "detail": "the walk of 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 is incomplete -- reached no signature yet; the walk of Wak5qWkdu5cTQFrKnMfYRDXy4nc244fZSkj3Ced2kuQ is incomplete -- reached no signature yet; the walk of BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW is incomplete -- reached no signature yet",
         "status": "UNCHECKED"
       }
     ],
     "sol_burn_total": [
       {
-        "check": "SOL_BURN_UNSPENDABLE",
-        "detail": "no SOL burn destination in this split -- nothing to check",
-        "status": "UNCHECKED"
-      },
-      {
         "check": "SOL_BURN_BALANCE",
-        "detail": "no SOL burn destination in this split -- nothing to check",
+        "detail": "the walk of 1nc1nerator11111111111111111111111111111111 is incomplete -- reached no signature yet",
         "status": "UNCHECKED"
       }
     ],
@@ -75,7 +77,7 @@
   },
   "checks": [
     {
-      "actual": "8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump",
+      "actual": "7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump",
       "backs": [
         "split",
         "sol_burn_total",
@@ -85,7 +87,7 @@
       ],
       "detail": "the sharing config names this coin",
       "equation": "sharing_config.mint == mint",
-      "expected": "8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump",
+      "expected": "7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump",
       "name": "CONFIG_MINT",
       "status": "PASS"
     },
@@ -101,32 +103,32 @@
       "status": "PASS"
     },
     {
-      "actual": "0",
+      "actual": "500",
       "backs": [],
-      "detail": "the split does not pay the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 at all",
+      "detail": "the split pays the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 500 bps, at or above the 500 bps every enrolled coin carries",
       "equation": "bps(TOLL_DESTINATION) >= 500",
       "expected": ">= 500",
       "name": "PROTOCOL_SHARE",
-      "status": "FAIL"
+      "status": "PASS"
     },
     {
-      "actual": null,
+      "actual": "a burn destination",
       "backs": [
         "sol_burn_total"
       ],
-      "detail": "no SOL burn destination in this split -- nothing to check",
+      "detail": "every SOL burn destination is a burn address: what reaches it is out of circulation",
       "equation": "every SOL burn destination is one SOL does not come back from",
-      "expected": null,
+      "expected": "a burn destination",
       "name": "SOL_BURN_UNSPENDABLE",
-      "status": "UNCHECKED"
+      "status": "PASS"
     },
     {
       "actual": null,
       "backs": [
         "sol_burn_total"
       ],
-      "detail": "no SOL burn destination in this split -- nothing to check",
-      "equation": "sum(recorded_inflows) == getBalance(vault)",
+      "detail": "the walk of 1nc1nerator11111111111111111111111111111111 is incomplete -- reached no signature yet",
+      "equation": "per-destination: sum(recorded_inflows) == getBalance(vault) for a derived vault, <= for the grandfathered address",
       "expected": null,
       "name": "SOL_BURN_BALANCE",
       "status": "UNCHECKED"
@@ -182,7 +184,7 @@
       "backs": [
         "ops_total"
       ],
-      "detail": "the walk of FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu is incomplete -- reached no signature yet; the walk of 5YRgrP3mjGzrzirYYN5HAQH19cTYREYwGxW6XRJQUzij is incomplete -- reached no signature yet; the walk of 3GcqSyYA3Bcik8o1fh78FnyADL4j4kxyyU3DvH9au26F is incomplete -- reached no signature yet",
+      "detail": "the walk of 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 is incomplete -- reached no signature yet; the walk of Wak5qWkdu5cTQFrKnMfYRDXy4nc244fZSkj3Ced2kuQ is incomplete -- reached no signature yet; the walk of BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW is incomplete -- reached no signature yet",
       "equation": "sum(routed_to_OPS) == sum(protocol_inflows(ops_wallet))",
       "expected": null,
       "name": "OPS_ROUTED",
@@ -190,22 +192,26 @@
     }
   ],
   "config": {
-    "address": "1iBA2hAxHXamaz1UYenZvEyoeEu8MLPLqWXdN4ZRnEL",
-    "admin": "FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu",
+    "address": "Gg8KGc2LDbAeBnyFtoqBZcosQGz1NBzsH3NRhQWdsriA",
+    "admin": "BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW",
     "admin_revoked": true,
-    "mint": "8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump",
+    "mint": "7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump",
     "shareholders": [
       {
-        "address": "FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu",
-        "bps": 5000
+        "address": "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8",
+        "bps": 500
       },
       {
-        "address": "5YRgrP3mjGzrzirYYN5HAQH19cTYREYwGxW6XRJQUzij",
+        "address": "Wak5qWkdu5cTQFrKnMfYRDXy4nc244fZSkj3Ced2kuQ",
+        "bps": 2500
+      },
+      {
+        "address": "1nc1nerator11111111111111111111111111111111",
         "bps": 2000
       },
       {
-        "address": "3GcqSyYA3Bcik8o1fh78FnyADL4j4kxyyU3DvH9au26F",
-        "bps": 3000
+        "address": "BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW",
+        "bps": 5000
       }
     ],
     "status": 1,
@@ -216,12 +222,13 @@
     "initial_supply": null
   },
   "evidence_coverage": {
-    "3GcqSyYA3Bcik8o1fh78FnyADL4j4kxyyU3DvH9au26F": 0,
-    "5YRgrP3mjGzrzirYYN5HAQH19cTYREYwGxW6XRJQUzij": 0,
-    "FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu": 0
+    "1nc1nerator11111111111111111111111111111111": 0,
+    "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8": 0,
+    "BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW": 0,
+    "Wak5qWkdu5cTQFrKnMfYRDXy4nc244fZSkj3Ced2kuQ": 0
   },
   "graduated": false,
-  "mint": "8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump",
+  "mint": "7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump",
   "mint_state": {
     "decimals": 6,
     "freeze_authority": null,
@@ -229,14 +236,17 @@
     "supply": 1000000000000000,
     "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
   },
-  "observed_at": 1788639084.8143857,
+  "observed_at": 1788639082.6090412,
   "publishable": [
     "split"
   ],
   "schema": 3,
+  "sol_burn_balances": {
+    "1nc1nerator11111111111111111111111111111111": 0
+  },
   "split": {
     "burn": 0,
-    "paid": 10000,
-    "sol_burn": 0
+    "paid": 8000,
+    "sol_burn": 2000
   }
 }
