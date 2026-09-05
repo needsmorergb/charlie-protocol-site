@@ -5,16 +5,16 @@
 # the API calls, with the split the page defaults to -- produces bytes pump
 # accepts, and that the config it leaves behind is exactly the split asked
 # for. It is the front-to-back check for the one path most devs take.
-name: enrol
+name: enroll
 
 on:
   push:
     branches: [claude/charlie-posts-project-status-uyafps]
     paths:
-      - "tools/simulate_enrolment.py"
+      - "tools/simulate_enrollment.py"
       - "indexer/enroll.py"
       - "indexer/distribute.py"
-      - ".github/workflows/enrol.yml"
+      - ".github/workflows/enroll.yml"
   workflow_dispatch:
     inputs:
       base:
@@ -23,7 +23,7 @@ on:
         default: "https://charlieprotocol.fun"
 
 concurrency:
-  group: enrol
+  group: enroll
   cancel-in-progress: true
 
 permissions:
@@ -41,7 +41,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Simulate what a creator would sign
-        run: python tools/simulate_enrolment.py --auto
+        run: python tools/simulate_enrollment.py --auto
 
       # The other half of the loop: the crank that pays a coin's shareholders
       # from its vault. Built and simulated against mainnet on three coins
@@ -71,13 +71,13 @@ jobs:
       MINT: 25kBiULf6ZJMr42kh5vkaY7rHVbsA6t2PpTJ739cpump
       CREATOR: 6FRgGrGxsf1xuYACqjUAKgqdE9mnhnCMypUhiQ1WNQXT
     steps:
-      - name: The enrol page is the new one
+      - name: The enroll page is the new one
         run: |
           code=$(curl -s -o /tmp/enroll.html -w '%{http_code}' "$BASE/enroll")
           echo "GET $BASE/enroll -> $code"
           test "$code" = "200"
-          grep -q "Enrol your coin" /tmp/enroll.html
-          echo "ok: /enroll serves the enrolment page"
+          grep -q "Enroll your coin" /tmp/enroll.html
+          echo "ok: /enroll serves the enrollment page"
       - name: The API tells the creator of a config-less coin they may create
         run: |
           body=$(curl -sSf "$BASE/api/enroll?mint=$MINT&authority=$CREATOR")
@@ -103,4 +103,4 @@ jobs:
           echo "$body" | head -c 400; echo
           echo "$body" | grep -q '"simulated": *true'
           echo "$body" | grep -q '"creates_config": *true'
-          echo "enrolment is open: the server answered a transaction simulated against mainnet"
+          echo "enrollment is open: the server answered a transaction simulated against mainnet"
