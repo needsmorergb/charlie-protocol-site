@@ -108,15 +108,17 @@ def split_sum(split) -> Check:
 def sol_burn_unspendable(split) -> Check:
     """The SOL burn destination is one SOL cannot come back from.
 
-    Two ways to satisfy it, and both are real:
+    Two things satisfy it, and only two, whatever the prose elsewhere counts:
 
-    * **Recognised burn addresses.** `burn111...111` is one, and the chain
-      treats it the way every burn address is treated: SOL sent there is out
-      of circulation and stays there. This is the same standing every burn
+    * **Off the ed25519 curve** -- a program-derived address, which no key
+      signs for. This covers the protocol's own vaults and it covers Solana's
+      incinerator, so the incinerator never reaches the named set below.
+    * **A recognised burn address.** `burn111...111` is the one there is. The
+      chain treats it the way every burn address is treated: SOL sent there is
+      out of circulation and stays there. That is the same standing every burn
       address on every chain has ever had, and it is why a burn to one counts
-      as a burn.
-    * **The protocol's own destination**, Solana's incinerator, where the
-      runtime removes credited lamports from the total supply.
+      as a burn. It is on the curve, so this clause is the only thing that
+      passes it.
 
     A destination that is neither is an address someone can spend from, and
     that is what this check is for.
@@ -125,6 +127,14 @@ def sol_burn_unspendable(split) -> Check:
     protocol is built on top of $CHARLIE, not run by it. Printing a red FAIL
     on an unenrolled coin for not meeting an enrolled coin's requirement is a
     category error, and this check no longer makes it.
+
+    THE REGISTRY HERE IS THE PROTOCOL'S OWN, deliberately, not the one the
+    observation was taken under. `legs.classify` uses the caller's registry to
+    decide which leg an address is on; this decides whether what landed on the
+    SOL burn leg is a burn destination, and that answer may not depend on what
+    the caller was willing to call one. It is what makes the FAIL branch
+    reachable at all: hand `classify` a registry that grandfathers a wallet
+    and the wallet lands on the SOL burn leg, where this refuses it.
     """
     burned = [a for a in split.attributions if a.leg == "sol_burn"]
     if not burned:
@@ -132,10 +142,16 @@ def sol_burn_unspendable(split) -> Check:
             "SOL_BURN_UNSPENDABLE",
             UNCHECKED,
             [SOL_BURN_TOTAL],
-            "is_on_curve(sol_burn_vault) == False",
+            "every SOL burn destination is one SOL does not come back from",
             "no SOL burn destination in this split -- nothing to check",
         )
-    recognised = set(Registry().grandfathered_sol_burn) | {SOL_BURN_INCINERATOR}
+    # The incinerator is deliberately NOT named here. It is off the curve, so
+    # the keyless clause below has already taken it, and naming it as well
+    # would be a second mechanism that never runs -- unreachable code with a
+    # test beside it that looks like proof and is not. If `is_on_curve` ever
+    # stopped covering it, `test_the_incinerator_passes_by_being_off_the_curve`
+    # is what says so.
+    recognised = set(Registry().grandfathered_sol_burn)
     spendable = [
         a.address for a in burned
         if not a.keyless and a.address not in recognised

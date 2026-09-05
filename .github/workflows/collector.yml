@@ -1,0 +1,79 @@
+# The one unknown the collector design rests on, asked of mainnet.
+#
+# FEE-ROUTING section 7 routes 100% of a coin's creator fee to
+# `collector(mint)`, a PDA owned by a program that does not exist yet, and
+# then admits it is assuming: "6052 refuses an executable recipient, so the
+# safe order is still to create the account before routing to it rather than
+# to assume." pump's other refusal, 6070, is aimed at an uninitialized one.
+#
+# Neither has ever been tested against the shape a collector actually has.
+# The incinerator is system owned and non-existent; a collector is program
+# owned, and before deployment it is nothing at all. Those are three
+# different accounts as far as the runtime is concerned, and the design
+# survives or does not on which of them pump will pay.
+#
+# `err is None` is not payment: pump returns success and distributes nothing
+# below its own floor. So this measures lamports, before against after.
+name: collector
+
+on:
+  push:
+    branches: [claude/charlie-posts-project-status-uyafps]
+    paths:
+      - "tools/simulate_collector_payout.py"
+      - ".github/workflows/collector.yml"
+  workflow_dispatch:
+    inputs:
+      mints:
+        description: "Space separated mints to try before sampling the launch stream"
+        required: false
+        default: ""
+
+concurrency:
+  group: collector
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # The same gateway every other chain read in this repository goes
+      # through. Never a public endpoint directly.
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      # A coin already traced as having NO sharing config, so the run has a
+      # candidate for the create-it-here path even if the launch sample is
+      # refused by the gateway.
+      MINTS: ${{ github.event.inputs.mints || 'Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # No install step. Standard library only, like the rest of it.
+
+      # Three recipient shapes, one coin, and the incinerator claim BUILD.md
+      # currently makes on the strength of `err is None` alone.
+      - name: Will pump pay a program-owned PDA
+        run: |
+          python tools/simulate_collector_payout.py $MINTS \
+            --auto --auto-limit 30 --auto-scan 120 --auto-delay 0.6 \
+            --logs \
+            --incinerator 5vxYBj3qbAFCSQr2487AZEzNtmpdPRLZBKHpKuvfpump
+
+      # pump's floor is smaller than the rent-exempt minimum for an empty
+      # account -- it reported 810624 while an account with no data needs
+      # 890880 to exist at all. So a distribution that clears pump's floor can
+      # still be too small to leave a collector that does not exist yet rent
+      # exempt, and the runtime fails the whole transaction rather than pump.
+      # 1700000 into the vault leaves 889376 to distribute, 1504 short.
+      - name: A payout too small to leave a fresh collector rent exempt
+        continue-on-error: true
+        run: |
+          python tools/simulate_collector_payout.py $MINTS \
+            --auto --auto-limit 20 --auto-scan 90 --auto-delay 0.6 \
+            --top-up 1700000

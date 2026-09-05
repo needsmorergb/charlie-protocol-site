@@ -42,6 +42,25 @@ jobs:
           python-version: "3.11"
       # No install step. The indexer is stdlib only, on purpose.
 
+      # The record is `state/evidence/*.jsonl`; the `.db` is a working store
+      # rebuilt from it and never committed (D-01/D-03/D-04). Measured on a
+      # real run of this job, before this step existed: with the chain
+      # reachable and the store empty, five of the six landing counters came
+      # out "unknown", because they are read from the walk rather than from
+      # the chain.
+      #
+      # `INSERT OR IGNORE`, so the six-hourly schedule neither accumulates
+      # duplicate burn rows nor resets a submission this repository has
+      # already answered.
+      - name: Load the committed evidence record
+        run: python -m indexer load --db state/evidence.db --source state/evidence
+
+      # --refresh re-renders every coin page already under web/, not just the
+      # submissions measured this run. A committed page is a snapshot of a
+      # renderer that has since moved, and a submission is measured once: that
+      # left a live page printing "SOL_BURN_UNSPENDABLE fails permanently for
+      # this coin" above a check row on the same page reading PASS. A page
+      # whose chain read fails is kept rather than overwritten.
       - name: Measure the queue
         env:
           # Every chain read goes through crowd-api, never a public endpoint
@@ -50,23 +69,73 @@ jobs:
           # query with an empty array instead of an error.
           CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
         run: |
-          python -m indexer intake \
+          python -m indexer intake --refresh \
             --repo "${{ github.repository }}" \
             --evidence state/evidence.db \
             --out web \
             --site-url https://charlieprotocol.fun
 
+      # The landing page is the one surface no publish path wrote. `intake`
+      # writes coins-N, verify, 404 and enroll; `index.html` comes only from
+      # `site --write --landing`, which nothing ran. So a correction to the
+      # landing copy was source that production would never serve, which is
+      # the same failure as a broken page: the repository says one thing and
+      # the visitor reads another.
+      #
+      # It needs the chain, because the landing counters are an observation
+      # rather than committed text, and this job is where the chain is.
+      #
+      # --require-counters is why this step can fail the run. Measured: with
+      # no endpoint reachable, the same command renders and writes a landing
+      # page whose six counters all read "unknown", reports success, and the
+      # commit step below pushes it. The flag makes that exit 1 instead, and
+      # the page already deployed stays up.
+      - name: Regenerate the landing page
+        id: landing
+        # Deliberate, and not a swallowed failure: the step that reports it is
+        # below, after the commit. Without this a landing page that could not
+        # be rendered threw away the whole run -- refreshed coin pages, new
+        # evidence rows and the issue replies -- and the queue waited another
+        # six hours. The run still ends red; it ends red having kept what it
+        # measured.
+        continue-on-error: true
+        env:
+          CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+        run: |
+          python -m indexer site --write --landing --require-counters \
+            --evidence state/evidence.db \
+            --out web \
+            8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump
+
+      # Back to text, so what this run measured is in the record rather than
+      # only in a binary nobody can read a diff of.
+      - name: Write the evidence record back
+        run: python -m indexer export --db state/evidence.db --out state/evidence
+
       - name: Commit what was measured
         run: |
           git config user.name  "charlie-intake"
           git config user.email "needsmorergb@users.noreply.github.com"
-          git add web state
+          git add web state/evidence
           if git diff --cached --quiet; then
             echo "nothing measured this run"
             exit 0
           fi
+          # These pages carry the moment they were generated, and the
+          # landing page carries the moment it was observed, so the diff is
+          # never empty: every run commits at least a timestamp. That is
+          # accepted rather than filtered. A filter would have to tell a
+          # timestamp-only change from a real one, and each page is a single
+          # long line of HTML carrying both -- so the obvious filter (drop
+          # changed lines mentioning the timestamp) drops real changes with
+          # them, which is the one outcome worse than the churn.
           git commit -m "intake: measured submissions from the public queue"
-          git push
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME" && git push && exit 0
+            sleep $((attempt * 5))
+          done
+          echo "::error::what this run measured was not pushed"
+          exit 1
 
       - name: Answer the issues
         # Separate step, after the commit, because `reply` refuses to close an
@@ -87,10 +156,30 @@ jobs:
             --site-url https://charlieprotocol.fun \
             --answer --answer-only
 
+      # `answered_at`/`closed_at` live only here. A push that failed silently
+      # meant the next run re-commented on and re-closed an issue it had
+      # already answered, so this one is retried and then reported.
       - name: Commit any reply state
         run: |
           git config user.name  "charlie-intake"
           git config user.email "needsmorergb@users.noreply.github.com"
-          git add state
-          git diff --cached --quiet || git commit -m "intake: recorded answers"
-          git push || true
+          python -m indexer export --db state/evidence.db --out state/evidence
+          git add state/evidence
+          git diff --cached --quiet && exit 0
+          git commit -m "intake: recorded answers"
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME" && git push && exit 0
+            sleep $((attempt * 5))
+          done
+          echo "::error::the answer record was not pushed; the next run will re-answer"
+          exit 1
+
+      # The landing step's failure, reported last: after everything else this
+      # run had to do, rather than instead of it. The run ends red, having
+      # kept what it measured and answered what it could.
+      - name: Was the landing page written
+        if: always() && steps.landing.outcome == 'failure'
+        run: |
+          echo "::error::the landing page was not regenerated -- see the step above."
+          echo "Everything else this run measured has been committed."
+          exit 1

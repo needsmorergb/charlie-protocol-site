@@ -1,0 +1,59 @@
+# Does the toll survive graduation? Asked of mainnet, on coins that already have.
+#
+# FEE-ROUTING points a coin's whole pump creator fee at a PDA and splits it
+# with `distribute_creator_fees`. That instruction pays out of pump's
+# `creator-vault` PDA, which is where the fee accrues WHILE THE COIN IS ON ITS
+# BONDING CURVE. After graduation the AMM collects the same fee as wSOL into a
+# token account under a different program, and nothing in the crank as
+# designed ever looks there.
+#
+# So the design either holds because migration carried the sharing config into
+# `Pool.coin_creator`, or it silently stops paying exactly the coins with the
+# most volume. `err is None` cannot tell those apart. This measures lamports
+# and wSOL, before against after, in simulations that run the real programs
+# against real mainnet state.
+name: graduated
+
+on:
+  push:
+    branches: [claude/charlie-posts-project-status-uyafps]
+    paths:
+      - "tools/graduated_fee_routing.py"
+      - ".github/workflows/graduated.yml"
+  workflow_dispatch:
+    inputs:
+      mints:
+        description: "Graduated mints to measure before the sampled ones"
+        required: false
+        default: ""
+
+concurrency:
+  group: graduated
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # The same gateway every other chain read in this repository goes
+      # through. Never a public endpoint directly.
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      MINTS: ${{ github.event.inputs.mints || '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # No install step. Standard library only, like the rest of it.
+
+      - name: Graduation, the pool's coin_creator, and the whole crank
+        run: |
+          python tools/graduated_fee_routing.py \
+            --buckets 4 --pools 400 --print-pools 3 --measure 1 \
+            --amm-buckets 1 --starvation 6 --floor-sweep 10 \
+            ${MINTS:+--mints $MINTS}

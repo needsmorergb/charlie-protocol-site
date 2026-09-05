@@ -106,7 +106,7 @@
         "sol_burn_total"
       ],
       "detail": "no SOL burn destination in this split -- nothing to check",
-      "equation": "is_on_curve(sol_burn_vault) == False",
+      "equation": "every SOL burn destination is one SOL does not come back from",
       "expected": null,
       "name": "SOL_BURN_UNSPENDABLE",
       "status": "UNCHECKED"
@@ -220,7 +220,7 @@
     "supply": 1000000000000000,
     "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
   },
-  "observed_at": 1788409847.7597055,
+  "observed_at": 1788565572.2541502,
   "publishable": [
     "split"
   ],

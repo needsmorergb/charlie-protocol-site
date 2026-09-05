@@ -1,0 +1,65 @@
+# Can a coin's OWN admin escape a fee split after committing to it?
+#
+# FEE-ROUTING routes 100% of a coin's creator fee to a config PDA and rests
+# on `admin_revoked = true` being a permanent, one-way door. But the
+# fee-share program also carries reset_fee_sharing_config / _v2 and
+# transfer_/revoke_fee_sharing_authority, each with a `new_admin` and a
+# signer `authority`. If the admin can reset a revoked config, the one-shot
+# is re-armed and the toll is escapable. The project asserts "only pump could
+# reset it" with no evidence; this measures it.
+#
+# Every instruction is simulated as three callers -- the config admin, a
+# stranger, and the pump Global authorities read out of the Global account --
+# against real mainnet state with sigVerify off. Nothing signs, nothing sends.
+name: reset
+
+on:
+  push:
+    branches: [claude/charlie-posts-project-status-uyafps]
+    paths:
+      - "tools/simulate_reset.py"
+      - ".github/workflows/reset.yml"
+  workflow_dispatch:
+    inputs:
+      mints:
+        description: "Space separated mints to test before sampling the launch stream"
+        required: false
+        default: ""
+
+concurrency:
+  group: reset
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # The same gateway every other chain read in this repository goes
+      # through. Never a public endpoint directly.
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      # Coins already traced as carrying a live sharing config, so the run has
+      # candidates even if the launch sample is refused by the gateway. Every
+      # freshly launched fee-shared coin has admin_revoked true, which is the
+      # exact case question 1 needs.
+      MINTS: ${{ github.event.inputs.mints || '9vAV2s4ujZ16yU6V334gQqpgo5a7swYRiUdiwRYvpump 5vxYBj3qbAFCSQr2487AZEzNtmpdPRLZBKHpKuvfpump 9MTfWK8chKHVJq1qnDvRZ2udovpzbP2N4tm2pFEipump Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # No install step. Standard library only, like the rest of it.
+
+      # reset and _v2 take their full account lists from the DEPLOYED IDL;
+      # transfer_/revoke_ from pump's older published pump_fees.json, since
+      # the deployed IDL emptied their account lists. Both the deployed IDLs
+      # and the published one are read at run time.
+      - name: Who can reset a revoked config, and does a reset move fees
+        run: |
+          python tools/simulate_reset.py $MINTS \
+            --auto --auto-limit 30 --auto-scan 120 --auto-delay 0.6 \
+            --auto-want 2 --verbose

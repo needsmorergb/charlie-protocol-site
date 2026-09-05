@@ -1,1 +1,17 @@
 .vercel
+__pycache__/
+*.py[cod]
+
+# The working store, not the record.
+#
+# D-01/D-03/D-04: a `.db` is rewritten wholesale on every write, so committing
+# the binary balloons git history. What is committed is the deterministic text
+# export beside it (state/evidence/*.jsonl), which `python -m indexer load`
+# turns back into a working store and `python -m indexer export` writes back.
+#
+# This repository committed the binary for a while, and the export next to it
+# went stale: the two disagreed about a measured submission, and the code
+# comments said the tracked file was empty when it was not.
+state/*.db
+state/*.db-wal
+state/*.db-shm

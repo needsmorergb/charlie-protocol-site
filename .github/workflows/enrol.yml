@@ -1,0 +1,91 @@
+# The transaction /enroll hands a wallet, simulated against mainnet.
+#
+# simulate_create_config.py proved pump accepts create + update in one
+# transaction as built from the IDL. This proves OUR encoder -- the function
+# the API calls, with the split the page defaults to -- produces bytes pump
+# accepts, and that the config it leaves behind is exactly the split asked
+# for. It is the front-to-back check for the one path most devs take.
+name: enrol
+
+on:
+  push:
+    branches: [claude/charlie-posts-project-status-uyafps]
+    paths:
+      - "tools/simulate_enrolment.py"
+      - "indexer/enroll.py"
+      - ".github/workflows/enrol.yml"
+  workflow_dispatch:
+    inputs:
+      base:
+        description: "The deployed host to ask (the preview host is behind Vercel's authentication, so by default this asks production)"
+        required: false
+        default: "https://charlieprotocol.fun"
+
+concurrency:
+  group: enrol
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Simulate what a creator would sign
+        run: python tools/simulate_enrolment.py --auto
+
+  # The deployed site, asked the questions a dev's browser asks. Dispatched
+  # by hand after a deploy: the branch preview is behind Vercel's own
+  # authentication (its first run got a 401 before reading a byte), so this
+  # asks the host it is given, production by default.
+  deployed:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BASE: ${{ github.event.inputs.base || 'https://charlieprotocol.fun' }}
+      # The coin the simulate job enrolled against mainnet, and its creator.
+      MINT: 25kBiULf6ZJMr42kh5vkaY7rHVbsA6t2PpTJ739cpump
+      CREATOR: 6FRgGrGxsf1xuYACqjUAKgqdE9mnhnCMypUhiQ1WNQXT
+    steps:
+      - name: The enrol page is the new one
+        run: |
+          code=$(curl -s -o /tmp/enroll.html -w '%{http_code}' "$BASE/enroll")
+          echo "GET $BASE/enroll -> $code"
+          test "$code" = "200"
+          grep -q "Enrol your coin" /tmp/enroll.html
+          echo "ok: /enroll serves the enrolment page"
+      - name: The API tells the creator of a config-less coin they may create
+        run: |
+          body=$(curl -sSf "$BASE/api/enroll?mint=$MINT&authority=$CREATOR")
+          echo "$body"
+          echo "$body" | grep -q '"can_create": *true'
+          echo "$body" | grep -q '"reason": *"no_sharing_config"'
+      - name: And tells anyone else they may not
+        run: |
+          body=$(curl -sSf "$BASE/api/enroll?mint=$MINT&authority=1nc1nerator11111111111111111111111111111111")
+          echo "$body"
+          echo "$body" | grep -q '"can_create": *false'
+      - name: Building answers a transaction simulated against mainnet
+        # Reads the toll from the inspect response and builds with it, the
+        # way the page does. If the toll were ever unset again the server
+        # would refuse, and this step would fail with its words.
+        run: |
+          inspect=$(curl -sSf "$BASE/api/enroll?mint=$MINT&authority=$CREATOR")
+          toll=$(echo "$inspect" | python3 -c 'import json,sys; t=json.load(sys.stdin).get("toll") or {}; print(t.get("address") or "")')
+          bps=$(echo "$inspect" | python3 -c 'import json,sys; t=json.load(sys.stdin).get("toll") or {}; print(t.get("bps") or 500)')
+          test -n "$toll"
+          rest=$((10000 - bps - 2000))
+          body=$(curl -sSf "$BASE/api/enroll?mint=$MINT&authority=$CREATOR&shares=$toll:$bps,1nc1nerator11111111111111111111111111111111:2000,$CREATOR:$rest")
+          echo "$body" | head -c 400; echo
+          echo "$body" | grep -q '"simulated": *true'
+          echo "$body" | grep -q '"creates_config": *true'
+          echo "enrolment is open: the server answered a transaction simulated against mainnet"

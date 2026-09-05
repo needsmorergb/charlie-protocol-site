@@ -523,6 +523,55 @@ NON_FIGURE_EMITTERS = {
     "indexer.cli:_export": (
         "prints the file paths export_all() wrote -- filenames, not figures"
     ),
+    "indexer.cli:_refresh_pages": (
+        "prints the path of each coin page it re-rendered, and the mint of each it "
+        "left alone -- filenames and addresses. Every figure on a page it writes went "
+        "through site.render, which is itself a classified SURFACES target"
+    ),
+    "indexer.cli:_refresh": (
+        "prints the file paths _refresh_pages and _write_index wrote -- filenames, "
+        "not figures, mirroring _export's entry above"
+    ),
+    # The BURN leg run by hand (indexer/buyback.py, BUYBACK.md): an operator
+    # keeper, PROTOCOL.md sec.5 option 3. Everything it prints is about ONE
+    # transaction it built, simulated, or sent -- a plan, a simulation
+    # result, a signature, and the burn instruction it read back off that
+    # transaction through the indexer's own decoders. Per-transaction receipt
+    # data, never a coin-wide total, and never a name in invariants.FIGURES;
+    # the coin-wide figures that transaction feeds into are produced later by
+    # the burn walk and gated like any other.
+    "indexer.buyback:explain": (
+        "returns the program's error in words a person can act on -- a message "
+        "about a refused transaction, no figure in it"
+    ),
+    "indexer.buyback:confirm": (
+        "prints confirmation polling for one signature -- status words and elapsed "
+        "time, no figure"
+    ),
+    "indexer.buyback:run_keeper": (
+        "prints one line per crank: the lot spent, the signature, and the burn read "
+        "back off THAT transaction. Receipt data for a transaction the operator just "
+        "sent, not a coin-wide total, and none of it a name in invariants.FIGURES"
+    ),
+    "indexer.cli:_print_result": (
+        "prints buyback.run()'s result: the plan, the simulation's compute units, "
+        "the signature if sent, and the burn instruction decoded from that one "
+        "transaction. Per-transaction receipt data; no coin-wide figure and no name "
+        "in invariants.FIGURES"
+    ),
+    "indexer.cli:_buyback": (
+        "dispatches to buyback.run()/run_keeper() and prints through _print_result "
+        "(classified above) plus keeper progress lines -- lots and signatures"
+    ),
+    "indexer.cli:_burn": (
+        "the same, for a burn of tokens already held: dispatches to buyback and "
+        "prints through _print_result"
+    ),
+    "indexer.cli:_load": (
+        "prints how many rows each table of the committed export loaded -- a count "
+        "of records read from a file, not a measurement of a coin. Nothing here is "
+        "derived from a chain read and no figure passes through it"
+    ),
     "indexer.cli:_log": (
         "dispatches to _log_lines()/_log_json_lines(), both registered SURFACES "
         "targets; prints their already-gated output verbatim"

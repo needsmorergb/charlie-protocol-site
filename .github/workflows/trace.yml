@@ -1,0 +1,122 @@
+# Chain reads that this sandbox cannot make.
+#
+# Two questions this answers, both of which the repository currently answers
+# from documents rather than from the chain:
+#
+#   1. Does pump's fee-share program really allow a split to be changed only
+#      once? /enroll warns a dev about that before a one-way door, and pump's
+#      published IDL contains no such error. idl_dump reads the on-chain IDL
+#      and prints the error list, which settles it.
+#
+#   2. For a coin claiming to route "100% of creator fees" somewhere, is the
+#      destination a sharing config pump pays, or an ordinary address whose
+#      key somebody holds? trace_collector reads the byte that decides it,
+#      and can enumerate the other coins paying the same collector.
+#
+# Runs on push to the working branch so the answer arrives without anyone
+# clicking anything, and on demand with different mints.
+name: trace
+
+on:
+  push:
+    branches: [claude/charlie-posts-project-status-uyafps]
+    paths:
+      - "tools/**"
+      - ".github/workflows/trace.yml"
+      # The collector question has its own workflow and its own RPC budget.
+      # Without this, every iteration of it re-runs this entire read as well,
+      # and two jobs hitting the same gateway at once is how a run comes back
+      # with upstream 429s instead of an answer.
+      - "!tools/simulate_collector_payout.py"
+      # The reset question has its own workflow and its own RPC budget, for
+      # the same reason: two jobs on one gateway come back with 429s.
+      - "!tools/simulate_reset.py"
+      # The fee schedule has its own workflow so its answer is not buried
+      # a few hundred lines inside this one.
+      - "!tools/fee_tiers.py"
+  workflow_dispatch:
+    inputs:
+      mints:
+        description: "Space separated mints to trace"
+        required: false
+        default: "Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump 9MTfWK8chKHVJq1qnDvRZ2udovpzbP2N4tm2pFEipump CKofs75XK4PGncupA8wFYKNawYQyyrxQ9PYQPmPKv9tE"
+
+concurrency:
+  group: trace
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # The same gateway every other chain read in this repository goes
+      # through. Never a public endpoint directly.
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      MINTS: ${{ github.event.inputs.mints || 'Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump 9MTfWK8chKHVJq1qnDvRZ2udovpzbP2N4tm2pFEipump CKofs75XK4PGncupA8wFYKNawYQyyrxQ9PYQPmPKv9tE' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # No install step. Standard library only, like the rest of it.
+
+      - name: The on-chain IDLs
+        run: python tools/idl_dump.py
+
+
+      # Whether a coin arrives with a fee split, or somebody has to make one.
+      # Sampled from pump's own launch stream -- the mint-authority PDA that
+      # only `create` touches -- so the population is not selected on the
+      # answer the way the fee-share program's own accounts are.
+      - name: Do freshly launched coins have a sharing config
+        continue-on-error: true
+        run: python tools/sample_new_coins.py --limit 30 --scan 60 --delay 0.6
+
+      # Who becomes admin, what the initial shareholders are, and whether the
+      # bonding curve's creator moves to the config PDA. Simulated against
+      # real mainnet state, post-simulation account bytes and all.
+      - name: Create a config for a coin that has none
+        continue-on-error: true
+        run: python tools/simulate_create_config.py --auto --auto-limit 6
+
+      # The same creation attempted by an address that is not the coin's
+      # creator. If admin were simply whoever pays, this would succeed and
+      # name that address; the program's answer settles who may claim a coin.
+      - name: Can a stranger create the config
+        continue-on-error: true
+        run: |
+          python tools/simulate_create_config.py --auto --auto-limit 6 \
+            --as burn111111111111111111111111111111111111111
+
+      # The same creation with update_fee_shares_v2 appended to the SAME
+      # transaction: if the update succeeds, creation did not spend the
+      # one-shot; if it fails already-updated, it did.
+      - name: Is the one-shot still unspent right after creation
+        continue-on-error: true
+        run: python tools/simulate_create_config.py --auto --auto-limit 6 --then-update
+
+      - name: Trace the coins
+        run: python tools/trace_collector.py --siblings $MINTS
+
+      - name: Are our burn destinations eligible recipients
+        run: python tools/account_state.py
+
+      - name: Who already routes to the incinerator
+        run: |
+          python tools/trace_collector.py \
+            --collector 1nc1nerator11111111111111111111111111111111 --limit 6
+
+      # The question FEE-ROUTING section 6 exists for. Two coins that route
+      # to the incinerator, and one that does not, so a failure can be told
+      # apart from a distribution that was never going to work anyway.
+      - name: Would pump distribute to the incinerator
+        run: |
+          python tools/simulate_distribute.py \
+            9vAV2s4ujZ16yU6V334gQqpgo5a7swYRiUdiwRYvpump \
+            5vxYBj3qbAFCSQr2487AZEzNtmpdPRLZBKHpKuvfpump \
+            9MTfWK8chKHVJq1qnDvRZ2udovpzbP2N4tm2pFEipump

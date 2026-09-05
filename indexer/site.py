@@ -831,9 +831,31 @@ _RISKS = (
     "No program is deployed.",
     "There is no funding, and Phase 5 is gated on SOL that does not exist yet.",
     "Revoking upgrade authority is a one-way door.",
-    "SOL_BURN_UNSPENDABLE fails permanently for this coin, not pending.",
     "The opening-balance mechanism is dormant on live data (D-07).",
 )
+
+
+def _sol_burn_risk(observation) -> str | None:
+    """The SOL burn destination risk, read from this coin's own check.
+
+    It used to be a fifth entry in `_RISKS`, static: "SOL_BURN_UNSPENDABLE
+    fails permanently for this coin, not pending." It said that on every page,
+    for every coin, including coins whose check row two sections above read
+    PASS. A page contradicting its own check is the exact failure `_walk_risk`
+    below was written to stop, committed a second time.
+
+    None where there is nothing to say, so a coin whose destination is a burn
+    address is not handed a risk about one that is not.
+    """
+    check = next((c for c in (observation.checks or [])
+                  if c.name == "SOL_BURN_UNSPENDABLE"), None)
+    if check is None or check.status != invariants.FAIL:
+        return None
+    return (
+        "A SOL burn destination for this coin is an ordinary address somebody "
+        "can spend from, so SOL_BURN_UNSPENDABLE fails and no SOL burn total "
+        "is published here."
+    )
 
 
 def _walk_risk(observation) -> str:
@@ -988,75 +1010,6 @@ def _results_chart(observation) -> str:
         + '">'
         + "".join(bars)
         + "</svg>"
-        "</section>"
-    )
-
-
-def _deflation(observation) -> str:
-    """The SOL that passed through this coin's burns, and the deflation it
-    would have produced had it been burned instead of spent.
-
-    ONE WORD FOR IT. A SOL burn IS deflation -- SOL sent where no key can
-    spend it never returns to circulation, which is the only sense in which
-    SOL can be burned at all. "Removed from circulation", "locked" and
-    "sealed" are the same event under softer names, and several names for one
-    thing leave a reader unsure whether they are several things.
-
-    Summed from `burn_events.sol_spent` -- the same rows behind the "SOL spent
-    buying them" counter, so this figure and that one can never disagree. It
-    is an observed fact, not a member of `invariants.FIGURES`: it states what
-    the recorded burns cost, and claims nothing about what was routed.
-
-    ONE SENTENCE, AND IT SAYS ONLY "DEFLATION". The figure is a counterfactual,
-    so `This did not happen` states that outright -- and then it stops. Every
-    further clause is an opportunity to imply something about the protocol's
-    modes that is not true.
-
-    In particular it must never read as a trade-off between burning the coin's
-    supply and burning SOL. Those are not alternatives: PROTOCOL.md sec.2
-    mode 2 is `{SOL_BURN: n, BURN: 10000 - n}` -- both, in one split, already
-    specified. Copy pitting one against the other argues against a shipped
-    mode.
-
-    Stated only when the burn walk is COMPLETE. A partial walk yields a
-    smaller total that looks exactly like a finished one, and `ankr` and
-    `shyft` were observed answering signature queries with an empty array
-    rather than an error, so "we scanned and found little" and "we could not
-    scan" are indistinguishable downstream unless something refuses to guess.
-    """
-    rows = getattr(observation, "burn_events", None) or []
-    complete = bool(getattr(observation, "burn_walk_complete", False))
-    lamports = sum(int(r.get("sol_spent") or 0) for r in rows)
-
-    if not complete:
-        return (
-            '<section id="deflation">'
-            "<h2>SOL That Could Have Been Burned</h2>"
-            "<p>Not shown. The burn walk for this mint has not finished, and a "
-            "partial walk gives a smaller total that looks exactly like a "
-            "finished one.</p>"
-            "</section>"
-        )
-    if not rows:
-        return (
-            '<section id="deflation">'
-            "<h2>SOL That Could Have Been Burned</h2>"
-            "<p>No burn is recorded against this mint, so no SOL has passed "
-            "through one. The walk finished and found none.</p>"
-            "</section>"
-        )
-
-    sol = lamports / LAMPORTS_PER_SOL
-    return (
-        '<section id="deflation">'
-        "<h2>SOL That Could Have Been Burned</h2>"
-        f'<p class="deflation-value">{sol:,.9f} SOL</p>'
-        "<p><strong>This did not happen.</strong> Burned SOL never comes back, "
-        "so routing this much to a SOL burn vault is that much permanent "
-        "deflation.</p>"
-        f'<p class="meta">Summed from the {len(rows)} recorded burn '
-        f"{'transaction' if len(rows) == 1 else 'transactions'} behind the "
-        "figures above, over a completed walk of this mint.</p>"
         "</section>"
     )
 
@@ -1300,6 +1253,9 @@ def _sections(observation) -> str:
     own source, never re-typed apart from it.
     """
     risk_items = [f"<li>{esc(text)}</li>" for text in _RISKS]
+    sol_burn_risk = _sol_burn_risk(observation)
+    if sol_burn_risk:
+        risk_items.append(f"<li>{esc(sol_burn_risk)}</li>")
     risk_items.append(f"<li>{esc(_walk_risk(observation))}</li>")
     risk_items.append(f'<li id="{RISK_GENERATOR_ANCHOR}">{esc(_GENERATOR_UNVERIFIED)}</li>')
     risks = '<section id="risks"><h2>Risks</h2><ol class="risks">' + "".join(risk_items) + "</ol></section>"
@@ -1308,14 +1264,14 @@ def _sections(observation) -> str:
         (
             _launch_mode(observation),
             _results_chart(observation),
-            # `_deflation` is deliberately NOT rendered here.
-            #
-            # It stated a counterfactual: what a coin's recorded burns would
-            # have destroyed had that SOL gone to a burn instead of buying
-            # tokens. No check backs a counterfactual, because nothing
-            # happened for a check to read. Every other figure on this page is
-            # gated on a passing check; that one was gated on nothing, which
-            # is the rule this page exists to enforce.
+            # No counterfactual is rendered here. `_deflation` used to be,
+            # and is now deleted rather than left unreachable: it stated what
+            # a coin's recorded burns would have destroyed had that SOL gone
+            # to a burn instead of buying tokens. No check backs a
+            # counterfactual, because nothing happened for a check to read.
+            # Every other figure on this page is gated on a passing check;
+            # that one was gated on nothing, which is the rule this page
+            # exists to enforce.
             #
             # It also read as an accusation rather than a measurement. On a
             # coin whose 17.58 SOL bought and burned 43.58M tokens, the
@@ -1388,10 +1344,6 @@ _STYLE = _TOKENS + _VERIFY_FORM_CSS + """
 .bar-fail { fill: var(--destructive); }
 .bar-unchecked { fill: none; stroke: var(--unchecked); stroke-width: 1; stroke-dasharray: 3 3; }
 .bar-neutral { fill: var(--pass-glyph); }
-.deflation-value {
-  font-size: clamp(22px, 4vw, 34px); font-weight: 700; margin: 0 0 var(--sp-md) 0;
-  overflow-wrap: anywhere;
-}
 
 * { box-sizing: border-box; }
 body {
@@ -2852,11 +2804,15 @@ _LANDING_SOON = (
     "the program rather than chosen by whoever deploys it. The coin then gets "
     "a page like this one, on which no figure renders unless a passing check "
     "backs it.",
-    "None of that is built yet. What produced every number above exists: the "
-    "checks, the verifier, and the committed record they read from. The "
-    "on-chain program that does the enrolling does not, so no coin can enroll "
-    "today. That includes $CHARLIE, which revoked its own admin and can no "
-    "longer be reconfigured by anyone but pump.",
+    "Part of that is built and part is not. A coin CAN set where its creator "
+    "fee goes today, through pump's own fee-sharing program rather than "
+    "through any program of ours: /enroll builds that transaction, simulates "
+    "it against mainnet first, and your wallet signs it. What does not exist "
+    "yet is our program, so the vaults it would derive, the buy-and-burn "
+    "crank and the protocol's own share do not exist either.",
+    "$CHARLIE itself cannot enrol. Its config reads admin_revoked, which is "
+    "how pump records that a coin has already used the single change it is "
+    "allowed, and only pump can reset it.",
     "It will land in the repository linked below. There is nothing to sign up "
     "for and nothing to buy in order to be ready for it.",
 )
@@ -2921,6 +2877,25 @@ def _landing_footer(observation) -> str:
 
 
 _LANDING_TAGLINE = "Every number on this page names the check that could falsify it."
+
+
+UNKNOWN_COUNTER = "unknown"
+
+
+def unknown_counters(observation) -> tuple:
+    """The labels of the landing counters that have no value to show.
+
+    The landing page renders from an Observation, and an Observation whose
+    chain reads all failed is not an error: every counter simply reads
+    "unknown", every check disappears, and the page renders happily. That is
+    correct behaviour for a page nobody publishes, and a regression for the
+    front door -- a CI job that regenerates the landing page with a dead RPC
+    endpoint would replace six live figures with six "unknown" and commit it.
+
+    So the caller that publishes gets to ask, and refuse.
+    """
+    return tuple(cell["label"] for cell in _counters(observation)
+                 if cell["value"] == UNKNOWN_COUNTER)
 
 
 def render_landing(observation, *, now=None) -> str:
