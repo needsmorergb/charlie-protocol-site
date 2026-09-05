@@ -36,6 +36,7 @@ on:
       - "!tools/fee_tiers.py"
       # The IDL viewer is dispatched by hand with its own inputs.
       - "!tools/idl_show.py"
+      - "!tools/simulate_curve_buyback.py"
   workflow_dispatch:
     inputs:
       mints:

@@ -1,0 +1,44 @@
+# The BURN leg, simulated against mainnet on a coin that has not graduated.
+#
+# indexer/curvebuy.py builds pump's own `buy` from the deployed program's
+# IDL and burns what it bought in the same transaction. This proves the
+# bytes on a live curve: a freshly launched coin, a funded stand-in wallet,
+# signature checks off. A refused simulation fails the job.
+name: buyback
+
+on:
+  push:
+    branches: [claude/charlie-posts-project-status-uyafps]
+    paths:
+      - "indexer/buyback.py"
+      - "indexer/curvebuy.py"
+      - "tools/simulate_curve_buyback.py"
+      - ".github/workflows/buyback.yml"
+  workflow_dispatch:
+    inputs:
+      mints:
+        description: "Mints on their bonding curve to simulate against, before the sampled ones"
+        required: false
+        default: ""
+
+concurrency:
+  group: buyback
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      MINTS: ${{ github.event.inputs.mints || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Buy and burn on a live bonding curve
+        run: python tools/simulate_curve_buyback.py --auto $MINTS
