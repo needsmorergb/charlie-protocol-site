@@ -57,6 +57,23 @@ jobs:
             5vxYBj3qbAFCSQr2487AZEzNtmpdPRLZBKHpKuvfpump \
             9MTfWK8chKHVJq1qnDvRZ2udovpzbP2N4tm2pFEipump
 
+      # A graduated coin with a real config, whose fee sits as wSOL on the
+      # AMM side (101 SOL when the `graduated` workflow measured it). The
+      # crank here is two instructions: transfer_creator_fees_to_pump, then
+      # distribute_creator_fees. A refused simulation fails this step.
+      - name: Simulate the crank on a graduated coin
+        run: |
+          python -m indexer distribute --min-lamports 1 \
+            7bRLkZEBjXhkunAhz3CLzQ5wth2vLjT41MusuZVpump
+
+      # Enrolling a coin that graduated BEFORE it had a config: the create
+      # must pass the pool. The coin is the one the `graduated` workflow
+      # measured; if its creator ever makes a config for real this step
+      # says "already has a config" and fails, and the mint here needs
+      # replacing with another graduated, config-less coin.
+      - name: Simulate enrolling a coin that has already graduated
+        run: python tools/simulate_enrollment.py 1Krx2uAoToCktb5jG7ZVEnqahaiTzYsuPyCW2FYpump
+
   # The deployed site, asked the questions a dev's browser asks. Dispatched
   # by hand after a deploy: the branch preview is behind Vercel's own
   # authentication (its first run got a 401 before reading a byte), so this

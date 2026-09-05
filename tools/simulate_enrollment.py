@@ -83,7 +83,8 @@ def simulate(rpc, mint: str) -> int:
         print(f"  SKIPPED        preflight refused it: {str(exc)[:90]}")
         return 2
     blockhash = rpc.call("getLatestBlockhash", [{"commitment": "finalized"}])["value"]["blockhash"]
-    message = enroll.enrollment_message(mint, creator, shares, blockhash, create=True)
+    message = enroll.enrollment_message(mint, creator, shares, blockhash, create=True,
+                                        graduated=bool(curve.graduated))
     unsigned = bytes([1]) + b"\x00" * 64 + message
     print(f"  message bytes  {len(message)}   instructions {message[4 + 32 * message[3] + 32]}")
     print(f"  split          {[(s.address, s.bps) for s in shares]}")
