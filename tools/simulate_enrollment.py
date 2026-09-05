@@ -36,7 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from indexer import enroll, pump                             # noqa: E402
 from indexer.buyback import ix_system_transfer               # noqa: E402
 from indexer.distribute import STAND_IN_PAYER as FUNDER      # noqa: E402
-from indexer.message import unsigned_transaction             # noqa: E402
+from indexer.message import compile_legacy, unsigned_transaction  # noqa: E402
 from indexer.base58 import encode                            # noqa: E402
 from tools.sample_new_coins import sample                    # noqa: E402
 from tools.sample_new_coins import endpoints_from            # noqa: E402
@@ -103,11 +103,14 @@ def simulate(rpc, mint: str) -> int:
     if held < RENT_FLOOR_LAMPORTS:
         print(f"  creator holds  {held} lamports, below the config's rent: funding "
               f"{TOP_UP_LAMPORTS} from {FUNDER} inside the simulation only")
-        message = enroll.encode_message(
+        # compile_legacy directly: the page's encode_message insists on one
+        # signer, the dev's wallet, and this funded variant has two.
+        message = compile_legacy(
+            creator,
             [ix_system_transfer(FUNDER, creator, TOP_UP_LAMPORTS),
              enroll.create_instruction(mint, creator, graduated=bool(curve.graduated)),
              enroll.update_instruction(mint, creator, shares, current=[creator])],
-            creator, blockhash,
+            blockhash,
         )
     unsigned = unsigned_transaction(message)
     print(f"  message bytes  {len(message)}   instructions {message[4 + 32 * message[3] + 32]}")
