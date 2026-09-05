@@ -27,7 +27,8 @@ What only this repository holds, as of 2026-09-05:
   the binary db. Committed pages under `web/` must equal what the current
   renderer produces; a merge conflict on one is resolved by taking the
   newer renderer's output, and the next intake regenerates everything.
-- **The RPC gateway** (`CHARLIE_RPC_URLS` in each workflow) answers 429
+- **The RPC gateway** (`CHARLIE_RPC_URLS` in each workflow, and now the
+  default in `indexer/rpc.py` for the Vercel functions and the CLI) answers 429
   after several chain-reading runs in quick succession. Space out manual
   dispatches. After a merge, wait for the Vercel production deployment to
   be READY before dispatching `enroll.yml`, or its page check races the
