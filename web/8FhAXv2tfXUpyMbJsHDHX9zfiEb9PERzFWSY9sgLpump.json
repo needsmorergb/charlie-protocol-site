@@ -77,6 +77,15 @@
       "status": "PASS"
     },
     {
+      "actual": "0",
+      "backs": [],
+      "detail": "the split does not pay the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 at all",
+      "equation": "bps(TOLL_DESTINATION) >= 500",
+      "expected": ">= 500",
+      "name": "PROTOCOL_SHARE",
+      "status": "FAIL"
+    },
+    {
       "actual": "a burn destination",
       "backs": [
         "sol_burn_total"
@@ -191,7 +200,7 @@
     "supply": 956382187958910,
     "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
   },
-  "observed_at": 1788582565.6009467,
+  "observed_at": 1788583588.5469682,
   "publishable": [
     "split"
   ],
