@@ -1,7 +1,7 @@
-"""Does the smoke test's enrolment fixture have pump's Trader Cashback on?
+"""Does the smoke test's enrollment fixture have pump's Trader Cashback on?
 
-`scripts/smoke.py` builds a real enrol transaction against mainnet on every
-deploy, using one fixture coin. The enrol preflight now REFUSES any coin whose
+`scripts/smoke.py` builds a real enroll transaction against mainnet on every
+deploy, using one fixture coin. The enroll preflight now REFUSES any coin whose
 bonding curve reports cashback true, because such a coin routes its whole
 creator fee to traders and every share of any split would be zero. If the
 fixture is a cashback coin, the deploy smoke check starts failing.

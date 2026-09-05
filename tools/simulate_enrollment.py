@@ -3,7 +3,7 @@
 `simulate_create_config.py` proved that pump accepts create_fee_sharing_config
 followed by update_fee_shares_v2 in one transaction -- built by that tool,
 from the IDL, account by account. What it did not prove is that OUR encoder
-produces the same bytes: `indexer.enroll.enrolment_message`, the function the
+produces the same bytes: `indexer.enroll.enrollment_message`, the function the
 API calls, with the toll row, the incinerator and the dev's wallet as the
 split. That is what a dev signs, so that is what this simulates.
 
@@ -18,8 +18,8 @@ so a passing run proves that address is one pump will pay. Only if it were
 ever unset again does the incinerator stand in, because a None refuses to
 build; what is being tested then is the encoding, not the destination.
 
-    python tools/simulate_enrolment.py --auto
-    python tools/simulate_enrolment.py <mint>            # must be config-less
+    python tools/simulate_enrollment.py --auto
+    python tools/simulate_enrollment.py <mint>            # must be config-less
 
 Reads only. Nothing signs, nothing is sent.
 """
@@ -83,7 +83,7 @@ def simulate(rpc, mint: str) -> int:
         print(f"  SKIPPED        preflight refused it: {str(exc)[:90]}")
         return 2
     blockhash = rpc.call("getLatestBlockhash", [{"commitment": "finalized"}])["value"]["blockhash"]
-    message = enroll.enrolment_message(mint, creator, shares, blockhash, create=True)
+    message = enroll.enrollment_message(mint, creator, shares, blockhash, create=True)
     unsigned = bytes([1]) + b"\x00" * 64 + message
     print(f"  message bytes  {len(message)}   instructions {message[4 + 32 * message[3] + 32]}")
     print(f"  split          {[(s.address, s.bps) for s in shares]}")

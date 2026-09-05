@@ -559,7 +559,7 @@ def amm_side_census(rpc, idls, *, buckets: tuple[int, ...]) -> list[dict]:
     find coins that HAVE a config, so it cannot see the case that would break
     the design: a coin that graduated first, enrolled later, and left
     `Pool.coin_creator` pointing at the wallet. Sampling POOLS finds those,
-    because it starts from coins whose enrolment status is unknown.
+    because it starts from coins whose enrollment status is unknown.
 
     One byte of `base_mint` again, so the slice is ~1/256 of every pump AMM
     pool rather than a list nobody will serve.
@@ -632,18 +632,18 @@ def amm_side_census(rpc, idls, *, buckets: tuple[int, ...]) -> list[dict]:
     return rows
 
 
-def enrol_graduated_probe(rpc, idls, rows: list[dict], *, payer: str) -> None:
+def enroll_graduated_probe(rpc, idls, rows: list[dict], *, payer: str) -> None:
     """Where 6019 AmmAccountsRequiredForGraduatedCoin actually comes from.
 
     `distribute_creator_fees` cannot raise it -- 6019 in pump's IDL is
     `InvalidCreator`, and 6019 in the FEE-SHARE program is the graduation
     error. The fee-share instruction that can raise it is
     `create_fee_sharing_config`, whose last three accounts are optional. So:
-    the same enrolment, on the same already-graduated coin, built twice --
+    the same enrollment, on the same already-graduated coin, built twice --
     once with those three accounts dropped, once with them supplied.
 
     The creating wallet pays the config's rent, so it is funded from the
-    burn address inside the same transaction; a wallet too poor to enrol
+    burn address inside the same transaction; a wallet too poor to enroll
     would otherwise fail for a reason that is not the one under test.
     """
     print("\n### 6019 -- enrolling a coin that has ALREADY graduated")
@@ -937,7 +937,7 @@ def main(argv=None) -> int:
         print("\n### Q2b -- the same question sampled from the AMM's own pools")
         try:
             pool_rows = amm_side_census(rpc, idls, buckets=tuple(range(args.amm_buckets)))
-            enrol_graduated_probe(rpc, idls, pool_rows, payer=args.payer)
+            enroll_graduated_probe(rpc, idls, pool_rows, payer=args.payer)
         except Exception as exc:                            # noqa: BLE001 - reported
             print(f"  AMM-side census unreadable: {type(exc).__name__}: {exc}")
 
