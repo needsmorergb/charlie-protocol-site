@@ -77,6 +77,9 @@ def probe(rpc, idls, mint: str, wallet: str, lot: int) -> int:
         "buyback_fee_recipient": live[0] if live else buyback.DEFAULT_PUBKEY,
         "user": wallet, "associated_base_user": user_base,
         "fee_program": buyback.FEE_PROGRAM,
+        # A seed path into the curve account: the resolver takes it from
+        # the context, as the graduated probe does.
+        "bonding_curve.creator": state.curve.creator,
     }
     metas = resolve_accounts(entry, program_id, context)
     print("  buy_v2 accounts, resolved from the IDL:")
