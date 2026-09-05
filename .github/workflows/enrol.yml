@@ -1,0 +1,38 @@
+# The transaction /enroll hands a wallet, simulated against mainnet.
+#
+# simulate_create_config.py proved pump accepts create + update in one
+# transaction as built from the IDL. This proves OUR encoder -- the function
+# the API calls, with the split the page defaults to -- produces bytes pump
+# accepts, and that the config it leaves behind is exactly the split asked
+# for. It is the front-to-back check for the one path most devs take.
+name: enrol
+
+on:
+  push:
+    branches: [claude/charlie-posts-project-status-uyafps]
+    paths:
+      - "tools/simulate_enrolment.py"
+      - "indexer/enroll.py"
+      - ".github/workflows/enrol.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: enrol
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Simulate what a creator would sign
+        run: python tools/simulate_enrolment.py --auto
