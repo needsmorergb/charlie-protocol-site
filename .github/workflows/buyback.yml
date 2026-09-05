@@ -40,5 +40,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Buy and burn on a live bonding curve
+      # buy_v2 resolved from the on-chain IDL, so the keeper's builder is
+      # pinned to an account list mainnet accepted, not one written down.
+      - name: buy_v2 from the IDL, on a live bonding curve
+        run: python tools/probe_curve_buy.py --auto $MINTS
+
+      - name: Buy and burn on a live bonding curve, as the keeper builds it
         run: python tools/simulate_curve_buyback.py --auto $MINTS
