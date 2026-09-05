@@ -125,3 +125,34 @@ compilation, byte-identical to `enroll.message`), `indexer/ed25519.py`
 `tests/test_buyback.py`, `tests/test_message.py`, `tests/test_ed25519.py`.
 The source of truth for this project is `needsmorergb/charlie-protocol-v1`;
 these modules belong there and should be carried across on the next publish.
+
+## The production copy: `charlie-keeper/`
+
+`charlie-keeper/` is the version to put on the machine that will actually
+run this for $CHARLIE. It is a build output, not a hand copy:
+`python scripts/build_keeper.py` assembles it from `indexer/` and
+`scripts/keeper_template/`, and `MANIFEST.json` records every file's hash
+and the commit it came from. `python scripts/build_keeper.py --check` (run
+by the test suite) fails if the committed folder has drifted from its source.
+
+Copy the folder anywhere with Python 3.11+ and follow `RUNBOOK.md` inside
+it. What it adds over the bare `buyback` command:
+
+| | |
+|---|---|
+| `keeper.json` | one config: coin, wallet, keypair, lot, cadence, budget, notifications |
+| `"armed": false` | the default. Nothing signs until you flip it; preflight, status and dry runs all work unarmed |
+| named wallet | the keypair file must be the wallet the config names, or the keeper refuses to start |
+| `keeper preflight` | a go/no-go table: Python, key, RPC, coin, pool, balance, one simulated crank |
+| `keeper-state.json` | spend and crank count persist, so a restart resumes against the same budget and can never exceed it |
+| `keeper.stop` | create the file and the loop stops before its next crank |
+| `Start-CharlieKeeper.ps1` | runs the loop and restarts it if it dies |
+| `Register-CharlieKeeperTask.ps1` | Windows Scheduled Task: at logon and hourly, so a reboot never leaves it down |
+
+```
+python keeper.py init         # write keeper.json, fill in wallet and keypair
+python keeper.py preflight    # read every row; GO or NO-GO
+python keeper.py once         # after "armed": true -- one crank, verified and logged
+python keeper.py run          # the loop, until the budget is spent or keeper.stop appears
+python keeper.py status       # what it has done; --live adds the wallet, pool and supply
+```

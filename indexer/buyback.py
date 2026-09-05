@@ -1018,7 +1018,7 @@ MAX_CONSECUTIVE_FAILURES = 5
 def run_keeper(rpc, mint: str, keypair, *, lot_lamports: int, slippage_bps: int, every_seconds: float,
                max_total_lamports: int | None, log, sleep=time.sleep, choose=random.choice,
                max_cranks: int | None = None, also_burn_ui: float = 0.0, priority_micro_lamports: int = 0,
-               confirm_timeout: float = 90.0) -> dict:
+               confirm_timeout: float = 90.0, should_stop=None) -> dict:
     """PROTOCOL.md sec.5 option 3, an operator keeper: a fixed lot every
     `every_seconds`, until a SOL budget or a crank count is reached. Each
     crank writes one JSON line through `log`; a run that stops says why.
@@ -1028,6 +1028,10 @@ def run_keeper(rpc, mint: str, keypair, *, lot_lamports: int, slippage_bps: int,
     `MAX_CONSECUTIVE_FAILURES` in a row stops the keeper -- a pool or an RPC
     that keeps refusing is something a person should look at, not something
     a loop should keep paying to poke.
+
+    `should_stop`, when given, is asked before every crank (after the
+    interval sleep, so a stop requested during the wait is honoured before
+    any SOL moves). It is how an operator's kill switch reaches the loop.
     """
     spent = 0
     burned = 0
@@ -1035,7 +1039,10 @@ def run_keeper(rpc, mint: str, keypair, *, lot_lamports: int, slippage_bps: int,
     failures = 0
     reason = None
     while True:
-        if max_total_lamports is not None and spent >= max_total_lamports:
+        # A crank that could push the total past the budget is not started:
+        # the cap is a ceiling on what leaves the wallet, never a target the
+        # last crank is allowed to overshoot by up to a lot.
+        if max_total_lamports is not None and spent + lot_lamports > max_total_lamports:
             reason = "budget reached"
             break
         if max_cranks is not None and cranks >= max_cranks:
@@ -1044,8 +1051,14 @@ def run_keeper(rpc, mint: str, keypair, *, lot_lamports: int, slippage_bps: int,
         if failures >= MAX_CONSECUTIVE_FAILURES:
             reason = f"{MAX_CONSECUTIVE_FAILURES} consecutive failures"
             break
+        if should_stop is not None and should_stop():
+            reason = "stop requested"
+            break
         if cranks or failures:
             sleep(every_seconds)
+            if should_stop is not None and should_stop():
+                reason = "stop requested"
+                break
         try:
             result = crank_once(rpc, mint, keypair.address, keypair, lot_lamports=lot_lamports, slippage_bps=slippage_bps,
                                 also_burn_ui=also_burn_ui, priority_micro_lamports=priority_micro_lamports, send=True,

@@ -517,10 +517,12 @@ class TestSendPath(unittest.TestCase):
             rpc, MINT, KEYPAIR, lot_lamports=buyback.DEFAULT_LOT_LAMPORTS, slippage_bps=100,
             every_seconds=3600, max_total_lamports=120_000_000, log=lines.append, sleep=slept.append, choose=first,
         )
-        self.assertEqual(summary["cranks"], 3)  # three 0.05 lots exhaust a 0.12 budget
-        self.assertEqual(slept, [3600, 3600])
-        self.assertEqual(len(lines), 3)
-        self.assertLessEqual(summary["spent_lamports"], 150_000_000)
+        # two 0.05 lots fit a 0.12 budget; a third could overshoot it and is not started
+        self.assertEqual(summary["cranks"], 2)
+        self.assertEqual(summary["stopped_because"], "budget reached")
+        self.assertEqual(slept, [3600])
+        self.assertEqual(len(lines), 2)
+        self.assertLessEqual(summary["spent_lamports"], 120_000_000)
 
     def test_keeper_stops_after_repeated_failures(self):
         rpc = FakeRpc(chain(), sim={"err": {"x": 1}, "logs": []})
