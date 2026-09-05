@@ -13,9 +13,10 @@ asks mainnet to simulate it with signature verification off. Reports the
 program's answer, the post-simulation config (admin, admin_revoked, the
 shareholders) and where the bonding curve's creator moved to.
 
-The toll destination is the incinerator FOR THE SIMULATION ONLY, because the
-real one is not set yet and a None refuses to build. Any address the program
-can pay would do; what is being tested is the encoding, not the destination.
+The toll row is the protocol's real collection wallet (`legs.TOLL_DESTINATION`),
+so a passing run proves that address is one pump will pay. Only if it were
+ever unset again does the incinerator stand in, because a None refuses to
+build; what is being tested then is the encoding, not the destination.
 
     python tools/simulate_enrolment.py --auto
     python tools/simulate_enrolment.py <mint>            # must be config-less
@@ -64,13 +65,13 @@ def simulate(rpc, mint: str) -> int:
     # rest to the creator. The real toll destination once it is set, so the
     # push that sets it proves that address is one pump will pay; the
     # incinerator stands in only while it is None.
-    if enroll.TOLL_DESTINATION is None:
+    if enroll.legs.TOLL_DESTINATION is None:
         print("  toll           unset -- simulating with the incinerator standing in")
-        enroll.TOLL_DESTINATION = INCINERATOR
+        enroll.legs.TOLL_DESTINATION = INCINERATOR
     else:
-        print(f"  toll           {enroll.TOLL_DESTINATION}  (the real destination)")
+        print(f"  toll           {enroll.legs.TOLL_DESTINATION}  (the real destination)")
     shares = [
-        enroll.Share(enroll.TOLL_DESTINATION, enroll.TOLL_BPS),
+        enroll.Share(enroll.legs.TOLL_DESTINATION, enroll.TOLL_BPS),
         enroll.Share(INCINERATOR, 2000),
         enroll.Share(creator, 10_000 - enroll.TOLL_BPS - 2000),
     ]
