@@ -36,3 +36,39 @@ jobs:
           python-version: "3.11"
       - name: Simulate what a creator would sign
         run: python tools/simulate_enrolment.py --auto
+
+  # The branch's own Vercel preview, asked the questions a dev's browser asks.
+  # The sandbox this is written from cannot reach vercel.app, so the proof
+  # that the deployed function answers -- not just the code in the repository
+  # -- lives here.
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BASE: https://charlie-protocol-site-git-claude-f468ed-adam-paulinos-projects.vercel.app
+      # The coin the simulate job enrolled against mainnet, and its creator.
+      MINT: 25kBiULf6ZJMr42kh5vkaY7rHVbsA6t2PpTJ739cpump
+      CREATOR: 6FRgGrGxsf1xuYACqjUAKgqdE9mnhnCMypUhiQ1WNQXT
+    steps:
+      - name: The enrol page is the new one
+        run: |
+          curl -sSf "$BASE/enroll" | grep -q "Enrol your coin"
+          echo "ok: /enroll serves the enrolment page"
+      - name: The API tells the creator of a config-less coin they may create
+        run: |
+          body=$(curl -sSf "$BASE/api/enroll?mint=$MINT&authority=$CREATOR")
+          echo "$body"
+          echo "$body" | grep -q '"can_create": *true'
+          echo "$body" | grep -q '"reason": *"no_sharing_config"'
+      - name: And tells anyone else they may not
+        run: |
+          body=$(curl -sSf "$BASE/api/enroll?mint=$MINT&authority=1nc1nerator11111111111111111111111111111111")
+          echo "$body"
+          echo "$body" | grep -q '"can_create": *false'
+      - name: Building refuses until the toll address is set
+        # Expected while TOLL_DESTINATION is None. The day it is set, this
+        # step should be changed to assert a simulated transaction instead.
+        run: |
+          body=$(curl -s "$BASE/api/enroll?mint=$MINT&authority=$CREATOR&shares=1nc1nerator11111111111111111111111111111111:500,$CREATOR:9500")
+          echo "$body"
+          echo "$body" | grep -q "not open yet"
