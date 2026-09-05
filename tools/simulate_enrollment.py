@@ -34,12 +34,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from indexer import enroll, pump                             # noqa: E402
+from indexer.buyback import ix_system_transfer               # noqa: E402
+from indexer.distribute import STAND_IN_PAYER as FUNDER      # noqa: E402
+from indexer.message import unsigned_transaction             # noqa: E402
 from indexer.base58 import encode                            # noqa: E402
 from tools.sample_new_coins import sample                    # noqa: E402
 from tools.sample_new_coins import endpoints_from            # noqa: E402
 from indexer.rpc import RpcClient                            # noqa: E402
 
 INCINERATOR = "1nc1nerator11111111111111111111111111111111"
+# The config is 1024 bytes pre-allocated: 7,295,616 lamports of rent, paid
+# by the creator, measured. Below this the creator cannot create.
+RENT_FLOOR_LAMPORTS = 12_000_000
+TOP_UP_LAMPORTS = 50_000_000
 
 
 def simulate(rpc, mint: str) -> int:
@@ -85,7 +92,24 @@ def simulate(rpc, mint: str) -> int:
     blockhash = rpc.call("getLatestBlockhash", [{"commitment": "finalized"}])["value"]["blockhash"]
     message = enroll.enrollment_message(mint, creator, shares, blockhash, create=True,
                                         graduated=bool(curve.graduated))
-    unsigned = bytes([1]) + b"\x00" * 64 + message
+    # The creator pays the config's rent (about 0.0073 SOL). A creator too
+    # poor for it fails inside the system program (error 1) before pump is
+    # asked anything, which says nothing about the bytes. So a poor creator
+    # is topped up INSIDE the simulation, by a transfer from pump's own fee
+    # wallet placed before the page's two instructions, which stay byte for
+    # byte what the page builds. Signature checks are off, so the wallet
+    # signs nothing real.
+    held = rpc.balance(creator)
+    if held < RENT_FLOOR_LAMPORTS:
+        print(f"  creator holds  {held} lamports, below the config's rent: funding "
+              f"{TOP_UP_LAMPORTS} from {FUNDER} inside the simulation only")
+        message = enroll.encode_message(
+            [ix_system_transfer(FUNDER, creator, TOP_UP_LAMPORTS),
+             enroll.create_instruction(mint, creator, graduated=bool(curve.graduated)),
+             enroll.update_instruction(mint, creator, shares, current=[creator])],
+            creator, blockhash,
+        )
+    unsigned = unsigned_transaction(message)
     print(f"  message bytes  {len(message)}   instructions {message[4 + 32 * message[3] + 32]}")
     print(f"  split          {[(s.address, s.bps) for s in shares]}")
 
