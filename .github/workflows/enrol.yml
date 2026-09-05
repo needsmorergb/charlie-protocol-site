@@ -15,6 +15,11 @@ on:
       - "indexer/enroll.py"
       - ".github/workflows/enrol.yml"
   workflow_dispatch:
+    inputs:
+      base:
+        description: "The deployed host to ask (the preview host is behind Vercel's authentication, so by default this asks production)"
+        required: false
+        default: "https://charlieprotocol.fun"
 
 concurrency:
   group: enrol
@@ -37,22 +42,26 @@ jobs:
       - name: Simulate what a creator would sign
         run: python tools/simulate_enrolment.py --auto
 
-  # The branch's own Vercel preview, asked the questions a dev's browser asks.
-  # The sandbox this is written from cannot reach vercel.app, so the proof
-  # that the deployed function answers -- not just the code in the repository
-  # -- lives here.
-  preview:
+  # The deployed site, asked the questions a dev's browser asks. Dispatched
+  # by hand after a deploy: the branch preview is behind Vercel's own
+  # authentication (its first run got a 401 before reading a byte), so this
+  # asks the host it is given, production by default.
+  deployed:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      BASE: https://charlie-protocol-site-git-claude-f468ed-adam-paulinos-projects.vercel.app
+      BASE: ${{ github.event.inputs.base || 'https://charlieprotocol.fun' }}
       # The coin the simulate job enrolled against mainnet, and its creator.
       MINT: 25kBiULf6ZJMr42kh5vkaY7rHVbsA6t2PpTJ739cpump
       CREATOR: 6FRgGrGxsf1xuYACqjUAKgqdE9mnhnCMypUhiQ1WNQXT
     steps:
       - name: The enrol page is the new one
         run: |
-          curl -sSf "$BASE/enroll" | grep -q "Enrol your coin"
+          code=$(curl -s -o /tmp/enroll.html -w '%{http_code}' "$BASE/enroll")
+          echo "GET $BASE/enroll -> $code"
+          test "$code" = "200"
+          grep -q "Enrol your coin" /tmp/enroll.html
           echo "ok: /enroll serves the enrolment page"
       - name: The API tells the creator of a config-less coin they may create
         run: |
