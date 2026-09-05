@@ -1,0 +1,43 @@
+{
+  "built_at": 1788582237,
+  "built_from": {
+    "commit": "3ddd05b4c77f6f4ca3418a34c3104a22bfa2e81b",
+    "repository": "needsmorergb/charlie-protocol-site",
+    "source_dirty": false
+  },
+  "files": {
+    "RUNBOOK.md": "371b8210ea73c99f8214d0ca390eac04688336e8543440e6febe49bed0f3a803",
+    "Register-CharlieKeeperTask.ps1": "8f00eb787fc76a93568529d22aaaf517998940fa0c0613e4ab5fb199d890eb48",
+    "Start-CharlieKeeper.ps1": "aa16239a2a6be69f95f09cfdf7ed6c8a114a267a21dccfde7156195737c02d75",
+    "indexer/__init__.py": "bd6872d7d349d82bec7076a92864982769bec83f503b73ed0b6dedd8ba07c87a",
+    "indexer/__main__.py": "e0930aeba5a3e2e2d94ca6c5fac4f72c0c4eb2be9bba283becf98e909091471c",
+    "indexer/base58.py": "0d90b47fe0a5c9d05d4bdf311fe850eb8f80ac1a8f36094d55499621a90b7d68",
+    "indexer/buyback.py": "9606edb9437ddb0deb950982a5dce61c3a21caccf22e7b48487cbb36947a9ffd",
+    "indexer/cli.py": "458c4e1342d74ac37841222b3d0e8dc08effb2ecd09cd1638867ad809f3f55e8",
+    "indexer/coverage.py": "41ba96c10dffbdd665c6fb2a51491d4d99b74df5375d85d05f87dd6b1c8d38da",
+    "indexer/curve.py": "269abeeeabbdc59f01f717e5f4bdb190eb33e8c16291a493c3a262f024d26729",
+    "indexer/decode.py": "66de9052e965efc58ede0a75b6bb813315170ff41b299344893a9802510f9f9c",
+    "indexer/ed25519.py": "d195ab8033108fedd34280731b39376d9d955e0c668ff2baea2955eacf337c88",
+    "indexer/enroll.py": "ae3609963df9a1dc42092898ba59751ab61b3c6c3743d75ad8eb1539dabb5f37",
+    "indexer/enroll_page.py": "1c16c98d3a5d44f6081dfde30e7cc1b1c8264a8ba1b35e19b72a203f10d678f4",
+    "indexer/evidence.py": "aff24182d92995905641168dd93a6ea8b5e4cac10a91e3816f07981ff58b6eda",
+    "indexer/export.py": "7c86cfff6d586cfd028e42354c09f42154ccb9633beeaf646cd4089277aceaf9",
+    "indexer/intake.py": "0e044c72d68f72065c1b19bf8bb4a71629cb89867ac10684bf1a0a39e4657e6f",
+    "indexer/invariants.py": "99b718aa3df3c28c379b65e07806f9ec8bbc429102be7f0666cc63e2cbd5ddf5",
+    "indexer/keeper.py": "f0586e821b1b209518f88b51e8bc894f0732fee31b2b42467cb62681c87350d0",
+    "indexer/legs.py": "347afe7eaaf0829ee2f226998ebf53f219d0f219d44051ec83ac49b0e3ea7294",
+    "indexer/message.py": "d471dfcdefb3d338edda24a00537b5fcf3b9dedf960f173f6169276bfea91269",
+    "indexer/observe.py": "91756e5ded1ce508b760f24ff14c59931a6b68543795ae32c5865e084001f013",
+    "indexer/publish.py": "aea974c75cc04fb31f2f087a0c6e20b80e490ce67d112032c1e43d9470da5db4",
+    "indexer/pump.py": "2e90962a0bbab2febe31317b8b8354ee847a742a340dd506f135d5a4bc130280",
+    "indexer/reconcile.py": "942e007dd3e8385bf4d58d483b6221b05abff39f97dd01e74ae8b162f6c02b99",
+    "indexer/report.py": "50082622a0c7d480efca8e28ad7e213cc5994fd9d04114df20814caf492d07ee",
+    "indexer/rpc.py": "f5afc7b2a2901dccd26e31020de4cabf6737f318b6afdf644822b007cd8901fe",
+    "indexer/scan.py": "aff1aa7ba3f935dac9f77f8702790e1602c2af2fc43c5c804da5b1073d574f29",
+    "indexer/site.py": "fda4d266881d32494c159e3e24c95e820ae8dded3f0f7e7a4d0b108593b61e35",
+    "indexer/store.py": "04c40c78291d914749d2d707379d4fc8c924db230fb36be33151db7871d51704",
+    "keeper.py": "a9a9607a51c2450e1603526a87134bc01886418c348cbc0835b56457312413cd"
+  },
+  "package": "charlie-keeper",
+  "python": ">=3.11, standard library only"
+}
