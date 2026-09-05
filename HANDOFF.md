@@ -17,10 +17,12 @@ What only this repository holds, as of 2026-09-05:
   `enroll.yml` (on push: simulate the exact enrollment transaction and the
   crank against mainnet; on dispatch: also ask production the questions a
   browser asks). `sync.yml` fails on drift from the source repository.
-- **The one open action here: add the repository secret
-  `CHARLIE_CRANK_KEYPAIR`**, the JSON key array of a separate low-value
-  wallet holding about 0.05 SOL for network fees. Until then the crank
-  sends nothing. The owner makes that key; a session never should.
+- **The crank is armed.** The repository secret `CHARLIE_CRANK_KEYPAIR`
+  holds the fee payer's key; every `distribute.yml` run loads it, prints
+  the wallet it derives (DqP9Wb6ppiYWTxDiJMMzo3HDM6eT4GEwP1S3Ak1htmwj),
+  pays every enrolled coin, and deletes the key from the runner. It pays
+  fees only. The owner rotates it by replacing the secret; a session
+  never generates or commits a key.
 - **Committed evidence** is the text export under `state/evidence/`, never
   the binary db. Committed pages under `web/` must equal what the current
   renderer produces; a merge conflict on one is resolved by taking the
