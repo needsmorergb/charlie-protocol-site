@@ -50,6 +50,14 @@ jobs:
             echo "no CHARLIE_CRANK_KEYPAIR secret: building and simulating only"
           fi
 
+      # A malformed secret would otherwise surface only at the first real
+      # payout. This loads it the way the crank does and prints the public
+      # address it derives, and nothing else.
+      - name: The key parses and names its wallet
+        if: env.MODE != ''
+        run: |
+          python -c "from indexer.ed25519 import Keypair; print('fee payer', Keypair.from_file('$RUNNER_TEMP/crank.json').address)"
+
       - name: Pay every enrolled coin's shareholders
         run: |
           python -m indexer distribute --all-enrolled --out web $MODE
