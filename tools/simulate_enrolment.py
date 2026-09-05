@@ -67,7 +67,13 @@ def simulate(rpc, mint: str) -> int:
         enroll.Share(INCINERATOR, enroll.TOLL_BPS),
         enroll.Share(creator, 10_000 - enroll.TOLL_BPS),
     ]
-    enroll.preflight(None, creator, shares, curve=curve)
+    try:
+        enroll.preflight(None, creator, shares, curve=curve)
+    except enroll.EnrollError as exc:
+        # A coin the page would refuse -- Trader Cashback, mostly. Not a
+        # failure of the encoder; just not a coin to test it on.
+        print(f"  SKIPPED        preflight refused it: {str(exc)[:90]}")
+        return 2
     blockhash = rpc.call("getLatestBlockhash", [{"commitment": "finalized"}])["value"]["blockhash"]
     message = enroll.enrolment_message(mint, creator, shares, blockhash, create=True)
     unsigned = bytes([1]) + b"\x00" * 64 + message
@@ -128,12 +134,16 @@ def main(argv=None) -> int:
                       and r.get("creator_lamports", 0) > 0 and not r["curve"]["complete"]]
         candidates.sort(key=lambda r: r.get("creator_lamports", 0), reverse=True)
         print(f"config-less, un-graduated, funded creator: {len(candidates)} of {len(rows)}")
-        mints += [r["mint"] for r in candidates[:2]]
-    status = 0
+        mints += [r["mint"] for r in candidates]
+    # The first coin that is actually enrollable decides the answer; the ones
+    # the page itself would refuse are skipped, not counted.
     for mint in mints:
-        status |= simulate(rpc, mint)
+        status = simulate(rpc, mint)
         print()
-    return status
+        if status != 2:
+            return status
+    print("no enrollable coin in this sample; nothing was simulated")
+    return 1
 
 
 if __name__ == "__main__":
