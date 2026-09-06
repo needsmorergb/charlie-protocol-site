@@ -16,6 +16,15 @@ on:
   schedule:
     - cron: "23 * * * *"
   workflow_dispatch:
+    inputs:
+      # The floor a vault must reach before the crank pays it. The schedule
+      # keeps the default (0.005 SOL, so the network fee stays a small share
+      # of a payout); a dispatch can lower it to pump's own minimum to pay a
+      # coin now -- the end-to-end test of a fresh enrollment, for one.
+      min_lamports:
+        description: "Pay a vault holding at least this many lamports (default 5000000)"
+        required: false
+        default: "5000000"
 
 concurrency:
   group: distribute
@@ -60,7 +69,8 @@ jobs:
 
       - name: Pay every enrolled coin's shareholders
         run: |
-          python -m indexer distribute --all-enrolled --out web $MODE
+          python -m indexer distribute --all-enrolled --out web \
+            --min-lamports "${{ github.event.inputs.min_lamports || '5000000' }}" $MODE
 
       - name: Forget the key
         if: always()
