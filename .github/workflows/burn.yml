@@ -69,8 +69,10 @@ jobs:
 
       # A malformed secret would otherwise surface at the first real burn.
       # Prints the address it derives and nothing else.
+      # `secrets` is not a named value inside a step condition, so this
+      # gates on what the step above wrote instead.
       - name: The key parses and names its wallet
-        if: ${{ secrets.CHARLIE_BURN_KEYPAIR != '' }}
+        if: contains(env.MODE, '--keypair')
         run: |
           python -c "from indexer.ed25519 import Keypair; print('burn wallet', Keypair.from_file('$RUNNER_TEMP/burn.json').address)"
 
