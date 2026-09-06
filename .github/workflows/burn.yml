@@ -1,0 +1,90 @@
+# The BURN leg, run on a schedule instead of by hand.
+#
+# The protocol's collection wallet takes 5% of every enrolled coin's creator
+# fee. That is the one burn that gets MORE consistent as coins are added: it
+# aggregates. A dev's own burn row does not aggregate -- it is one coin's
+# fee into one wallet whose key only that dev holds -- so nothing here can
+# run it, and the protocol program is the answer to that, not this file.
+#
+# --sweep, not a fixed lot: the wallet fills itself with dust, and a keeper
+# asked for a fixed 0.05 SOL burns nothing for weeks while the balance grows.
+# Below the minimum lot it stands down and the job still passes, so a quiet
+# week is not a red run.
+#
+# With the CHARLIE_BURN_KEYPAIR secret set it signs and sends; without it
+# every step builds and simulates and nothing is signed, so the job is
+# honest in both states and can be merged before any key exists.
+name: burn
+
+on:
+  schedule:
+    # Every six hours, offset from the crank so two chain-reading jobs do
+    # not hit the gateway together.
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      mint:
+        description: "The coin to buy and burn (default $CHARLIE)"
+        required: false
+        default: "8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump"
+      lot:
+        description: "SOL per crank; leave empty to sweep the wallet"
+        required: false
+        default: ""
+
+concurrency:
+  group: burn
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  burn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      MINT: ${{ github.event.inputs.mint || '8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump' }}
+      LOT: ${{ github.event.inputs.lot || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: The burn wallet's key, if one is configured
+        env:
+          BURN_KEY: ${{ secrets.CHARLIE_BURN_KEYPAIR }}
+        run: |
+          if [ -n "$BURN_KEY" ]; then
+            umask 077
+            printf '%s' "$BURN_KEY" > "$RUNNER_TEMP/burn.json"
+            echo "MODE=--keypair $RUNNER_TEMP/burn.json --send" >> "$GITHUB_ENV"
+            echo "a key is configured: the buy and the burn will be sent"
+          else
+            echo "MODE=--wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8" >> "$GITHUB_ENV"
+            echo "no CHARLIE_BURN_KEYPAIR secret: building and simulating only"
+          fi
+
+      # A malformed secret would otherwise surface at the first real burn.
+      # Prints the address it derives and nothing else.
+      - name: The key parses and names its wallet
+        if: ${{ secrets.CHARLIE_BURN_KEYPAIR != '' }}
+        run: |
+          python -c "from indexer.ed25519 import Keypair; print('burn wallet', Keypair.from_file('$RUNNER_TEMP/burn.json').address)"
+
+      # One crank per scheduled run rather than a long-lived --every loop:
+      # cron is the repetition, and a job that exits is a job that cannot
+      # wedge holding a key.
+      - name: Buy the coin and burn it, in one transaction
+        run: |
+          if [ -n "$LOT" ]; then
+            python -m indexer buyback "$MINT" --lot "$LOT" $MODE
+          else
+            python -m indexer buyback "$MINT" --sweep $MODE
+          fi
+
+      - name: Forget the key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/burn.json"
