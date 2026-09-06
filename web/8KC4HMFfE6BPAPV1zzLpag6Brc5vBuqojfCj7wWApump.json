@@ -104,8 +104,8 @@
       "actual": "0",
       "backs": [],
       "detail": "the split does not pay the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 at all",
-      "equation": "bps(TOLL_DESTINATION) >= 500",
-      "expected": ">= 500",
+      "equation": "bps(TOLL_DESTINATION) >= 2500",
+      "expected": ">= 2500",
       "name": "PROTOCOL_SHARE",
       "status": "FAIL"
     },
@@ -229,7 +229,7 @@
     "supply": 1000000000000000,
     "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
   },
-  "observed_at": 1788708492.1831796,
+  "observed_at": 1788726256.7123547,
   "publishable": [
     "split"
   ],
