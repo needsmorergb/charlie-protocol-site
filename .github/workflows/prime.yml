@@ -1,0 +1,53 @@
+# Can a coin's creator vault be topped up so pump will distribute it?
+#
+# pump refuses a distribution below a minimum and calls that a VAULT BALANCE.
+# If it means the account's lamports, a coin short of the minimum does not
+# have to trade its way there: anyone can send the difference, because a
+# system transfer needs no permission from the recipient. That is the
+# difference between testing a payout for 0.015 SOL and waiting for ~4.8 SOL
+# of volume.
+#
+# Nothing here signs and nothing is sent. The funder is pump's own fee
+# wallet and `sigVerify: false` lets the runtime answer as if it had signed.
+name: prime
+
+on:
+  workflow_dispatch:
+    inputs:
+      mints:
+        description: "Mints to test priming on"
+        required: false
+        default: "7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump"
+      lamports:
+        description: "Top-up to try; empty means exactly what pump asks for"
+        required: false
+        default: ""
+
+concurrency:
+  group: prime
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      MINTS: ${{ github.event.inputs.mints || '7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump' }}
+      LAMPORTS: ${{ github.event.inputs.lamports || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Top the vault up and distribute, in one transaction
+        run: |
+          if [ -n "$LAMPORTS" ]; then
+            python tools/simulate_prime_vault.py $MINTS --lamports "$LAMPORTS"
+          else
+            python tools/simulate_prime_vault.py $MINTS
+          fi
