@@ -29,6 +29,7 @@
   --ember: #8FE13F;
   --ember-core: #8FE13F;
   --ember-bright: #A6FF4D;
+  --neon-charlie: #8FE13F;   /* was undefined; alias of --ember (62 usages sitewide) */
   --ember-laser: #A6FF4D;
   --ember-dim: #64A32B;
   --ember-glow: rgba(143, 225, 63, 0.35);
@@ -155,15 +156,10 @@ body::after {
   pointer-events: none;
   z-index: 99999;
   opacity: 0.6;
-  animation: grid-laser-sweep 14s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: none;
 }
 
-@keyframes grid-laser-sweep {
-  0%   { transform: translateY(-100vh); opacity: 0; }
-  10%  { opacity: 0.6; }
-  90%  { opacity: 0.6; }
-  100% { transform: translateY(220vh); opacity: 0; }
-}
+
 
 a {
   color: var(--ember);
@@ -476,7 +472,7 @@ main {
   border-radius: 50%;
   background: var(--ember);
   box-shadow: 0 0 8px var(--ember);
-  animation: stage-blink 1.4s ease-in-out infinite alternate;
+  animation: none;
 }
 
 @keyframes stage-blink {
@@ -545,7 +541,7 @@ main {
   filter: blur(8px);
   pointer-events: none;
   z-index: 3;
-  animation: catwalk-flicker 3s ease-in-out infinite alternate;
+  animation: none;
 }
 
 @keyframes catwalk-flicker {
@@ -675,12 +671,12 @@ main {
   bottom: 0;
   left: 0;
   height: 100%;
-  animation: crawl 21s ease-in-out infinite alternate;
+  animation: none;
 }
 
 .facing {
   height: 100%;
-  animation: face 42s steps(1, end) infinite;
+  animation: none;
 }
 
 .charlie-img {
@@ -690,7 +686,7 @@ main {
   display: block;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
   transform-origin: 50% 100%;
-  animation: lurch 1.9s ease-in-out infinite;
+  animation: none;
 }
 
 @keyframes crawl {
@@ -730,7 +726,7 @@ main {
   filter: blur(20px);
   pointer-events: none;
   z-index: 1;
-  animation: furnace-glow-pulse 4s ease-in-out infinite alternate;
+  animation: none;
 }
 
 @keyframes furnace-glow-pulse {
@@ -760,13 +756,13 @@ main {
   width: 100%;
   z-index: 3;
   transform-origin: 50% 100%;
-  animation: sway 11.9s ease-in-out infinite;
+  animation: none;
 }
 
 .furnace .smoke {
   top: 0;
   transform-origin: 50% 100%;
-  animation: billow 7.3s ease-in-out infinite;
+  animation: none;
   opacity: 0.88;
 }
 
@@ -965,7 +961,7 @@ main {
   stroke-width: 1.5;
   stroke-dasharray: 6 8;
   opacity: 0.85;
-  animation: fly-crawl 5s linear infinite;
+  animation: none;
 }
 
 @keyframes fly-crawl {
@@ -1002,7 +998,7 @@ main {
 .fly-orbit {
   position: absolute;
   inset: 0;
-  animation: fly-orbit 18s linear infinite;
+  animation: none;
 }
 
 .fly-rider {
@@ -1011,7 +1007,7 @@ main {
   top: 11.67%;
   width: 16%;
   transform: translate(-50%, -50%);
-  animation: fly-rider 18s linear infinite;
+  animation: none;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -1228,7 +1224,7 @@ main {
   background: var(--fail);
   color: #fff;
   box-shadow: 0 0 14px var(--fail-glow);
-  animation: pulse-fail 2s infinite alternate;
+  animation: none;
 }
 
 @keyframes pulse-fail {
@@ -1633,7 +1629,7 @@ main {
   border-radius: 50%;
   background: #FF3B30;
   box-shadow: 0 0 8px #FF3B30;
-  animation: rec-blink 1.2s ease-in-out infinite alternate;
+  animation: none;
 }
 
 @keyframes rec-blink {
@@ -2150,7 +2146,7 @@ details[open] .proof-expand-icon {
   border-radius: 50%;
   background: var(--ember-bright);
   box-shadow: 0 0 8px var(--ember-bright);
-  animation: beacon-pulse 1.8s ease-in-out infinite;
+  animation: none;
 }
 
 @keyframes beacon-pulse {
@@ -2190,91 +2186,6 @@ details[open] .proof-expand-icon {
 }
 
 /* ==========================================================================
-   INTERACTIVE PERSPECTIVE & SPOTLIGHT SYSTEM
-   ========================================================================== */
-
-:root {
-  --spotlight-color: rgba(143, 225, 63, 0.10);
-  --spotlight-border: rgba(143, 225, 63, 0.45);
-}
-
-.perspective-viewport {
-  perspective: 1200px;
-}
-
-.tilt-card {
-  --mouse-x: 50%;
-  --mouse-y: 50%;
-  --tilt-x: 0deg;
-  --tilt-y: 0deg;
-  --elevation-z: 0px;
-
-  position: relative;
-  transform-style: preserve-3d;
-  will-change: transform;
-  transform: perspective(1000px) 
-             rotateX(var(--tilt-x)) 
-             rotateY(var(--tilt-y)) 
-             translateZ(var(--elevation-z));
-  transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1),
-              box-shadow 0.25s ease,
-              border-color 0.25s ease;
-  overflow: hidden;
-}
-
-/* Dynamic Cursor Spotlight Overlay */
-.tilt-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(
-    400px circle at var(--mouse-x) var(--mouse-y),
-    var(--spotlight-color) 0%,
-    transparent 70%
-  );
-  opacity: 0;
-  pointer-events: none;
-  z-index: 2;
-  transition: opacity 0.25s ease;
-}
-
-/* Cursor Border Highlight Tracking */
-.tilt-card::after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: radial-gradient(
-    300px circle at var(--mouse-x) var(--mouse-y),
-    var(--spotlight-border) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    transparent 100%
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 3;
-  transition: opacity 0.25s ease;
-}
-
-.tilt-card:hover::before,
-.tilt-card:hover::after {
-  opacity: 1;
-}
-
-.tilt-card:hover {
-  --elevation-z: 8px;
-  box-shadow: 
-    0 24px 64px -12px rgba(0, 0, 0, 0.85),
-    0 0 32px -4px var(--ember-halo);
-}
-
-/* ==========================================================================
    MAGNETIC BUTTONS & CONIC-GRADIENT ROTATING BORDERS
    ========================================================================== */
 
@@ -2298,7 +2209,7 @@ details[open] .proof-expand-icon {
     var(--ember-bright) 240deg,
     var(--ember) 360deg
   );
-  animation: rotate-conic 3.5s linear infinite;
+  animation: none;
   box-shadow: 0 0 20px rgba(143, 225, 63, 0.25);
   cursor: pointer;
   text-decoration: none;
@@ -2307,10 +2218,7 @@ details[open] .proof-expand-icon {
   overflow: hidden;
 }
 
-@keyframes rotate-conic {
-  from { --conic-angle: 0deg; }
-  to   { --conic-angle: 360deg; }
-}
+
 
 .btn-conic-glow .btn-inner {
   background: var(--bg-void);
@@ -2618,17 +2526,14 @@ details[open] .proof-expand-icon {
   display: flex;
   gap: var(--sp-md);
   width: max-content;
-  animation: marquee-scroll 28s linear infinite;
+  animation: none;
 }
 
 .marquee-content-loop:hover {
   animation-play-state: paused;
 }
 
-@keyframes marquee-scroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
+
 
 .ticker-card {
   background: var(--bg-glass-card);
@@ -2861,7 +2766,7 @@ input:checked + .slider-switch:before {
 .hud-dot.dot-refusal {
   background: var(--fail-crimson);
   box-shadow: 0 0 10px var(--fail-crimson);
-  animation: led-alarm-strobe 0.8s infinite alternate;
+  animation: none;
 }
 
 .hud-status {
@@ -2977,15 +2882,11 @@ input:checked + .slider-switch:before {
     transparent 100%
   );
   transform: skewX(-25deg);
-  animation: pill-shimmer-sweep 4s infinite ease-in-out;
+  animation: none;
   pointer-events: none;
 }
 
-@keyframes pill-shimmer-sweep {
-  0% { left: -100%; opacity: 0; }
-  20% { left: 160%; opacity: 1; }
-  100% { left: 160%; opacity: 0; }
-}
+
 
 /* Glowing LED Dot with Ping Shockwave */
 .pill-led {
@@ -3006,13 +2907,10 @@ input:checked + .slider-switch:before {
   border-radius: 50%;
   border: 1px solid currentColor;
   opacity: 0.6;
-  animation: led-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  animation: none;
 }
 
-@keyframes led-ping {
-  0% { transform: scale(0.9); opacity: 0.9; }
-  75%, 100% { transform: scale(2.2); opacity: 0; }
-}
+
 
 /* VERIFIED STATE */
 .status-pill--verified {
@@ -3033,13 +2931,13 @@ input:checked + .slider-switch:before {
   border: 1px solid rgba(255, 59, 48, 0.65);
   color: #FF5A52;
   box-shadow: 0 0 18px rgba(255, 59, 48, 0.3), inset 0 0 10px rgba(255, 59, 48, 0.14);
-  animation: pulse-refused-border 1.8s infinite alternate;
+  animation: none;
 }
 .status-pill--refused .pill-led {
   background: #FF3B30;
   color: #FF3B30;
   box-shadow: 0 0 10px #FF3B30;
-  animation: led-alarm-strobe 0.8s infinite alternate;
+  animation: none;
 }
 
 @keyframes pulse-refused-border {
@@ -3047,10 +2945,7 @@ input:checked + .slider-switch:before {
   to { border-color: rgba(255, 59, 48, 0.9); box-shadow: 0 0 24px rgba(255, 59, 48, 0.5); }
 }
 
-@keyframes led-alarm-strobe {
-  0% { opacity: 0.3; transform: scale(0.85); }
-  100% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 12px #FF3B30; }
-}
+
 
 /* LIVE ON-CHAIN STATE */
 .status-pill--live {
@@ -3254,14 +3149,11 @@ tbody tr {
     rgba(255, 255, 255, 0.12) 16px
   );
   background-size: 32px 32px;
-  animation: stripe-crawl 2s linear infinite;
+  animation: none;
   pointer-events: none;
 }
 
-@keyframes stripe-crawl {
-  0% { background-position: 0 0; }
-  100% { background-position: 32px 0; }
-}
+
 
 .split-segment--incinerator {
   background: linear-gradient(90deg, #FF3B1F 0%, #FF8A1F 100%);
@@ -3560,7 +3452,7 @@ footer .footer-inner {
   border-radius: 50%;
   background: var(--neon-charlie);
   box-shadow: 0 0 10px var(--neon-charlie);
-  animation: led-pulse 1.8s infinite ease-in-out;
+  animation: none;
   flex: none;
 }
 
@@ -3746,7 +3638,7 @@ footer .footer-inner {
   border-radius: var(--radius-sm);
   padding: 1.5px;
   background: conic-gradient(from var(--conic-angle), #FF4D26, #FF8A1F, #8FE13F, #4EFA8B, #FF4D26);
-  animation: rotate-conic 3.5s linear infinite;
+  animation: none;
   box-shadow: 0 0 20px rgba(143, 225, 63, 0.25);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -3756,10 +3648,7 @@ footer .footer-inner {
   box-shadow: 0 0 30px rgba(143, 225, 63, 0.45);
 }
 
-@keyframes rotate-conic {
-  0% { --conic-angle: 0deg; }
-  100% { --conic-angle: 360deg; }
-}
+
 
 .btn-conic-glow > .btn-submit {
   width: 100%;
@@ -3857,13 +3746,10 @@ footer .footer-inner {
   display: flex;
   gap: 36px;
   flex: none;
-  animation: marquee-scroll 24s linear infinite;
+  animation: none;
 }
 
-@keyframes marquee-scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-100%); }
-}
+
 
 .marquee-item {
   display: flex;
@@ -4243,3 +4129,254 @@ footer .footer-inner {
 }
 
 
+
+
+/* ==========================================================================
+   MOBILE & INTERACTION LAYER
+   Appended: the stylesheet previously had one breakpoint for 4,245 lines.
+   Ordered last so these win without touching the rules above.
+   ========================================================================== */
+
+/* --- Missing heading scale. h1-h4 set family/weight but never font-size, so
+       every unstyled h2 rendered at the UA default 32px, phone and desktop. --- */
+h2 { font-size: clamp(21px, 3.6vw, 30px); letter-spacing: -0.025em; }
+h3 { font-size: clamp(16px, 2.2vw, 20px); letter-spacing: -0.015em; }
+h4 { font-size: clamp(14px, 1.8vw, 16px); letter-spacing: -0.01em; }
+
+/* Display type wants 12-20 chars per line, not the full 1200px shell. */
+.hero h1 { max-width: 20ch; text-wrap: balance; }
+.hero .tagline { text-wrap: pretty; }
+
+/* --- Tablet --- */
+@media (max-width: 860px) {
+  .facility-telemetry-strip {
+    position: sticky; top: 0; z-index: 60;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent 100%);
+            mask-image: linear-gradient(90deg, #000 88%, transparent 100%);
+    scrollbar-width: none;
+  }
+  .facility-telemetry-strip::-webkit-scrollbar { display: none; }
+  .facility-telemetry-inner { justify-content: flex-start; gap: var(--sp-md); }
+  .telemetry-pill { flex: none; }
+
+  .site-header { top: 34px; padding: 8px var(--sp-md); }
+  .header-inner { flex-wrap: nowrap; gap: var(--sp-sm); align-items: center; }
+  .site-nav {
+    order: 3; flex-basis: 100%; flex-wrap: nowrap;
+    overflow-x: auto; scrollbar-width: none;
+    margin: 6px calc(var(--sp-md) * -1) 0; padding: 0 var(--sp-md);
+  }
+  .site-nav::-webkit-scrollbar { display: none; }
+  .nav-link { flex: none; white-space: nowrap; }
+}
+
+/* --- Phone: shrink the spacing scale itself. Because --sp-* is consumed
+       sitewide, this one block rebalances dozens of components at once. --- */
+@media (max-width: 640px) {
+  :root {
+    --sp-lg: 16px;
+    --sp-xl: 20px;
+    --sp-2xl: 32px;
+    --sp-3xl: 40px;
+  }
+
+  main   { padding: var(--sp-xl) var(--sp-md) var(--sp-2xl); }
+  footer { padding: var(--sp-xl) var(--sp-md); }
+
+  /* Legibility floor: 11px was the site's most common size. */
+  .telemetry-label, .telemetry-value, .status-pill,
+  .stage-badge, .preview-pill, .facility-telemetry-strip { font-size: 12px; }
+  .nav-badge-soon, .telemetry-badge, .kbd-shortcut,
+  .crt-radar-label, .gatekeep-stat .stat-lbl { font-size: 11px; }
+
+  /* Explicit single column beats relying on auto-fit arithmetic. */
+  .dossier-grid, .counters-grid, .split-grid, .fly-steps,
+  .sandbox-controls-grid, .gatekeep-grid, .blueprint-flow-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* min-width floors that sat within a few px of overflowing. */
+  .waitlist-input { min-width: 0; flex: 1 1 100%; }
+  .waitlist-card  { padding: var(--sp-lg) var(--sp-md); }
+  .ticker-card    { min-width: 200px; }
+
+  /* 44-char base58 addresses: truncate rather than wrap to 3 ragged lines.
+     The copy button already carries the full value. */
+  #auditMintHeader {
+    font-size: 15px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  }
+
+  .scene-3d-box { aspect-ratio: 4 / 3; }
+  /* Shrink rather than hide: this toolbar holds #btnStageAudio, the only
+     labelled control for the ambient audio. */
+  .stage-controls { gap: 4px; transform: scale(0.85); transform-origin: right center; }
+}
+
+/* --- Touch: 44px targets, and stop hover from sticking after tap. --- */
+@media (pointer: coarse) {
+  .nav-link, .btn-icon, .btn-copy, .chip,
+  .btn-mode, .btn-stage-ctrl, .btn-paste, .btn-submit {
+    min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .btn-copy, .chip, .btn-stage-ctrl { padding-inline: 12px; }
+
+  .nav-link:active, .btn-icon:active, .btn-copy:active,
+  .chip:active, .btn-submit:active, .btn-mode:active {
+    transform: scale(0.97); opacity: 0.9;
+  }
+
+  /* This tooltip carries the per-destination split and was unreachable on touch. */
+  .split-segment .split-tooltip {
+    position: static; opacity: 1; visibility: visible;
+    transform: none; min-width: 0; margin-top: 6px; pointer-events: auto;
+  }
+}
+
+/* --- Keyboard focus: there were zero :focus-visible rules sitewide. --- */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ember-bright);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* --- Notch / home indicator. --- */
+@supports (padding: max(0px)) {
+  /* --sp-lg (24px) is what these rules already use; --sp-md would have
+     silently shrunk desktop padding by 8px, since env() is 0 off-notch. */
+  .site-header, main, footer, .facility-telemetry-strip {
+    padding-left:  max(var(--sp-lg), env(safe-area-inset-left));
+    padding-right: max(var(--sp-lg), env(safe-area-inset-right));
+  }
+  footer { padding-bottom: max(var(--sp-2xl), env(safe-area-inset-bottom)); }
+}
+
+/* --- Reduced motion: the existing block covered 12 of 26 infinite
+       animations. This closes the gap. --- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   MOTION REDUCTION
+   26 infinite animations ran concurrently; the costly ones animated
+   left / background-position / box-shadow (layout+paint every frame).
+   Disabled here rather than deleted so any can be restored by removing
+   a single line. Keyframes above are left intact.
+   ========================================================================== */
+
+/* Full-viewport 240px sweep at z-index 99999 with a drop-shadow filter:
+   forced a whole-page composite every frame. */
+body::after { animation: none !important; display: none !important; }
+
+/* Animated `left` on every .status-pill — 45 concurrent layout loops on
+   coin.html alone. The single worst performance item on the site. */
+.status-pill::before { animation: none !important; display: none !important; }
+
+/* Expanding ring behind each LED, ~15 concurrent. */
+.pill-led::after { animation: none !important; display: none !important; }
+
+/* Rotating conic-gradient border: full gradient re-rasterisation, forever. */
+.btn-conic-glow { animation: none !important; }
+.btn-conic-glow::before, .btn-conic-glow::after { animation: none !important; }
+
+/* Barber-pole stripes animating background-position made settled data
+   read as perpetually loading. */
+.split-segment::after { animation: none !important; }
+
+/* Blinking status dots. A static dot reads as confident; a blinking one
+   reads as filler. Keeping the furnace/mascot ambience, dropping these. */
+.telemetry-led, .telemetry-beacon, .stage-pulse-dot { animation: none !important; }
+
+/* box-shadow / border-color keyframes = paint every frame. */
+.badge-fail, .status-pill--refused { animation: none !important; }
+
+/* Glowing text is never premium. */
+.metric-readout.font-fail,
+.telemetry-value--ember,
+.telemetry-value--green { text-shadow: none !important; }
+
+/* Contrast fix: #fff on --fail (#FF2B3E) measured 3.71:1. */
+.badge-fail { color: #1A0407; }
+
+/* Considered easing + a real duration scale, replacing `transition: all`
+   defaults and the stray 400-500ms hovers. */
+:root {
+  --e-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --e-out-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  --e-snap:     cubic-bezier(0.2, 0.9, 0.25, 1.05);
+  --d-1: 120ms; --d-2: 180ms; --d-3: 260ms;
+}
+
+/* These two ran at 400ms and 500ms — the element visibly lagged the cursor. */
+.dossier-media img, .stack-3d { transition: transform var(--d-2) var(--e-out-soft) !important; }
+
+/* Press feedback: the site had 45 :hover rules and 3 :active. */
+.btn-icon, .btn-mode, .btn-copy, .chip, .btn-submit, .btn-paste,
+button, [role="button"] {
+  transition: transform var(--d-1) var(--e-snap),
+              border-color var(--d-2) var(--e-out-soft),
+              background-color var(--d-2) var(--e-out-soft);
+}
+button:active, [role="button"]:active { transform: translateY(1px) scale(0.985); }
+
+/* Navigation and motion respond to the visitor, never invent a reading. */
+@view-transition { navigation: auto; }
+html { background: var(--bg-void); }
+::view-transition-old(root) { animation: vt-out 160ms ease-out both; }
+::view-transition-new(root) { animation: vt-in 260ms ease-out both; }
+@keyframes vt-out { to { opacity: 0; transform: scale(.994); } }
+@keyframes vt-in { from { opacity: 0; transform: scale(1.006); } }
+.site-header { view-transition-name: chrome-header; }
+.facility-telemetry-strip { view-transition-name: chrome-strip; }
+.reveal-ready { opacity: 0; }
+.reveal-ready.revealed { animation: enter-away 480ms ease-out calc(var(--i, 0) * 60ms) both; }
+@keyframes enter-away { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+.fly-orbit, .fly-rider { animation: none; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) and (pointer: fine) {
+    .motion-capable .fly-stage { view-timeline-name: --flywheel; view-timeline-axis: block; }
+    .motion-capable .fly-orbit { animation: fly-orbit 1s linear both; animation-timeline: --flywheel; animation-range: entry 15% exit 85%; }
+    .motion-capable .fly-rider { animation: fly-rider 1s linear both; animation-timeline: --flywheel; animation-range: entry 15% exit 85%; }
+  }
+}
+@property --hearth-y { syntax: '<percentage>'; inherits: true; initial-value: 72%; }
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+  background: radial-gradient(ellipse at 62% var(--hearth-y), rgba(225, 98, 24, .045), transparent 65%);
+}
+#furnaceCanvas { opacity: 0; pointer-events: none; transition: opacity 160ms ease-out; }
+/* Older decorative loops are replaced by the finite furnace and scroll effects. */
+.scene *, .scene *::before, .scene *::after, .stage-hearth-glow,
+.stage-catwalk-glow, .stage-pulse-dot, .fly-path, .furnace::before,
+.status-pill-led, .telemetry-led, .crt-rec-dot { animation: none !important; }
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .reveal-ready { opacity: 1; }
+  .reveal-ready.revealed, .fly-orbit, .fly-rider { animation: none !important; }
+  ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  body::before, #furnaceCanvas { display: none; }
+}
+
+/* Keep navigation readable without squeezing labels into letter columns. */
+.brand-lockup, .site-nav a, .header-actions button { white-space: nowrap; flex-shrink: 0; }
+@media (max-width: 860px) {
+  .header-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+  .brand-lockup { grid-column: 1; grid-row: 1; }
+  .header-actions { grid-column: 2; grid-row: 1; }
+  .site-nav { grid-column: 1 / -1; grid-row: 2; display: flex; width: 100%; min-width: 0; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .site-nav a { min-height: 44px; display: inline-flex; align-items: center; }
+  .header-actions .btn-icon { width: auto; min-width: 44px; }
+}
+@media (max-width: 640px) {
+  .verify-form { flex-wrap: wrap; }
+  .verify-form > .verify-input { flex: 1 0 100%; width: 100%; min-height: 48px; }
+  .verify-form > .btn-submit, .verify-form > .btn-conic-glow { flex: 1; }
+}
+
+body { isolation: isolate; }

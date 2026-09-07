@@ -1,23 +1,21 @@
 # charlie-protocol-site
 
-The deployed build of **charlieprotocol.fun**. This repository holds output
-only — no source. Vercel builds it with no build step: `vercel.json` sets
-`outputDirectory` to `web/`, and the two `/coin/...` routes are rewrites onto
-the flat files in that directory.
+The deployed Charlie Protocol site. Vercel serves `web/` and runs the Python handlers in `api/`. Verification uses the same publisher and renderer as the indexer; failed reads are not coin verdicts.
 
-Nothing here is hand-written. Every file under `web/` is produced by the
-`site` subcommand of the indexer, which lives in the source repository:
+This repository contains two kinds of pages:
 
-    https://github.com/needsmorergb/charlie-protocol-v1
+- Authored marketing pages: `index.html`, `verify.html`, `coin.html`, `coins.html`, `enroll.html`, `404.html`, and their shared assets. Their `charlie:authored-page` marker protects them from indexer page generation. Edit these here; keep any displayed observations traceable to committed JSON and label their reading time.
+- Generated evidence pages: `<mint>.html`, `<mint>.json`, and `coins-<page>.html`. Update the generator and regenerate these. Machine-readable statuses and publication gates must remain intact. Human-facing status wording uses “Needs review” for a failed check; it never converts that check into a pass.
 
-    python -m indexer site 8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump \
-        --evidence state/evidence.db --write --out web --landing
+`/coin/<mint>.json` and `/verify/<mint>` use `api/verify.py`. Bundled observations take precedence, and responses may be cached at the edge for 60 seconds. Other addresses are read through the RPC gateway. The verification form sends requests only on submit or preset selection.
 
-Do not edit these files here. A hand edit makes the deployed page and the
-generator that produced it disagree, which is exactly the failure this
-project exists to make visible. Regenerate in the source repository and copy
-the result across.
+The shared Python code also lives in [charlie-protocol-v1](https://github.com/needsmorergb/charlie-protocol-v1). `.github/workflows/sync.yml` checks parity. Changes to `indexer/publish.py` and `indexer/site.py` here must also be carried to that source repository before release; do not weaken the sync check.
 
-The pages state their own limits, including the one this repository cannot
-fix: nothing independently checks that the renderer faithfully reflects the
-record it was generated from.
+Local verification:
+
+```sh
+python3 -m unittest discover -s tests
+node --test tests/verify-client.test.cjs
+node --check web/assets/charlie-motion.js
+node --check web/assets/signature-motion.js
+```

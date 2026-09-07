@@ -1,30 +1,31 @@
 <!doctype html>
+<!-- charlie:authored-page -->
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Verify a Coin — Charlie Protocol Forensic Console</title>
-  <meta name="description" content="Paste a pump.fun contract address and see where its creator fees go, read directly from the Solana ledger, with every check that passed, failed, or was never run.">
-  
-  <!-- Modern Font Pairing -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="./assets/preview.css?v=fire4">
-  <!-- Vercel Web Analytics & Speed Insights -->
-  <script>
-    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-  </script>
-  <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
-  <script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
-</head>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Check a coin — Charlie Protocol</title>
+    <meta name="description" content="Paste a pump.fun contract address and see where its creator fees go, read directly from the Solana ledger, with every check that passed, failed, or was never run.">
+
+    <!-- Modern Font Pairing -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="./assets/preview.css?v=fire4">
+    <!-- Vercel Web Analytics & Speed Insights -->
+    <script>
+ window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+ window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+ </script>
+    <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
+    <script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
+  </head>
 <body>
 
   <!-- =========================================================================
-       0. Global Facility Telemetry Strip
-       ========================================================================= -->
+  0. Global Facility Telemetry Strip
+  ========================================================================= -->
   <aside class="facility-telemetry-strip" aria-label="Solana Network & Facility Telemetry">
     <div class="facility-telemetry-inner">
       <div class="telemetry-pill">
@@ -32,704 +33,74 @@
         <span class="telemetry-label">NETWORK:</span>
         <span class="telemetry-value">SOLANA MAINNET-BETA</span>
       </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SLOT:</span>
-        <span id="telSlot" class="telemetry-value font-mono">312,894,204</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SOL-INCINERATOR:</span>
-        <span id="telIncinerated" class="telemetry-value telemetry-value--ember font-mono">1,489,204.38 SOL</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">FACILITY TPS:</span>
-        <span id="telTps" class="telemetry-value telemetry-value--green font-mono">2,984</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SOL INFLATION OFFSET:</span>
-        <span class="telemetry-value telemetry-value--ember font-mono">-1,489,204 SOL BURNED</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">VERIFIED COINS:</span>
-        <span class="telemetry-value font-mono">18 COINS LIVE</span>
-      </div>
-    </div>
-  </aside>
-
-  <!-- =========================================================================
-       1. Global Sticky Header
-       ========================================================================= -->
-  <header class="site-header">
-    <div class="header-inner">
-      <a href="./index.html" class="brand-lockup">
-        <span class="flame-box">
-          <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-          </svg>
-        </span>
-        <span>Charlie Protocol</span>
-      </a>
-
-      <nav class="site-nav">
-        <a href="./index.html" class="nav-link">Home</a>
-        <a href="./verify.html" class="nav-link active">Verify CA</a>
-        <a href="./enroll.html" class="nav-link">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
-        <a href="./coins.html" class="nav-link">Directory</a>
-        <a href="./coin.html" class="nav-link">Audit View</a>
-      </nav>
-
-      <div class="header-actions">
-        <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
-          <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <line x1="23" y1="9" x2="17" y2="15"></line>
-            <line x1="17" y1="9" x2="23" y2="15"></line>
-          </svg>
-          <span>Sound Off</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- =========================================================================
-       2. Main Content: Forensic Console
-       ========================================================================= -->
-  <main>
-    <div style="margin-bottom: var(--sp-xl);">
-      <div class="eyebrow">
-        <span class="telemetry-led"></span>
-        <span>Forensic Chain Surveillance // Sol-Incinerator Deflation Feed</span>
-      </div>
-      <h1>Verify Any pump.fun Coin // Sol-Incinerator Audit</h1>
-      <p style="font-size: 17px; max-width: 68ch;">
-        Audit any token mint address (CA) live from public Solana validator RPCs. Verify whether trading creator fees are locked into the Sol-Incinerator to permanently burn SOL and decrease Solana inflation. Every metric names the exact invariant check that could falsify it.
-      </p>
-    </div>
-
-    <!-- Retro CRT Surveillance Monitor with Real-Time Radar & Oscilloscope -->
-    <div class="crt-frame tilt-card">
-      <div class="crt-header">
-        <div class="crt-live-indicator">
-          <span class="crt-rec-dot"></span>
-          <span>[REC // FORENSIC SURVEILLANCE FEED]</span>
-        </div>
-        <div class="mono" style="font-size: 11.5px; color: var(--text-secondary); display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
-          <span>RPC: <strong style="color: #fff;">MAINNET-BETA</strong></span>
-          <span>PING: <strong style="color: var(--neon-charlie);">18ms</strong></span>
-          <span>SLOT: <span id="crtSlotCounter" class="crt-telemetry-slot">#321,489,102</span></span>
-        </div>
-      </div>
-
-      <div class="crt-terminal-layout">
-        <div class="crt-scanlines"></div>
-        <div class="crt-glow-overlay"></div>
-
-        <!-- Left: High-Precision Phosphor Radar -->
-        <div class="crt-radar-col">
-          <canvas id="crtRadarCanvas" class="crt-radar-canvas" width="190" height="190"></canvas>
-          <div class="crt-radar-label">AZIMUTH // 360° SWEEP</div>
-        </div>
-
-        <!-- Center: Signal Telemetry & Live Oscilloscope -->
-        <div class="crt-center-telemetry">
-          <div class="crt-status-headline" id="crtStatusHeadline">
-            <span class="counter-pulse"></span>
-            <span>SYSTEM: STANDBY FOR CA TARGET</span>
-          </div>
-
-          <div style="font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between;">
-            <span>SIGNAL: <strong style="color: var(--ember);" id="crtSignalMode">STANDBY</strong></span>
-            <span>FREQ: <strong>915.00 MHz</strong></span>
-            <span>PARSER: <strong>Ed25519_B58</strong></span>
-          </div>
-
-          <!-- Oscilloscope Waveform Canvas -->
-          <canvas id="crtOscilloscopeCanvas" class="crt-oscilloscope-canvas" width="380" height="48"></canvas>
-
-          <div class="mono" style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
-            <span id="crtTargetPreview">TARGET: NONE LOADED</span>
-            <span id="crtInvariantsCount">CHECKS: 9 READY</span>
-          </div>
-        </div>
-
-        <!-- Right: Charlie Scanning Surveillance Cam -->
-        <div class="crt-scanning-col">
-          <img class="crt-scanning-img" src="./assets/charlie-scanning.gif" alt="Charlie watching the candles">
-          <div class="mono" style="font-size: 10.5px; color: var(--ember); letter-spacing: 0.06em;">CHARLIE CAM // ACTIVE</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Command Prompt Verify Form -->
-    <div class="command-hero-box tilt-card" style="margin-top: var(--sp-lg);">
-      <div class="command-header">
-        <div class="command-label-row">
-          <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <label for="verifyInput" class="command-title">Target Contract Address (CA)</label>
-        </div>
-        <div class="command-shortcut-hint">
-          <span>Press</span> <kbd class="command-kbd">/</kbd> <span>to search</span>
-        </div>
-      </div>
-
-      <form class="verify-form" method="get" action="./verify.html" onsubmit="return handleVerifySubmit(event)">
-        <input 
-          id="verifyInput" 
-          name="mint" 
-          class="verify-input" 
-          type="text" 
-          inputmode="latin" 
-          autocomplete="off" 
-          spellcheck="false" 
-          placeholder="paste pump.fun contract address..." 
-          pattern="[1-9A-HJ-NP-Za-km-z]{32,44}" 
-          value="8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump"
-          oninput="handleInputChange(this.value)"
-          required
-        >
-        <button type="button" class="btn-paste" onclick="pasteCA('verifyInput')">
-          <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-          <span>Paste</span>
-        </button>
-        
-        <div class="btn-conic-glow">
-          <button type="submit" id="btnSubmitVerify" class="btn-submit">
-            <span>Query Ledger</span>
-            <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </button>
-        </div>
-      </form>
-
-      <div class="chips-row">
-        <span style="color: var(--text-muted); font-size: 12px;">Try Inspected Coins:</span>
-        <button type="button" class="chip" onclick="setPresetCA('8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump')">
-          🔥 $CHARLIE (100% Sol Burn)
-        </button>
-        <button type="button" class="chip" onclick="setPresetCA('8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump')">
-          💼 8KC4... (Ops Split)
-        </button>
-        <button type="button" class="chip" onclick="setPresetCA('71cQ45Z8GfH5JgYy4F7eD3bC2aP9LqRwK8xNvM1tPump')">
-          ⚠️ 71cQ... (Discrepancy Demo)
-        </button>
-      </div>
-    </div>
-
-    <!-- Interactive Telemetry Execution Log Box -->
-    <div id="telemetryStreamBox" class="telemetry-stream-box" style="display: none;">
-      <div class="mono" style="font-size: 12px; color: var(--ember); font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 6px; margin-bottom: 4px;">
-        <span>▶ SOLANA RPC FORENSIC TRACE</span>
-        <span id="telemetryProgressPct">0% COMPLETE</span>
-      </div>
-      <div id="telemetryLogsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
-    </div>
-
-    <!-- Audited Results Card (Dynamically Updated) -->
-    <div id="resultsCard" class="studio-card cyber-card cyber-card--chamfer tilt-card" style="margin-top: var(--sp-xl);">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--sp-md);">
-        <div>
-          <div style="display: flex; align-items: center; gap: var(--sp-sm); margin-bottom: var(--sp-xs);">
-            <span id="resultBadge" class="status-pill status-pill--verified">
-              <span class="status-pill-led"></span>
-              <span class="status-pill-text">CONFIG VERIFIED</span>
-            </span>
-            <span id="resultSubPill" class="badge" style="background: rgba(255, 138, 31, 0.15); border: 1px solid rgba(255, 138, 31, 0.4); color: var(--flame-warm); font-size: 11px;">
-              SOL_BURN 10,000 BPS
-            </span>
-          </div>
-
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <h2 id="resultMintDisplay" class="mono font-mono" style="font-size: clamp(16px, 2.8vw, 22px); word-break: break-all; margin: 4px 0;">
-              8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump
-            </h2>
-            <button type="button" class="btn-copy" onclick="copyToClipboard(document.getElementById('resultMintDisplay').textContent.trim(), this)" title="Copy CA to clipboard">
-              <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <span>Copy</span>
-            </button>
-          </div>
-          <p id="resultDesc" style="font-size: 14px; margin: 2px 0 0 0; color: var(--text-secondary);">Official $CHARLIE Coin Reference Audit</p>
-        </div>
-
-        <div style="display: flex; gap: var(--sp-sm); align-items: center; flex-wrap: wrap;">
-          <div class="btn-conic-glow">
-            <a id="btnViewAuditSheet" href="./coin.html?mint=8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump" class="btn-submit" style="text-decoration: none; font-size: 13px; padding: 10px 18px;">
-              <span>View Full Evidence Sheet</span>
-              <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </a>
-          </div>
-          <a id="btnEnrollRedirect" href="./enroll.html?mint=8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump" class="btn-paste" style="text-decoration: none; font-size: 12px; padding: 10px 14px;">
-            <span>Split Studio (Coming Soon)</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- 3D Destination Visual Preview -->
-      <div id="destinationCard" style="display: flex; gap: var(--sp-md); align-items: center; margin-top: var(--sp-lg); background: var(--bg-void); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 12px 16px;">
-        <img id="destinationImg" src="./assets/incinerator-3d.jpg" style="width: 58px; height: 58px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); filter: drop-shadow(0 0 10px rgba(255, 138, 31, 0.5)); flex: none;" alt="Sol-Incinerator">
-        <div style="flex: 1;">
-          <div class="mono" id="destinationTag" style="font-size: 11px; color: var(--flame-warm); font-weight: 700; letter-spacing: 0.05em;">VERIFIED DEFLATION DESTINATION</div>
-          <div class="mono" id="destinationTitle" style="font-size: 14px; font-weight: 700; color: var(--text-primary);">
-            Sol-Incinerator (<span style="color: var(--ember);">1nc1nerator11111111111111111111111111111111</span>)
-          </div>
-          <div id="destinationDesc" style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">
-            Creator trading fees are permanently destroyed on-chain at the block boundary.
-          </div>
-        </div>
-      </div>
-
-      <!-- Segmented Allocation Bar -->
-      <div class="split-strip" style="margin-top: var(--sp-xl);">
-        <div class="split-labels">
-          <span class="split-legend-item">
-            <span class="legend-dot" style="background: var(--flame-warm);"></span>
-            <span id="legendSolBurn">Sol-Incinerator: 100.00%</span>
-          </span>
-          <span class="split-legend-item">
-            <span class="legend-dot" style="background: var(--ember);"></span>
-            <span id="legendTokenBurn">Token Burn: 0.00%</span>
-          </span>
-          <span class="split-legend-item">
-            <span class="legend-dot" style="background: #3B82F6;"></span>
-            <span id="legendOps">Creator Ops: 0.00%</span>
-          </span>
-        </div>
-        <div class="bar-container" style="height: 22px;">
-          <div id="resBarSol" class="bar-seg seg-sol-burn" style="width: 100%;"></div>
-          <div id="resBarToken" class="bar-seg seg-token-burn" style="width: 0%;"></div>
-          <div id="resBarOps" class="bar-seg seg-ops" style="width: 0%;"></div>
-        </div>
-      </div>
-
-      <!-- Quick Tally Grid -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--sp-md); margin-top: var(--sp-lg);">
-        <div class="cyber-card cyber-card--chamfer tilt-card" style="background: var(--bg-card); padding: var(--sp-md); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div style="font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);">CHECK // CONFIG_MINT</div>
-          <div style="font-weight: 700; color: var(--neon-charlie); font-size: 15px; margin-top: 2px;">PASS (100% Bind)</div>
-          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Config names this coin and only this coin.</div>
-        </div>
-        <div class="cyber-card cyber-card--chamfer tilt-card" style="background: var(--bg-card); padding: var(--sp-md); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div style="font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);">CHECK // SPLIT_SUM</div>
-          <div style="font-weight: 700; color: var(--neon-charlie); font-size: 15px; margin-top: 2px;">PASS (10,000 bps)</div>
-          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Allocation shares sum exactly to 100.00%.</div>
-        </div>
-        <div id="cardBurnSupply" class="cyber-card cyber-card--chamfer tilt-card" style="background: var(--bg-card); padding: var(--sp-md); border-radius: var(--radius-sm); border: 1px solid var(--pass-border);">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div style="font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);">CHECK // BURN_SUPPLY</div>
-          <div id="cardBurnSupplyVal" style="font-weight: 700; color: var(--neon-charlie); font-size: 15px; margin-top: 2px;">PASS (100% Reconciled)</div>
-          <div id="cardBurnSupplyDesc" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">43,617,812 tokens burned; live mint supply fully verified.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Conversion Banner for Creators -->
-    <div class="editorial-card cyber-card cyber-card--chamfer tilt-card" style="border-left-color: var(--sol-blue); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-md); margin-top: var(--sp-2xl);">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div>
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-          <h3 style="margin: 0;">Own a pump.fun coin?</h3>
-          <span class="gatekeep-badge">COMING SOON // PHASE 5</span>
-        </div>
-        <p style="margin: 0; font-size: 14.5px;">Automated fee routing to the Sol-Incinerator will unlock with Phase 5 mainnet deployment.</p>
-      </div>
-      <div class="btn-conic-glow">
-        <a href="./enroll.html" class="btn-submit" style="background: var(--sol-blue); color: #000; text-decoration: none;">
-          <span>Preview Split Studio (Coming Soon)</span>
-          <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </a>
-      </div>
-    </div>
-
-  </main>
-
-  <footer>
-    <div class="footer-inner">
-      <p>Charlie Protocol Verification Engine — Readings sampled live from Solana validator RPC nodes. All invariants falsifiable.</p>
-    </div>
-  </footer>
-
-  <script src="./assets/charlie-motion.js?v=fire4"></script>
-  <script>
-    // =========================================================================
-    // 1. Live Solana Slot Counter Simulation
-    // =========================================================================
-    let currentSlot = 321489102;
-    const slotEl = document.getElementById('crtSlotCounter');
-    setInterval(() => {
-      currentSlot += Math.random() > 0.15 ? 1 : 2;
-      if (slotEl) {
-        slotEl.textContent = '#' + currentSlot.toLocaleString();
-      }
-    }, 420);
-
-    // =========================================================================
-    // 2. High-Tech CRT Radar Sweep Canvas
-    // =========================================================================
-    const radarCanvas = document.getElementById('crtRadarCanvas');
-    const radarCtx = radarCanvas ? radarCanvas.getContext('2d') : null;
-    let radarAngle = 0;
-    let radarSpeed = 0.035;
-    const radarBlips = [
-      { r: 42, theta: 0.8, alpha: 0.9, label: '8FhA...' },
-      { r: 70, theta: 2.3, alpha: 0.6, label: '8KC4...' },
-      { r: 60, theta: 4.1, alpha: 0.8, label: '71cQ...' }
-    ];
-
-    function drawRadar() {
-      if (!radarCtx || !radarCanvas) return;
-      const w = radarCanvas.width;
-      const h = radarCanvas.height;
-      const cx = w / 2;
-      const cy = h / 2;
-      const maxR = w / 2 - 8;
-
-      radarCtx.fillStyle = 'rgba(4, 9, 4, 0.18)';
-      radarCtx.fillRect(0, 0, w, h);
-
-      radarCtx.strokeStyle = 'rgba(143, 225, 63, 0.18)';
-      radarCtx.lineWidth = 1;
-      [0.33, 0.66, 1.0].forEach(factor => {
-        radarCtx.beginPath();
-        radarCtx.arc(cx, cy, maxR * factor, 0, Math.PI * 2);
-        radarCtx.stroke();
-      });
-
-      radarCtx.beginPath();
-      radarCtx.moveTo(cx - maxR, cy);
-      radarCtx.lineTo(cx + maxR, cy);
-      radarCtx.moveTo(cx, cy - maxR);
-      radarCtx.lineTo(cx, cy + maxR);
-      radarCtx.stroke();
-
-      radarAngle += radarSpeed;
-      if (radarAngle >= Math.PI * 2) radarAngle -= Math.PI * 2;
-
-      const beamGradient = radarCtx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
-      beamGradient.addColorStop(0, 'rgba(166, 255, 77, 0.35)');
-      beamGradient.addColorStop(1, 'rgba(143, 225, 63, 0.02)');
-
-      radarCtx.save();
-      radarCtx.beginPath();
-      radarCtx.moveTo(cx, cy);
-      radarCtx.arc(cx, cy, maxR, radarAngle - 0.45, radarAngle);
-      radarCtx.closePath();
-      radarCtx.fillStyle = beamGradient;
-      radarCtx.fill();
-
-      radarCtx.beginPath();
-      radarCtx.moveTo(cx, cy);
-      radarCtx.lineTo(cx + Math.cos(radarAngle) * maxR, cy + Math.sin(radarAngle) * maxR);
-      radarCtx.strokeStyle = 'rgba(166, 255, 77, 0.9)';
-      radarCtx.lineWidth = 1.5;
-      radarCtx.stroke();
-      radarCtx.restore();
-
-      radarBlips.forEach(blip => {
-        const bx = cx + Math.cos(blip.theta) * blip.r;
-        const by = cy + Math.sin(blip.theta) * blip.r;
-        const angleDiff = Math.abs(radarAngle - blip.theta);
-        const intensity = angleDiff < 0.35 ? 1 : 0.45;
-
-        radarCtx.fillStyle = `rgba(166, 255, 77, ${intensity})`;
-        radarCtx.beginPath();
-        radarCtx.arc(bx, by, 3, 0, Math.PI * 2);
-        radarCtx.fill();
-
-        if (intensity > 0.8) {
-          radarCtx.strokeStyle = `rgba(166, 255, 77, ${intensity * 0.6})`;
-          radarCtx.beginPath();
-          radarCtx.arc(bx, by, 7, 0, Math.PI * 2);
-          radarCtx.stroke();
-        }
-      });
-
-      requestAnimationFrame(drawRadar);
-    }
-    requestAnimationFrame(drawRadar);
-
-    // =========================================================================
-    // 3. Live Oscilloscope Waveform Canvas
-    // =========================================================================
-    const oscCanvas = document.getElementById('crtOscilloscopeCanvas');
-    const oscCtx = oscCanvas ? oscCanvas.getContext('2d') : null;
-    let oscTime = 0;
-    let oscAmplitude = 12;
-
-    function drawOscilloscope() {
-      if (!oscCtx || !oscCanvas) return;
-      const w = oscCanvas.width;
-      const h = oscCanvas.height;
-      const midY = h / 2;
-
-      oscCtx.fillStyle = 'rgba(3, 8, 3, 0.28)';
-      oscCtx.fillRect(0, 0, w, h);
-
-      oscCtx.strokeStyle = 'rgba(143, 225, 63, 0.85)';
-      oscCtx.lineWidth = 1.5;
-      oscCtx.shadowColor = '#8FE13F';
-      oscCtx.shadowBlur = 6;
-
-      oscCtx.beginPath();
-      for (let x = 0; x < w; x += 3) {
-        const y = midY + 
-          Math.sin(x * 0.04 + oscTime) * oscAmplitude * 0.6 + 
-          Math.sin(x * 0.12 - oscTime * 1.5) * (oscAmplitude * 0.4) +
-          (Math.random() - 0.5) * 2;
-        if (x === 0) oscCtx.moveTo(x, y);
-        else oscCtx.lineTo(x, y);
-      }
-      oscCtx.stroke();
-      oscCtx.shadowBlur = 0;
-
-      oscTime += 0.12;
-      requestAnimationFrame(drawOscilloscope);
-    }
-    requestAnimationFrame(drawOscilloscope);
-
-    // =========================================================================
-    // 4. Input & Preset Selection Logic
-    // =========================================================================
-    function handleInputChange(val) {
-      const trimmed = val.trim();
-      const targetPreview = document.getElementById('crtTargetPreview');
-      if (targetPreview) {
-        targetPreview.textContent = trimmed.length > 0 
-          ? 'TARGET: ' + trimmed.substring(0, 10) + '...' + trimmed.substring(trimmed.length - 4)
-          : 'TARGET: NONE LOADED';
-      }
-      if (trimmed.length >= 32) {
-        const sig = document.getElementById('crtSignalMode');
-        if (sig) {
-          sig.textContent = 'ACQUIRED';
-          sig.style.color = 'var(--ember-bright)';
-        }
-      }
-    }
-
-    function setPresetCA(mint) {
-      const input = document.getElementById('verifyInput');
-      if (input) {
-        input.value = mint;
-        handleInputChange(mint);
-        if (window.AudioEngine) window.AudioEngine.playClick();
-        executeAuditSequence(mint);
-      }
-    }
-
-    function pasteCA(inputId) {
-      navigator.clipboard.readText().then(text => {
-        const input = document.getElementById(inputId);
-        if (input && text) {
-          input.value = text.trim();
-          handleInputChange(text.trim());
-          if (window.AudioEngine) window.AudioEngine.playClick();
-        }
-      }).catch(() => {
-        const input = document.getElementById(inputId);
-        if (input) input.focus();
-      });
-    }
-
-    function handleVerifySubmit(e) {
-      e.preventDefault();
-      const input = document.getElementById('verifyInput');
-      if (!input || !input.value.trim()) return false;
-      executeAuditSequence(input.value.trim());
-      return false;
-    }
-
-    // =========================================================================
-    // 5. Dynamic Forensic Audit Sequencer
-    // =========================================================================
-    function executeAuditSequence(mint) {
-      const headline = document.getElementById('crtStatusHeadline');
-      const signalMode = document.getElementById('crtSignalMode');
-      const streamBox = document.getElementById('telemetryStreamBox');
-      const logsList = document.getElementById('telemetryLogsList');
-      const progressEl = document.getElementById('telemetryProgressPct');
-
-      if (headline) headline.innerHTML = '<span class="counter-pulse" style="background:#FFD84A;"></span><span>AUDITING ON-CHAIN RPC...</span>';
-      if (signalMode) signalMode.textContent = 'LOCKED';
-      radarSpeed = 0.12;
-      oscAmplitude = 20;
-
-      if (window.AudioEngine) {
-        window.AudioEngine.playRadarTick();
-      }
-      if (window.CharlieAnalytics) {
-        window.CharlieAnalytics.track('Verify Audit', { mint: mint.substring(0, 8) });
-      }
-
-      if (streamBox) streamBox.style.display = 'flex';
-      if (logsList) logsList.innerHTML = '';
-
-      const isDiscrepant = mint.startsWith('71cQ');
-
-      const steps = [
-        { time: '0.04s', tag: 'BASE58', type: 'info', msg: `Decoded 32-byte Ed25519 Pubkey: ${mint.substring(0, 8)}...${mint.substring(mint.length - 4)}` },
-        { time: '0.11s', tag: 'RPC', type: 'info', msg: 'Querying validator node (commitment: confirmed, slot #' + currentSlot + ')...' },
-        { time: '0.19s', tag: 'PDA', type: 'success', msg: 'Bonding Curve PDA Derived: 6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P' },
-        { time: '0.28s', tag: 'PROGRAM', type: 'success', msg: 'Fee-sharing state deserialized (pump-fee-share v1.0.2)' },
-        { time: '0.36s', tag: 'INVARIANTS', type: isDiscrepant ? 'warn' : 'success', msg: isDiscrepant ? 'Evaluated 9 Popperian checks: 4 PASS, 1 FAIL (supply reconciliation discrepancy)' : 'Evaluated 9 Popperian checks: ALL INVARIANTS SATISFIED' }
-      ];
-
-      steps.forEach((step, idx) => {
-        setTimeout(() => {
-          if (!logsList) return;
-          const line = document.createElement('div');
-          line.className = 'telemetry-line';
-          line.innerHTML = `
-            <span class="telemetry-time">[${step.time}]</span>
-            <span class="telemetry-tag ${step.type}">${step.tag}</span>
-            <span class="telemetry-msg">${step.msg}</span>
-          `;
-          logsList.appendChild(line);
-          if (progressEl) progressEl.textContent = `${Math.round(((idx + 1) / steps.length) * 100)}% COMPLETE`;
-
-          if (window.AudioEngine) window.AudioEngine.playRadarTick();
-        }, (idx + 1) * 140);
-      });
-
-      setTimeout(() => {
-        radarSpeed = 0.035;
-        oscAmplitude = 12;
-        if (headline) {
-          headline.innerHTML = isDiscrepant
-            ? '<span class="counter-pulse" style="background:var(--flame-core);"></span><span>REFUSAL TRIGGERED // DISCREPANCY DETECTED</span>'
-            : '<span class="counter-pulse" style="background:#8FE13F;"></span><span>SURVEILLANCE COMPLETE // RECORD VERIFIED</span>';
-        }
-        if (window.AudioEngine) {
-          if (isDiscrepant) {
-            window.AudioEngine.playFailureBuzzer();
-          } else {
-            window.AudioEngine.playConfirmationHum();
-          }
-        }
-        updateResultsCard(mint);
-      }, steps.length * 140 + 160);
-    }
-
-    // =========================================================================
-    // 6. Dynamic Inspected Results Card Updater
-    // =========================================================================
-    function updateResultsCard(mint) {
-      const card = document.getElementById('resultsCard');
-      if (!card) return;
-      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-      const mintDisplay = document.getElementById('resultMintDisplay');
-      const desc = document.getElementById('resultDesc');
-      const badge = document.getElementById('resultBadge');
-      const subPill = document.getElementById('resultSubPill');
-      const btnAudit = document.getElementById('btnViewAuditSheet');
-      const btnEnroll = document.getElementById('btnEnrollRedirect');
-
-      const destImg = document.getElementById('destinationImg');
-      const destTag = document.getElementById('destinationTag');
-      const destTitle = document.getElementById('destinationTitle');
-      const destDesc = document.getElementById('destinationDesc');
-
-      const barSol = document.getElementById('resBarSol');
-      const barToken = document.getElementById('resBarToken');
-      const barOps = document.getElementById('resBarOps');
-
-      const legSol = document.getElementById('legendSolBurn');
-      const legToken = document.getElementById('legendTokenBurn');
-      const legOps = document.getElementById('legendOps');
-
-      const burnSupplyCard = document.getElementById('cardBurnSupply');
-      const burnSupplyVal = document.getElementById('cardBurnSupplyVal');
-      const burnSupplyDesc = document.getElementById('cardBurnSupplyDesc');
-
-      if (mintDisplay) mintDisplay.textContent = mint;
-      if (btnAudit) btnAudit.href = './coin.html?mint=' + encodeURIComponent(mint);
-      if (btnEnroll) btnEnroll.href = './enroll.html?mint=' + encodeURIComponent(mint);
-
-      if (mint.startsWith('8KC4')) {
-        if (desc) desc.textContent = 'Creator Operations Split Reference Audit';
-        if (badge) { badge.className = 'status-pill status-pill--verified'; badge.innerHTML = '<span class="status-pill-led"></span><span class="status-pill-text">CONFIG AUDITED</span>'; }
-        if (subPill) { subPill.textContent = 'OPS_ONLY 10,000 BPS'; subPill.style.color = '#60A5FA'; subPill.style.borderColor = 'rgba(59,130,246,0.4)'; }
-        if (destImg) destImg.src = './assets/charlie-3d.jpg';
-        if (destTag) { destTag.textContent = 'CREATOR OPERATIONS SPLIT'; destTag.style.color = '#60A5FA'; }
-        if (destTitle) destTitle.innerHTML = 'Creator Wallet (<span style="color:#60A5FA;">7xKpkV9...9F4q</span>)';
-        if (destDesc) destDesc.textContent = 'Creator fees routed directly to project operational treasury.';
-        if (barSol) barSol.style.width = '0%';
-        if (barToken) barToken.style.width = '0%';
-        if (barOps) barOps.style.width = '100%';
-        if (legSol) legSol.textContent = 'Sol-Incinerator: 0.00%';
-        if (legToken) legToken.textContent = 'Token Burn: 0.00%';
-        if (legOps) legOps.textContent = 'Creator Ops: 100.00%';
-        if (burnSupplyCard) burnSupplyCard.style.borderColor = 'var(--pass-border)';
-        if (burnSupplyVal) { burnSupplyVal.style.color = 'var(--neon-charlie)'; burnSupplyVal.textContent = 'PASS (Reconciled)'; }
-        if (burnSupplyDesc) burnSupplyDesc.textContent = 'No burn claim asserted; mint supply consistent.';
-      } else if (mint.startsWith('71cQ')) {
-        if (desc) desc.textContent = 'Discrepant Refusal Demo Coin';
-        if (badge) { badge.className = 'status-pill status-pill--refused'; badge.innerHTML = '<span class="status-pill-led"></span><span class="status-pill-text">REFUSAL TRIGGERED</span>'; }
-        if (subPill) { subPill.textContent = 'INVARIANT FAILURE'; subPill.style.color = 'var(--fail)'; subPill.style.borderColor = 'var(--fail-border)'; }
-        if (destImg) destImg.src = './assets/incinerator-3d.jpg';
-        if (destTag) { destTag.textContent = 'UNVERIFIED ALLOCATION'; destTag.style.color = 'var(--fail)'; }
-        if (destTitle) destTitle.innerHTML = 'Discrepancy Invariant Tripped';
-        if (destDesc) destDesc.textContent = 'Protocol refuses to confirm figures due to unindexed token burns.';
-        if (barSol) barSol.style.width = '50%';
-        if (barToken) barToken.style.width = '0%';
-        if (barOps) barOps.style.width = '50%';
-        if (legSol) legSol.textContent = 'Sol-Incinerator: 50.00%';
-        if (legToken) legToken.textContent = 'Token Burn: 0.00%';
-        if (legOps) legOps.textContent = 'Creator Ops: 50.00%';
-        if (burnSupplyCard) burnSupplyCard.style.borderColor = 'var(--fail-border)';
-        if (burnSupplyVal) { burnSupplyVal.style.color = 'var(--fail)'; burnSupplyVal.textContent = 'FAIL (Discrepancy)'; }
-        if (burnSupplyDesc) burnSupplyDesc.textContent = 'Observed supply divergence: 184,912 tokens withheld.';
-      } else {
-        if (desc) desc.textContent = 'Official $CHARLIE Coin Reference Audit';
-        if (badge) { badge.className = 'status-pill status-pill--verified'; badge.innerHTML = '<span class="status-pill-led"></span><span class="status-pill-text">CONFIG VERIFIED</span>'; }
-        if (subPill) { subPill.textContent = 'SOL_BURN 10,000 BPS'; subPill.style.color = 'var(--flame-warm)'; subPill.style.borderColor = 'rgba(255,138,31,0.4)'; }
-        if (destImg) destImg.src = './assets/incinerator-3d.jpg';
-        if (destTag) { destTag.textContent = 'VERIFIED DEFLATION DESTINATION'; destTag.style.color = 'var(--flame-warm)'; }
-        if (destTitle) destTitle.innerHTML = 'Sol-Incinerator (<span style="color:var(--ember);">1nc1nerator11111111111111111111111111111111</span>)';
-        if (destDesc) destDesc.textContent = 'Creator fees are permanently converted to destroyed supply at the block boundary.';
-        if (barSol) barSol.style.width = '100%';
-        if (barToken) barToken.style.width = '0%';
-        if (barOps) barOps.style.width = '0%';
-        if (legSol) legSol.textContent = 'Sol-Incinerator: 100.00%';
-        if (legToken) legToken.textContent = 'Token Burn: 0.00%';
-        if (legOps) legOps.textContent = 'Creator Ops: 0.00%';
-        if (burnSupplyCard) burnSupplyCard.style.borderColor = 'var(--pass-border)';
-        if (burnSupplyVal) { burnSupplyVal.style.color = 'var(--neon-charlie)'; burnSupplyVal.textContent = 'PASS (100% Reconciled)'; }
-        if (burnSupplyDesc) burnSupplyDesc.textContent = '43,617,812 tokens burned; live mint supply fully verified.';
-      }
-    }
-
-    // Auto-detect mint param from URL
-    window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const mintParam = urlParams.get('mint');
-      if (mintParam) {
-        const input = document.getElementById('verifyInput');
-        if (input) input.value = mintParam;
-        handleInputChange(mintParam);
-        executeAuditSequence(mintParam);
-      }
-    });
-  </script>
-</body>
-</html>
+    
+  
+
+
+<div class="telemetry-pill">
+  <span class="telemetry-label">SAVED RECORDS:</span>
+  <span class="telemetry-value font-mono">3 COINS CHECKED</span>
+</div>
+</div>
+</aside>
+
+<!-- =========================================================================
+1. Global Sticky Header
+========================================================================= -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="./index.html" class="brand-lockup">
+      <span class="flame-box">
+        <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+        </svg>
+    </span>
+  <span>Charlie Protocol</span>
+</a>
+
+<nav class="site-nav">
+  <a href="./index.html" class="nav-link">Home</a>
+  <a href="./verify.html" class="nav-link active">Verify CA</a>
+  <a href="./enroll.html" class="nav-link">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
+  <a href="./coins.html" class="nav-link">Directory</a>
+  <a href="./coin.html" class="nav-link">Audit View</a>
+</nav>
+
+<div class="header-actions">
+  <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
+    <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <line x1="23" y1="9" x2="17" y2="15"></line>
+      <line x1="17" y1="9" x2="23" y2="15"></line>
+    </svg>
+  <span>Sound Off</span>
+</button>
+</div>
+</div>
+</header>
+
+<main>
+<section><div class="eyebrow">Charlie Protocol</div><h1>Where do this coin's fees go?</h1><p>Paste a coin address to check its fee split. Each report shows when the blockchain was read and which figures its checks support.</p></section>
+<div class="command-hero-box" style="margin-top: var(--sp-lg);">
+  <div class="command-header"><label for="verifyInput" class="command-title">Coin address (CA)</label></div>
+  <form class="verify-form" method="get" action="/verify" novalidate>
+    <input id="verifyInput" name="mint" class="verify-input" type="text" autocomplete="off" spellcheck="false" placeholder="Paste a Solana coin address" aria-describedby="verifyStatusBody" required>
+    <button type="button" class="btn-paste" onclick="pasteCA('verifyInput')">Paste</button>
+    <button type="submit" id="btnSubmitVerify" class="btn-submit">Check this coin</button>
+  </form>
+  <div class="chips-row"><span>Try one:</span>
+    <button type="button" class="chip" onclick="setPresetCA('8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump')">$CHARLIE</button>
+    <button type="button" class="chip" onclick="setPresetCA('8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump')">Creator operations split</button>
+  </div>
+</div>
+<section id="verifyStatus" class="editorial-card" role="status" aria-live="polite" aria-atomic="true" style="margin-top: var(--sp-lg);">
+  <h2 id="verifyStatusTitle">Ready to check a coin</h2>
+  <p id="verifyStatusBody">Paste an address, then choose Check this coin. Saved records show when they were read; other coins are read when you submit.</p>
+</section>
+<section class="editorial-card"><h2>Own a pump.fun coin?</h2><p>See the planned creator tools and how fee routing works.</p><a href="./enroll.html" class="btn-submit">Creator tools</a></section>
+</main>
+<footer><div class="footer-inner"><p>Saved observations and new blockchain reads. Each report shows when it was read.</p></div></footer>
+<script src="./assets/charlie-motion.js?v=handoff1"></script>
+<script src="./assets/verify.js" defer></script>
+<script src="./assets/signature-motion.js" defer></script>
+</body></html>

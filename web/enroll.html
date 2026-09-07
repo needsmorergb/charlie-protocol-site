@@ -1,30 +1,31 @@
 <!doctype html>
+<!-- charlie:authored-page -->
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Enroll Coin — Burn SOL to Decrease Inflation (Phase 5 Standby)</title>
-  <meta name="description" content="Route pump.fun trading creator fees directly to the Sol-Incinerator to permanently burn SOL and decrease Solana network inflation. Phase 5 Protocol Standby.">
-  
-  <!-- Modern Font Pairing -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="./assets/preview.css?v=fire5">
-  <!-- Vercel Web Analytics & Speed Insights -->
-  <script>
-    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-  </script>
-  <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
-  <script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
-</head>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Enroll Coin — Burn SOL to Decrease Inflation (Phase 5 Standby)</title>
+    <meta name="description" content="Route pump.fun trading creator fees directly to the Sol-Incinerator to permanently burn SOL and decrease Solana network inflation. Phase 5 Protocol Standby.">
+
+    <!-- Modern Font Pairing -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="./assets/preview.css?v=fire5">
+    <!-- Vercel Web Analytics & Speed Insights -->
+    <script>
+ window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+ window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+ </script>
+    <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
+    <script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
+  </head>
 <body>
 
   <!-- =========================================================================
-       0. Global Facility Telemetry Strip
-       ========================================================================= -->
+  0. Global Facility Telemetry Strip
+  ========================================================================= -->
   <aside class="facility-telemetry-strip" aria-label="Solana Network & Facility Telemetry">
     <div class="facility-telemetry-inner">
       <div class="telemetry-pill">
@@ -32,389 +33,382 @@
         <span class="telemetry-label">NETWORK:</span>
         <span class="telemetry-value">SOLANA MAINNET-BETA</span>
       </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SLOT:</span>
-        <span id="telSlot" class="telemetry-value font-mono">312,894,204</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SOL-INCINERATOR:</span>
-        <span id="telIncinerated" class="telemetry-value telemetry-value--ember font-mono">1,489,204.38 SOL</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">FACILITY TPS:</span>
-        <span id="telTps" class="telemetry-value telemetry-value--green font-mono">2,984</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SOL INFLATION OFFSET:</span>
-        <span class="telemetry-value telemetry-value--ember font-mono">-1,489,204 SOL BURNED</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">ENROLLMENT STATUS:</span>
-        <span class="telemetry-value telemetry-value--ember font-mono">GATED // PHASE 5 STANDBY</span>
-      </div>
-    </div>
-  </aside>
+    
+  
 
-  <!-- =========================================================================
-       1. Global Sticky Header
-       ========================================================================= -->
-  <header class="site-header">
-    <div class="header-inner">
-      <a href="./index.html" class="brand-lockup">
-        <span class="flame-box">
-          <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-          </svg>
-        </span>
-        <span>Charlie Protocol</span>
-      </a>
 
-      <nav class="site-nav">
-        <a href="./index.html" class="nav-link">Home</a>
-        <a href="./verify.html" class="nav-link">Verify CA</a>
-        <a href="./enroll.html" class="nav-link active">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
-        <a href="./coins.html" class="nav-link">Directory</a>
-        <a href="./coin.html" class="nav-link">Audit View</a>
-      </nav>
+<div class="telemetry-pill">
+  <span class="telemetry-label">ENROLLMENT STATUS:</span>
+  <span class="telemetry-value telemetry-value--ember font-mono">GATED // PHASE 5 STANDBY</span>
+</div>
+</div>
+</aside>
 
-      <div class="header-actions">
-        <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
-          <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <line x1="23" y1="9" x2="17" y2="15"></line>
-            <line x1="17" y1="9" x2="23" y2="15"></line>
-          </svg>
-          <span>Sound Off</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <!-- =========================================================================
-         2. Standby Hero Header: Mission to Decrease Solana Inflation
-         ========================================================================= -->
-    <div style="margin-bottom: var(--sp-xl);">
-      <div class="eyebrow">
-        <span class="status-pill status-pill--unverified" style="border-color: rgba(255, 138, 31, 0.4); background: rgba(255, 138, 31, 0.1);">
-          <span class="status-pill-led" style="background: var(--flame-warm); box-shadow: 0 0 10px var(--flame-warm);"></span>
-          <span class="status-pill-text" style="color: var(--flame-warm);">SOL INFLATION COUNTERMEASURE // STANDBY</span>
-        </span>
-        <span class="gatekeep-tag font-mono">PHASE 5 COMING SOON // NOT LIVE ON MAINNET YET</span>
-      </div>
-      <h1 style="margin-top: var(--sp-sm);">Burn SOL to Decrease Solana Inflation</h1>
-      <p style="font-size: 17px; max-width: 68ch; color: var(--text-secondary); line-height: 1.6;">
-        The primary mission of Charlie Protocol is combating Solana network inflation by routing trading creator fees directly into the native Sol-Incinerator (<code class="mono">1nc1nerator...</code>). Lamports are destroyed at the block boundary to permanently reduce circulating SOL supply. Public creator enrollment will unlock with Phase 5 mainnet deployment.
-      </p>
-    </div>
-
-    <!-- =========================================================================
-         3. Master Gatekeep Standby Console
-         ========================================================================= -->
-    <section class="gatekeep-banner cyber-card cyber-card--chamfer" aria-label="Protocol Gatekeep Notice">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div class="gatekeep-header">
-        <div style="display: flex; align-items: center; gap: var(--sp-sm); flex-wrap: wrap;">
-          <span class="gatekeep-badge">
-            <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-            ENROLLMENT LOCKED // STANDBY
-          </span>
-          <span class="mono font-mono" style="font-size: 11px; color: var(--flame-warm);">
-            TARGET: PERMANENT SOL DEFLATION VIA 1nc1nerator...
-          </span>
-        </div>
-        <span class="mono font-mono" style="font-size: 11px; color: var(--text-muted);">
-          SAFETY INVARIANT: ZERO LIVE SENDS
-        </span>
-      </div>
-
-      <div class="gatekeep-body">
-        <h2>Why is Enrollment Gated?</h2>
-        <p>
-          On Solana pump.fun, creator fee routing is a <strong>permanent, irreversible one-way door</strong>. Once deployer authority is delegated to fee-sharing instructions, no key on earth can alter it. To ensure total community security and absolute fidelity to the Sol-Incinerator burn mandate, Charlie Protocol enrollments remain strictly gated while our smart contracts undergo formal verification and automated liquidation fuzzing.
-        </p>
-        <p>
-          When Phase 5 ships, coin deployers will be able to lock permanent Sol-Incinerator fee burns in a <strong>single client-side signature</strong> with zero custody risk, permanently decreasing Solana's circulating supply with every trade.
-        </p>
-
-        <div class="gatekeep-grid font-mono" style="margin-top: var(--sp-md);">
-          <div class="gatekeep-stat">
-            <span class="stat-lbl">CORE MISSION:</span>
-            <span class="stat-val" style="color: var(--flame-warm);">Combat Solana Network Inflation</span>
-          </div>
-          <div class="gatekeep-stat">
-            <span class="stat-lbl">PRIMARY DESTINATION:</span>
-            <span class="stat-val" style="color: var(--sol-blue);">Sol-Incinerator (1nc1nerator...)</span>
-          </div>
-          <div class="gatekeep-stat">
-            <span class="stat-lbl">SUPPLY REDUCTION:</span>
-            <span class="stat-val" style="color: var(--neon-charlie);">100% Destroyed at Block Boundary</span>
-          </div>
-          <div class="gatekeep-stat">
-            <span class="stat-lbl">ENROLLMENT ACCESS:</span>
-            <span class="stat-val" style="color: var(--flame-warm);">Gated // Standby for Phase 5</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- =========================================================================
-         4. Phase 5 Protocol Architecture & Blueprint Preview
-         ========================================================================= -->
-    <section class="blueprint-card cyber-card--chamfer" aria-label="Phase 5 Architecture Blueprint">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-md);">
-        <div>
-          <div class="eyebrow" style="margin-bottom: 4px;">
-            <span class="status-pill-led" style="background: var(--neon-charlie); box-shadow: 0 0 10px var(--neon-charlie);"></span>
-            <span>SPECIFICATION ARCHITECTURE // COMING IN PHASE 5</span>
-          </div>
-          <h2 style="font-size: 22px; margin: 0;">How Phase 5 Enrollment Operates</h2>
-        </div>
-        <span class="mono font-mono" style="font-size: 11.5px; color: var(--neon-charlie); background: rgba(143, 225, 63, 0.1); border: 1px solid rgba(143, 225, 63, 0.3); padding: 4px 10px; border-radius: 4px;">
-          NON-CUSTODIAL ATOMIC INSTRUCTION
-        </span>
-      </div>
-
-      <p style="font-size: 14.5px; color: var(--text-secondary); max-width: 72ch; margin-bottom: var(--sp-lg);">
-        Below is the deterministic execution pipeline that will unlock for coin deployers in Phase 5. No key ever leaves the creator's wallet; the Charlie client compiles the instructions and the creator signs once.
-      </p>
-
-      <!-- 4-Step Architectural Flow Grid -->
-      <div class="blueprint-flow-grid">
-        <div class="blueprint-flow-item">
-          <span class="blueprint-flow-num">01</span>
-          <div class="blueprint-flow-title">1. Deployer Authority Check</div>
-          <p class="blueprint-flow-desc">
-            The client reads the pump.fun bonding curve on Solana mainnet to verify that your wallet holds the unspent fee-sharing allocation slot.
-          </p>
-        </div>
-
-        <div class="blueprint-flow-item">
-          <span class="blueprint-flow-num">02</span>
-          <div class="blueprint-flow-title">2. Sol-Incinerator Route</div>
-          <p class="blueprint-flow-desc">
-            Up to <strong style="color: var(--flame-warm);">100%</strong> of creator fees are routed to <code style="font-size: 11px;">1nc1nerator...</code> where lamports are permanently destroyed to combat SOL inflation.
-          </p>
-        </div>
-
-        <div class="blueprint-flow-item">
-          <span class="blueprint-flow-num">03</span>
-          <div class="blueprint-flow-title">3. Autonomous Crank Maintenance</div>
-          <p class="blueprint-flow-desc">
-            A nominal <strong style="color: var(--neon-charlie);">0.25% fee per transaction</strong> sustains the decentralized crank infrastructure and buys/burns $CHARLIE.
-          </p>
-        </div>
-
-        <div class="blueprint-flow-item">
-          <span class="blueprint-flow-num">04</span>
-          <div class="blueprint-flow-title">4. One-Way Door Lock</div>
-          <p class="blueprint-flow-desc">
-            Deployer key signs one atomic transaction. The split is permanently committed on-chain and registered in the Charlie Verification Engine.
-          </p>
-        </div>
-      </div>
-
-      <!-- Protocol Specification Matrix -->
-      <div style="margin-top: var(--sp-xl); border-top: 1px solid var(--border-glass); padding-top: var(--sp-md);">
-        <h3 style="font-size: 16px; margin-bottom: var(--sp-xs); color: var(--text-primary);">
-          Phase 5 Invariant Specification Matrix
-        </h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--sp-md);">
-          Deterministic parameters enforced mathematically at the smart-contract level.
-        </p>
-
-        <div style="overflow-x: auto;">
-          <table class="blueprint-spec-table">
-            <thead>
-              <tr>
-                <th>Parameter</th>
-                <th>Standard Value</th>
-                <th>Security & Verification Invariant</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="font-weight: 700; color: var(--flame-warm);">Primary Burn Destination</td>
-                <td><code>1nc1nerator11111111111111111111111111111111</code></td>
-                <td>Solana native incinerator. Lamports are permanently removed from total supply at block boundary to decrease global SOL inflation.</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 700; color: var(--text-primary);">Solana Inflation Impact</td>
-                <td><span style="color: var(--flame-warm); font-weight: 700;">Permanent Supply Contraction</span></td>
-                <td>Directly counteracts annual validator staking issuance by converting trading volume into continuous supply destruction.</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 700; color: var(--text-primary);">Creator Operations Share (Optional)</td>
-                <td><span style="color: #60A5FA;">0.00% – 99.75%</span></td>
-                <td>Optional secondary destination for verified transparent team operational treasuries.</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 700; color: var(--text-primary);">Autonomous Crank Fee</td>
-                <td><span style="color: var(--neon-charlie);">0.25% fee per transaction</span></td>
-                <td>Nominal transaction fee allocated 100% to automated open-market purchase and burning of $CHARLIE tokens to sustain crank execution.</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 700; color: var(--text-primary);">Invariant BPS Sum</td>
-                <td><span style="color: var(--neon-charlie);">10,000 BPS (100.00%)</span></td>
-                <td>Sum of all destination basis points must equal exactly 10,000. Underflow or overflow is rejected.</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 700; color: var(--text-primary);">Revocation State</td>
-                <td><span style="color: var(--flame-warm);">Irrevocable One-Way Door</span></td>
-                <td>Authority is surrendered on-chain; no admin key can alter or redirect fees post-enrollment.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- =========================================================================
-         5. Genesis Early Access / Phase 5 Waitlist Console
-         ========================================================================= -->
-    <section class="waitlist-card cyber-card--chamfer" aria-label="Genesis Early Access Signup">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-md);">
-        <div>
-          <span class="status-pill status-pill--verified" style="margin-bottom: 6px;">
-            <span class="status-pill-led"></span>
-            <span class="status-pill-text">GENESIS WAITLIST ACTIVE</span>
-          </span>
-          <h2 style="font-size: 22px; margin: 0; color: #fff;">Get Notified for Phase 5 Mainnet Launch</h2>
-        </div>
-        <span class="mono font-mono" style="font-size: 11px; color: var(--text-muted);">
-          PRIORITY DISPATCH
-        </span>
-      </div>
-
-      <p style="font-size: 14.5px; color: var(--text-secondary); max-width: 68ch; margin-bottom: var(--sp-lg); line-height: 1.6;">
-        Want to enroll your coin to burn SOL the exact second Phase 5 smart contracts deploy to Solana mainnet? Enter your contact handle or Solana wallet address to join the Genesis launch queue.
-      </p>
-
-      <form id="waitlistForm" onsubmit="handleWaitlistSubmit(event)" style="display: flex; gap: var(--sp-sm); flex-wrap: wrap; margin-bottom: var(--sp-sm);">
-        <input 
-          type="text" 
-          id="waitlistInput" 
-          class="waitlist-input" 
-          placeholder="Enter Telegram (@handle), X (@handle), or Solana wallet address..." 
-          required
-        >
-        <div class="btn-conic-glow">
-          <button type="submit" class="btn-submit" style="white-space: nowrap;">
-            <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 2L11 13"></path>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-            <span>Request Genesis Early Access</span>
-          </button>
-        </div>
-      </form>
-
-      <div id="waitlistSuccess" class="waitlist-confirm" style="display: none;">
-        <svg class="sys-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20 6 9 17 4 12"></polyline>
+<!-- =========================================================================
+1. Global Sticky Header
+========================================================================= -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="./index.html" class="brand-lockup">
+      <span class="flame-box">
+        <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
         </svg>
-        <span>Registration confirmed! Your address has been added to the Genesis Phase 5 mainnet dispatch queue.</span>
+    </span>
+  <span>Charlie Protocol</span>
+</a>
+
+<nav class="site-nav">
+  <a href="./index.html" class="nav-link">Home</a>
+  <a href="./verify.html" class="nav-link">Verify CA</a>
+  <a href="./enroll.html" class="nav-link active">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
+  <a href="./coins.html" class="nav-link">Directory</a>
+  <a href="./coin.html" class="nav-link">Audit View</a>
+</nav>
+
+<div class="header-actions">
+  <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
+    <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <line x1="23" y1="9" x2="17" y2="15"></line>
+      <line x1="17" y1="9" x2="23" y2="15"></line>
+    </svg>
+  <span>Sound Off</span>
+</button>
+</div>
+</div>
+</header>
+
+<main>
+  <!-- =========================================================================
+  2. Standby Hero Header: Mission to Decrease Solana Inflation
+  ========================================================================= -->
+  <div style="margin-bottom: var(--sp-xl);">
+    <div class="eyebrow">
+      <span class="status-pill status-pill--unverified" style="border-color: rgba(255, 138, 31, 0.4); background: rgba(255, 138, 31, 0.1);">
+        <span class="status-pill-led" style="background: var(--flame-warm); box-shadow: 0 0 10px var(--flame-warm);"></span>
+        <span class="status-pill-text" style="color: var(--flame-warm);">SOL INFLATION COUNTERMEASURE // STANDBY</span>
+      </span>
+    <span class="gatekeep-tag font-mono">PHASE 5 COMING SOON // NOT LIVE ON MAINNET YET</span>
+  </div>
+<h1 style="margin-top: var(--sp-sm);">Burn SOL to Decrease Solana Inflation</h1>
+<p style="font-size: 17px; max-width: 68ch; color: var(--text-secondary); line-height: 1.6;">
+  The primary mission of Charlie Protocol is combating Solana network inflation by routing trading creator fees directly into the native Sol-Incinerator (<code class="mono">1nc1nerator...</code>). Lamports are destroyed within seconds to permanently reduce circulating SOL supply. Public creator enrollment will unlock with Phase 5 mainnet deployment.
+</p>
+</div>
+
+<!-- =========================================================================
+3. Master Gatekeep Standby Console
+========================================================================= -->
+<section class="gatekeep-banner cyber-card cyber-card--chamfer" aria-label="Protocol Gatekeep Notice">
+  <span class="cyber-corner cyber-corner--tl"></span>
+  <span class="cyber-corner cyber-corner--br"></span>
+  <div class="gatekeep-header">
+    <div style="display: flex; align-items: center; gap: var(--sp-sm); flex-wrap: wrap;">
+      <span class="gatekeep-badge">
+        <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      ENROLLMENT LOCKED // STANDBY
+    </span>
+  <span class="mono font-mono" style="font-size: 11px; color: var(--flame-warm);">
+    TARGET: PERMANENT SOL DEFLATION VIA 1nc1nerator...
+  </span>
+</div>
+<span class="mono font-mono" style="font-size: 11px; color: var(--text-muted);">
+  SAFETY CHECK: ZERO LIVE SENDS
+</span>
+</div>
+
+<div class="gatekeep-body">
+  <h2>Why is Enrollment Gated?</h2>
+  <p>
+    On Solana pump.fun, creator fee routing is a <strong>permanent, irreversible one-way door</strong>. Once deployer authority is delegated to fee-sharing instructions, no key on earth can alter it. To ensure total community security and absolute fidelity to the Sol-Incinerator burn mandate, Charlie Protocol enrollments remain strictly gated while our smart contracts undergo formal verification and automated liquidation fuzzing.
+  </p>
+<p>
+  When Phase 5 ships, coin deployers will be able to lock permanent Sol-Incinerator fee burns in a <strong>single client-side signature</strong> with zero custody risk, permanently decreasing Solana's circulating supply with every trade.
+</p>
+
+<div class="gatekeep-grid font-mono" style="margin-top: var(--sp-md);">
+  <div class="gatekeep-stat">
+    <span class="stat-lbl">CORE MISSION:</span>
+    <span class="stat-val" style="color: var(--flame-warm);">Combat Solana Network Inflation</span>
+  </div>
+<div class="gatekeep-stat">
+  <span class="stat-lbl">PRIMARY DESTINATION:</span>
+  <span class="stat-val" style="color: var(--sol-blue);">Sol-Incinerator (1nc1nerator...)</span>
+</div>
+<div class="gatekeep-stat">
+  <span class="stat-lbl">SUPPLY REDUCTION:</span>
+  <span class="stat-val" style="color: var(--neon-charlie);">100% Destroyed at Block Boundary</span>
+</div>
+<div class="gatekeep-stat">
+  <span class="stat-lbl">ENROLLMENT ACCESS:</span>
+  <span class="stat-val" style="color: var(--flame-warm);">Gated // Standby for Phase 5</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- =========================================================================
+4. Phase 5 Protocol Architecture & Blueprint Preview
+========================================================================= -->
+<section class="blueprint-card cyber-card--chamfer" aria-label="Phase 5 Architecture Blueprint">
+  <span class="cyber-corner cyber-corner--tl"></span>
+  <span class="cyber-corner cyber-corner--br"></span>
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-md);">
+    <div>
+      <div class="eyebrow" style="margin-bottom: 4px;">
+        <span class="status-pill-led" style="background: var(--neon-charlie); box-shadow: 0 0 10px var(--neon-charlie);"></span>
+        <span>SPECIFICATION ARCHITECTURE // COMING IN PHASE 5</span>
       </div>
-    </section>
+    <h2 style="font-size: 22px; margin: 0;">How Phase 5 Enrollment Operates</h2>
+  </div>
+<span class="mono font-mono" style="font-size: 11.5px; color: var(--neon-charlie); background: rgba(143, 225, 63, 0.1); border: 1px solid rgba(143, 225, 63, 0.3); padding: 4px 10px; border-radius: 4px;">
+  NON-CUSTODIAL ATOMIC INSTRUCTION
+</span>
+</div>
 
-    <!-- =========================================================================
-         6. Active Tools Navigation Deck
-         ========================================================================= -->
-    <section class="cyber-card cyber-card--chamfer" style="padding: var(--sp-xl); margin-bottom: var(--sp-2xl);">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div style="margin-bottom: var(--sp-md);">
-        <h3 style="font-size: 18px; margin: 0 0 4px 0; color: var(--text-primary);">
-          Explore Active Charlie Protocol Tools
-        </h3>
-        <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
-          While enrollment is on standby, our live on-chain forensic verification engine is fully operational.
-        </p>
-      </div>
+<p style="font-size: 14.5px; color: var(--text-secondary); max-width: 72ch; margin-bottom: var(--sp-lg);">
+  Below is the deterministic execution pipeline that will unlock for coin deployers in Phase 5. No key ever leaves the creator's wallet; the Charlie client compiles the instructions and the creator signs once.
+</p>
 
-      <div style="display: flex; gap: var(--sp-md); flex-wrap: wrap;">
-        <div class="btn-conic-glow">
-          <a href="./verify.html" class="btn-submit" style="display: inline-flex; text-decoration: none;">
-            <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <span>Verify Any Token CA Live</span>
-          </a>
-        </div>
-        <a href="./coin.html" class="btn-paste" style="display: inline-flex; text-decoration: none; padding: 12px 18px;">
-          <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-          </svg>
-          <span>Inspect $CHARLIE Full Audit</span>
-        </a>
-        <a href="./coins.html" class="btn-paste" style="display: inline-flex; text-decoration: none; padding: 12px 18px;">
-          <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="8" y1="6" x2="21" y2="6"></line>
-            <line x1="8" y1="12" x2="21" y2="12"></line>
-            <line x1="8" y1="18" x2="21" y2="18"></line>
-            <line x1="3" y1="6" x2="3.01" y2="6"></line>
-            <line x1="3" y1="12" x2="3.01" y2="12"></line>
-            <line x1="3" y1="18" x2="3.01" y2="18"></line>
-          </svg>
-          <span>Browse 18 Verified Coins</span>
-        </a>
-      </div>
-    </section>
-  </main>
+<!-- 4-Step Architectural Flow Grid -->
+<div class="blueprint-flow-grid">
+  <div class="blueprint-flow-item">
+    <span class="blueprint-flow-num">01</span>
+    <div class="blueprint-flow-title">1. Deployer Authority Check</div>
+    <p class="blueprint-flow-desc">
+      The client reads the pump.fun bonding curve on Solana mainnet to verify that your wallet holds the unspent fee-sharing allocation slot.
+    </p>
+</div>
 
-  <footer>
-    <div class="footer-inner">
-      <p>Charlie Protocol — Dedicated to decreasing Solana network inflation via native Sol-Incinerator supply destruction. Autonomous crank maintenance: 0.25% fee per transaction.</p>
-    </div>
-  </footer>
+<div class="blueprint-flow-item">
+  <span class="blueprint-flow-num">02</span>
+  <div class="blueprint-flow-title">2. Sol-Incinerator Route</div>
+  <p class="blueprint-flow-desc">
+    Up to <strong style="color: var(--flame-warm);">100%</strong> of creator fees are routed to <code style="font-size: 11px;">1nc1nerator...</code> where lamports are permanently destroyed to combat SOL inflation.
+  </p>
+</div>
 
-  <script src="./assets/charlie-motion.js?v=fire5"></script>
-  <script>
-    function handleWaitlistSubmit(e) {
-      e.preventDefault();
-      const input = document.getElementById('waitlistInput');
-      const success = document.getElementById('waitlistSuccess');
-      if (input && input.value.trim().length > 0) {
-        try {
-          localStorage.setItem('charlie_phase5_waitlist', input.value.trim());
-        } catch (err) {}
-        input.style.display = 'none';
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.parentElement.style.display = 'none';
-        success.style.display = 'flex';
-        if (window.AudioEngine) {
-          window.AudioEngine.playConfirmationHum();
-        }
-        if (window.CharlieAnalytics) {
-          window.CharlieAnalytics.track('Waitlist Signup');
-        }
-      }
-    }
+<div class="blueprint-flow-item">
+  <span class="blueprint-flow-num">03</span>
+  <div class="blueprint-flow-title">3. Autonomous Crank Maintenance</div>
+  <p class="blueprint-flow-desc">
+    A nominal <strong style="color: var(--neon-charlie);">0.25% fee per transaction</strong> sustains the decentralized crank infrastructure and buys/burns $CHARLIE.
+  </p>
+</div>
 
-    // Check if user already registered previously
-    (function() {
-      try {
-        const saved = localStorage.getItem('charlie_phase5_waitlist');
-        if (saved) {
-          const input = document.getElementById('waitlistInput');
-          const success = document.getElementById('waitlistSuccess');
-          const form = document.getElementById('waitlistForm');
-          if (input && success && form) {
-            input.value = saved;
-          }
-        }
-      } catch (e) {}
-    })();
-  </script>
+<div class="blueprint-flow-item">
+  <span class="blueprint-flow-num">04</span>
+  <div class="blueprint-flow-title">4. One-Way Door Lock</div>
+  <p class="blueprint-flow-desc">
+    Deployer key signs one atomic transaction. The split is permanently committed on-chain and registered in the Charlie Verification Engine.
+  </p>
+</div>
+</div>
+
+<!-- Protocol Specification Matrix -->
+<div style="margin-top: var(--sp-xl); border-top: 1px solid var(--border-glass); padding-top: var(--sp-md);">
+  <h3 style="font-size: 16px; margin-bottom: var(--sp-xs); color: var(--text-primary);">
+    Phase 5 Check Specification Matrix
+  </h3>
+<p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--sp-md);">
+  Deterministic parameters enforced mathematically at the smart-contract level.
+</p>
+
+<div style="overflow-x: auto;">
+  <table class="blueprint-spec-table">
+    <thead>
+      <tr>
+        <th>Parameter</th>
+        <th>Standard Value</th>
+        <th>Security & Verification Check</th>
+      </tr>
+  </thead>
+<tbody>
+  <tr>
+    <td style="font-weight: 700; color: var(--flame-warm);">Primary Burn Destination</td>
+    <td><code>1nc1nerator11111111111111111111111111111111</code></td>
+    <td>Solana native incinerator. Lamports are permanently removed from total supply at block boundary to decrease global SOL inflation.</td>
+  </tr>
+<tr>
+  <td style="font-weight: 700; color: var(--text-primary);">Solana Inflation Impact</td>
+  <td><span style="color: var(--flame-warm); font-weight: 700;">Permanent Supply Contraction</span></td>
+  <td>Directly counteracts annual validator staking issuance by converting trading volume into continuous supply destruction.</td>
+</tr>
+<tr>
+  <td style="font-weight: 700; color: var(--text-primary);">Creator Operations Share (Optional)</td>
+  <td><span style="color: #60A5FA;">0.00% – 99.75%</span></td>
+  <td>Optional secondary destination for verified transparent team operational treasuries.</td>
+</tr>
+<tr>
+  <td style="font-weight: 700; color: var(--text-primary);">Autonomous Crank Fee</td>
+  <td><span style="color: var(--neon-charlie);">0.25% fee per transaction</span></td>
+  <td>Nominal transaction fee allocated 100% to automated open-market purchase and burning of $CHARLIE tokens to sustain crank execution.</td>
+</tr>
+<tr>
+  <td style="font-weight: 700; color: var(--text-primary);">Check BPS Sum</td>
+  <td><span style="color: var(--neon-charlie);">10,000 BPS (100.00%)</span></td>
+  <td>Sum of all destination basis points must equal exactly 10,000. Underflow or overflow is rejected.</td>
+</tr>
+<tr>
+  <td style="font-weight: 700; color: var(--text-primary);">Revocation State</td>
+  <td><span style="color: var(--flame-warm);">Irrevocable One-Way Door</span></td>
+  <td>Authority is surrendered on-chain; no admin key can alter or redirect fees post-enrollment.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+
+<!-- =========================================================================
+5. Genesis Early Access / Phase 5 Waitlist Console
+========================================================================= -->
+<section class="waitlist-card cyber-card--chamfer" aria-label="Genesis Early Access Signup">
+  <span class="cyber-corner cyber-corner--tl"></span>
+  <span class="cyber-corner cyber-corner--br"></span>
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-md);">
+    <div>
+      <span class="status-pill status-pill--verified" style="margin-bottom: 6px;">
+        <span class="status-pill-led"></span>
+        <span class="status-pill-text">GENESIS WAITLIST ACTIVE</span>
+      </span>
+    <h2 style="font-size: 22px; margin: 0; color: #fff;">Save your contact on this device</h2>
+  </div>
+<span class="mono font-mono" style="font-size: 11px; color: var(--text-muted);">
+  LOCAL SAVE
+</span>
+</div>
+
+<p style="font-size: 14.5px; color: var(--text-secondary); max-width: 68ch; margin-bottom: var(--sp-lg); line-height: 1.6;">
+  Save a handle or wallet address here for later. This stays in this browser; it does not join a waitlist or request a notification.
+</p>
+
+<form id="waitlistForm" onsubmit="handleWaitlistSubmit(event)" style="display: flex; gap: var(--sp-sm); flex-wrap: wrap; margin-bottom: var(--sp-sm);">
+  <input
+  type="text"
+  id="waitlistInput"
+  class="waitlist-input"
+  placeholder="Enter Telegram (@handle), X (@handle), or Solana wallet address..."
+  required
+  >
+  <div class="btn-conic-glow">
+    <button type="submit" class="btn-submit" style="white-space: nowrap;">
+      <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 2L11 13"></path>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    <span>Save on this device</span>
+  </button>
+</div>
+</form>
+
+<div id="waitlistSuccess" class="waitlist-confirm" style="display: none;">
+  <svg class="sys-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <polyline points="20 6 9 17 4 12"></polyline>
+  </svg>
+<span>Saved on this device. Nothing was sent, and no notification has been requested.</span>
+</div>
+</section>
+
+<!-- =========================================================================
+6. Active Tools Navigation Deck
+========================================================================= -->
+<section class="cyber-card cyber-card--chamfer" style="padding: var(--sp-xl); margin-bottom: var(--sp-2xl);">
+  <span class="cyber-corner cyber-corner--tl"></span>
+  <span class="cyber-corner cyber-corner--br"></span>
+  <div style="margin-bottom: var(--sp-md);">
+    <h3 style="font-size: 18px; margin: 0 0 4px 0; color: var(--text-primary);">
+      Explore Active Charlie Protocol Tools
+    </h3>
+  <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
+    While enrollment is on standby, our live on-chain verification engine is fully operational.
+  </p>
+</div>
+
+<div style="display: flex; gap: var(--sp-md); flex-wrap: wrap;">
+  <div class="btn-conic-glow">
+    <a href="./verify.html" class="btn-submit" style="display: inline-flex; text-decoration: none;">
+      <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+    <span>Check a coin now</span>
+  </a>
+</div>
+<a href="./coin.html" class="btn-paste" style="display: inline-flex; text-decoration: none; padding: 12px 18px;">
+  <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+    <polyline points="14 2 14 8 20 8"></polyline>
+  </svg>
+<span>See $CHARLIE's report</span>
+</a>
+<a href="./coins.html" class="btn-paste" style="display: inline-flex; text-decoration: none; padding: 12px 18px;">
+  <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <line x1="8" y1="6" x2="21" y2="6"></line>
+    <line x1="8" y1="12" x2="21" y2="12"></line>
+    <line x1="8" y1="18" x2="21" y2="18"></line>
+    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+  </svg>
+<span>See all 3 checked coins</span>
+</a>
+</div>
+</section>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <p>Charlie Protocol — Dedicated to decreasing Solana network inflation via native Sol-Incinerator supply destruction. Autonomous crank maintenance: 0.25% fee per transaction.</p>
+  </div>
+</footer>
+
+<script src="./assets/charlie-motion.js?v=fire5"></script>
+<script>
+ function handleWaitlistSubmit(e) {
+ e.preventDefault();
+ const input = document.getElementById('waitlistInput');
+ const success = document.getElementById('waitlistSuccess');
+ if (input && input.value.trim().length > 0) {
+ try {
+ localStorage.setItem('charlie_phase5_waitlist', input.value.trim());
+ } catch (err) {
+ success.querySelector("span").textContent = "This browser could not save your contact. Please try again with storage enabled.";
+ success.style.display = "flex";
+ return;
+ }
+ input.style.display = 'none';
+ const submitBtn = e.target.querySelector('button[type="submit"]');
+ if (submitBtn) submitBtn.parentElement.style.display = 'none';
+ success.style.display = 'flex';
+ if (window.AudioEngine) {
+ window.AudioEngine.playConfirmationHum();
+ }
+ if (window.CharlieAnalytics) {
+ window.CharlieAnalytics.track('Contact Saved Locally');
+ }
+ }
+ }
+
+ // Check if user already registered previously
+ (function() {
+ try {
+ const saved = localStorage.getItem('charlie_phase5_waitlist');
+ if (saved) {
+ const input = document.getElementById('waitlistInput');
+ const success = document.getElementById('waitlistSuccess');
+ const form = document.getElementById('waitlistForm');
+ if (input && success && form) {
+ input.value = saved;
+ }
+ }
+ } catch (e) {}
+ })();
+ </script>
+<script src="./assets/signature-motion.js" defer></script>
 </body>
 </html>
