@@ -128,7 +128,14 @@
 </div>
 
 <!-- Master Scene: Charlie on the Platform with Flowing Fire & Billowing Smoke -->
-<img class="scene-3d-img" src="./assets/hero-still.webp" alt="Sol-Incinerator catwalk surveillance: Charlie on the catwalk platform overlooking the roaring combustion furnace with billowing smoke" fetchpriority="high" decoding="async">
+<picture class="scene-3d-picture">
+  <!-- An animated GIF/WebP does not honour prefers-reduced-motion by itself,
+       so the still frame is offered first under that query and the animated
+       sources are never fetched for a visitor who asked for less motion. -->
+  <source srcset="./assets/hero-still.webp" type="image/webp" media="(prefers-reduced-motion: reduce)">
+  <source srcset="./assets/hero-animated.webp" type="image/webp">
+  <img class="scene-3d-img" src="./assets/hero-animated.gif" alt="Sol-Incinerator catwalk surveillance: Charlie on the catwalk platform overlooking the roaring combustion furnace with billowing smoke" width="800" height="446" fetchpriority="high" decoding="async">
+</picture>
 
 <!-- Roaring Hearth Light / Thermal Fire Pulse Layer -->
 <div class="stage-hearth-glow" aria-hidden="true"></div>

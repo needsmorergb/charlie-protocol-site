@@ -422,6 +422,11 @@ main {
   box-shadow: 0 16px 64px rgba(0, 0, 0, 0.95), 0 0 45px var(--ember-glow);
 }
 
+/* `<picture>` is an inline wrapper with no box of its own here -- the image
+   inside it is absolutely positioned against the stage, as it was before the
+   animated source was reintroduced. */
+.scene-3d-picture { display: contents; }
+
 .scene-3d-img {
   position: absolute;
   inset: 0;
@@ -726,7 +731,7 @@ main {
   filter: blur(20px);
   pointer-events: none;
   z-index: 1;
-  animation: none;
+  animation: furnace-glow-pulse 3.2s ease-in-out infinite alternate;
 }
 
 @keyframes furnace-glow-pulse {
@@ -756,13 +761,13 @@ main {
   width: 100%;
   z-index: 3;
   transform-origin: 50% 100%;
-  animation: none;
+  animation: sway 11s ease-in-out infinite;
 }
 
 .furnace .smoke {
   top: 0;
   transform-origin: 50% 100%;
-  animation: none;
+  animation: billow 7.5s ease-in-out infinite;
   opacity: 0.88;
 }
 
@@ -993,6 +998,8 @@ main {
   width: 62%;
   height: auto;
   image-rendering: auto;
+  transform-origin: 50% 100%;
+  animation: billow 9s ease-in-out infinite;
 }
 
 .fly-orbit {
@@ -4338,29 +4345,48 @@ html { background: var(--bg-void); }
 .reveal-ready { opacity: 0; }
 .reveal-ready.revealed { animation: enter-away 480ms ease-out calc(var(--i, 0) * 60ms) both; }
 @keyframes enter-away { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
-.fly-orbit, .fly-rider { animation: none; }
+.fly-orbit { animation: fly-orbit 42s linear infinite; }
+.fly-rider { animation: fly-rider 42s linear infinite; }
+/* Scrolling adds turn on top of the wheel's own rotation rather than
+   replacing it. The previous version swapped the continuous animation for a
+   scroll-linked one, so the flywheel only moved while the page was moving and
+   sat frozen the rest of the time. Layered here on the STAGE, so the orbit
+   keeps its own infinite spin underneath. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) and (pointer: fine) {
-    .motion-capable .fly-stage { view-timeline-name: --flywheel; view-timeline-axis: block; }
-    .motion-capable .fly-orbit { animation: fly-orbit 1s linear both; animation-timeline: --flywheel; animation-range: entry 15% exit 85%; }
-    .motion-capable .fly-rider { animation: fly-rider 1s linear both; animation-timeline: --flywheel; animation-range: entry 15% exit 85%; }
+    .motion-capable .fly-stage {
+      view-timeline-name: --flywheel; view-timeline-axis: block;
+      animation: fly-scroll-assist 1s linear both;
+      animation-timeline: --flywheel; animation-range: entry 15% exit 85%;
+    }
   }
 }
+@keyframes fly-scroll-assist { to { rotate: 40deg; } }
 @property --hearth-y { syntax: '<percentage>'; inherits: true; initial-value: 72%; }
 body::before {
   content: ''; position: fixed; inset: 0; pointer-events: none; z-index: -1;
   background: radial-gradient(ellipse at 62% var(--hearth-y), rgba(225, 98, 24, .045), transparent 65%);
 }
 #furnaceCanvas { opacity: 0; pointer-events: none; transition: opacity 160ms ease-out; }
-/* Older decorative loops are replaced by the finite furnace and scroll effects. */
-.scene *, .scene *::before, .scene *::after, .stage-hearth-glow,
-.stage-catwalk-glow, .stage-pulse-dot, .fly-path, .furnace::before,
+/* The decorative LED/glow loops stay off -- they blinked for their own sake.
+   The furnace is NOT in that set: its smoke and thermal glow are what the
+   hero depicts, and the still image alone does not depict it. `.scene *` used
+   to be in this list and took the smoke down with the LEDs. */
+.stage-hearth-glow, .stage-catwalk-glow, .stage-pulse-dot, .fly-path,
 .status-pill-led, .telemetry-led, .crt-rec-dot { animation: none !important; }
-@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+/* Reduced motion stops everything. A touch device only drops the entrance
+   reveals and the WebGL overlay -- the flywheel keeps turning and the smoke
+   keeps drifting, because those are the subject rather than decoration. */
+@media (prefers-reduced-motion: reduce) {
   .reveal-ready { opacity: 1; }
   .reveal-ready.revealed, .fly-orbit, .fly-rider { animation: none !important; }
   ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   body::before, #furnaceCanvas { display: none; }
+}
+@media (pointer: coarse) {
+  .reveal-ready { opacity: 1; }
+  .reveal-ready.revealed { animation: none !important; }
+  #furnaceCanvas { display: none; }
 }
 
 /* Keep navigation readable without squeezing labels into letter columns. */

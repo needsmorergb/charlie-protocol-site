@@ -2,8 +2,11 @@
 (() => {
   'use strict';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  // Touch/low-core devices skip the WebGL pass, but NOT the CSS scene: the
+  // smoke and the flywheel are what the page depicts, and a phone showing a
+  // frozen furnace reads as broken rather than as considerate.
   const lowPower = matchMedia('(pointer: coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4;
-  if (reduced.matches || lowPower || !('IntersectionObserver' in window)) return;
+  if (reduced.matches || !('IntersectionObserver' in window)) return;
 
   document.documentElement.classList.add('motion-capable');
   const reveals = new IntersectionObserver(entries => {
@@ -34,9 +37,9 @@
 
   const canvas = document.getElementById('furnaceCanvas');
   let energize = () => {};
-  if (!canvas) return;
+  if (!canvas || lowPower) return;
   let gl, program, buffer, timeUniform, heatUniform;
-  let visible = false, frame = 0, until = 0, lastFrame = 0, lost = false;
+  let visible = false, frame = 0, surge = 0, lastFrame = 0, lost = false;
   function stop() { cancelAnimationFrame(frame); frame = 0; canvas.style.opacity = '0'; }
   function init() {
     try {
@@ -78,21 +81,22 @@
   }
   function draw(now) {
     frame = 0;
-    if (!visible || document.hidden || reduced.matches || lost || now >= until) { stop(); return; }
+    if (!visible || document.hidden || reduced.matches || lost) { stop(); return; }
     if (now - lastFrame >= 33) {
       lastFrame = now;
       gl.uniform1f(timeUniform, now / 1000);
-      gl.uniform1f(heatUniform, Math.min(1, (until - now) / 500));
+      // A steady burn, lifted while a recent scroll is still surging.
+      gl.uniform1f(heatUniform, 0.62 + 0.38 * Math.max(0, Math.min(1, (surge - now) / 900)));
       gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
     }
     frame = requestAnimationFrame(draw);
   }
   const visibility = new IntersectionObserver(entries => {
     visible = entries[0].isIntersecting;
-    if (!visible) stop();
+    if (visible) run(); else stop();
   });
-  visibility.observe(canvas);
   if (!init()) return;
+  visibility.observe(canvas);
   new ResizeObserver(entries => {
     const {width, height} = entries[0].contentRect;
     canvas.width = Math.max(1, Math.round(width * Math.min(devicePixelRatio || 1, 1.5)));
@@ -101,11 +105,15 @@
   }).observe(canvas);
   energize = () => {
     if (!visible || document.hidden || reduced.matches || lost) return;
-    until = performance.now() + 900;
+    // Scrolling stokes it briefly above the resting burn.
+    surge = performance.now() + 900;
+    run();
+  };
+  function run() {
+    if (!visible || document.hidden || reduced.matches || lost) return;
     canvas.style.opacity = '1';
     if (!frame) frame = requestAnimationFrame(draw);
-  };
-  // Only scrolling the furnace into view adds heat. There is no ambient timer.
+  }
   canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); lost = true; stop(); });
   canvas.addEventListener('webglcontextrestored', () => { lost = !init(); if (!lost) gl.viewport(0,0,canvas.width,canvas.height); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
