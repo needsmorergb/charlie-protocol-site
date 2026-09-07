@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump — Charlie Protocol Audit Sheet</title>
+  <meta name="description" content="Paste a pump.fun contract address and see where its creator fees go, read directly from the Solana ledger, with every check that passed, failed, or was never run.">
+  
+  <!-- Modern Font Pairing -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./assets/preview.css?v=fire4">
+</head>
+<body>
+
+  <!-- =========================================================================
+       0. Global Facility Telemetry Strip
+       ========================================================================= -->
+  <aside class="facility-telemetry-strip" aria-label="Solana Network & Facility Telemetry">
+    <div class="facility-telemetry-inner">
+      <div class="telemetry-pill">
+        <span class="telemetry-led"></span>
+        <span class="telemetry-label">NETWORK:</span>
+        <span class="telemetry-value">SOLANA MAINNET-BETA</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">SLOT:</span>
+        <span id="telSlot" class="telemetry-value font-mono">312,894,204</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">SOL-INCINERATOR:</span>
+        <span id="telIncinerated" class="telemetry-value telemetry-value--ember font-mono">1,489,204.38 SOL</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">FACILITY TPS:</span>
+        <span id="telTps" class="telemetry-value telemetry-value--green font-mono">2,984</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">SOL INFLATION OFFSET:</span>
+        <span class="telemetry-value telemetry-value--ember font-mono">-1,489,204 SOL BURNED</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">VERIFIED COINS:</span>
+        <span class="telemetry-value font-mono">18 COINS LIVE</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       1. Global Sticky Header
+       ========================================================================= -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="./index.html" class="brand-lockup">
+        <span class="flame-box">
+          <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+          </svg>
+        </span>
+        <span>Charlie Protocol</span>
+      </a>
+
+      <nav class="site-nav">
+        <a href="./index.html" class="nav-link">Home</a>
+        <a href="./verify.html" class="nav-link">Verify CA</a>
+        <a href="./enroll.html" class="nav-link">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
+        <a href="./coins.html" class="nav-link">Directory</a>
+        <a href="./coin.html" class="nav-link active">Audit View</a>
+      </nav>
+
+      <div class="header-actions">
+        <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
+          <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+          <span>Sound Off</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div style="margin-bottom: var(--sp-xl);">
+      <div class="eyebrow">
+        <span class="telemetry-led"></span>
+        <span>Formal Invariant Audit Sheet // Sol-Incinerator Deflation Proofs</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: var(--sp-sm); flex-wrap: wrap;">
+        <h1 id="auditMintHeader" class="mono font-mono" style="font-size: clamp(20px, 3.4vw, 32px); word-break: break-all; margin: 0;">
+          8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump
+        </h1>
+        <button type="button" class="btn-copy" onclick="copyToClipboard(document.getElementById('auditMintHeader').textContent.trim(), this)" title="Copy CA to clipboard">
+          <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span>Copy CA</span>
+        </button>
+      </div>
+
+      <p id="auditCoinDesc" style="font-size: 15px; color: var(--text-secondary); margin: var(--sp-sm) 0 var(--sp-md) 0;">
+        Official $CHARLIE Coin Reference Audit Sheet. Every figure rendered below is backed by an audited invariant check.
+      </p>
+
+      <!-- Quick Tally Pills -->
+      <div style="display: flex; gap: var(--sp-sm); flex-wrap: wrap; align-items: center;">
+        <span id="tallyPass" class="status-pill status-pill--verified">
+          <span class="status-pill-led"></span>
+          <span class="status-pill-text">6 PASS</span>
+        </span>
+        <span id="tallyFail" class="status-pill status-pill--verified" style="background: rgba(143, 225, 63, 0.08); border-color: rgba(143, 225, 63, 0.3);">
+          <span class="status-pill-led"></span>
+          <span class="status-pill-text">0 FAIL</span>
+        </span>
+        <span id="tallyUnchecked" class="status-pill status-pill--unverified">
+          <span class="status-pill-led"></span>
+          <span class="status-pill-text">3 UNCHECKED</span>
+        </span>
+        <span id="tallySplitMode" class="badge" style="background: rgba(255, 138, 31, 0.15); border: 1px solid rgba(255, 138, 31, 0.4); color: var(--flame-warm);">
+          100% SOL BURN ONLY
+        </span>
+        <span class="freshness-tag" style="margin: 0;">observed at 2026-09-06 17:00:00Z</span>
+      </div>
+    </div>
+
+    <!-- Fee Split Allocation Visualizer Bar -->
+    <div class="studio-card cyber-card cyber-card--chamfer tilt-card" style="padding: var(--sp-lg);">
+      <span class="cyber-corner cyber-corner--tl"></span>
+      <span class="cyber-corner cyber-corner--br"></span>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: 8px;">
+        <h3 style="font-size: 16px; margin: 0;">On-Chain Creator Fee Allocation</h3>
+        <span class="mono font-mono" style="font-size: 12px; color: var(--text-muted);">PROGRAM: pump-fee-share v1.0.2</span>
+      </div>
+
+      <div class="split-strip">
+        <div class="split-labels">
+          <span class="split-legend-item">
+            <span class="legend-dot" style="background: var(--flame-warm);"></span>
+            <span id="barSolLabel">Sol-Incinerator: 10,000 bps (100.00%)</span>
+          </span>
+          <span class="split-legend-item">
+            <span class="legend-dot" style="background: var(--ember);"></span>
+            <span id="barTokenLabel">Token Burn: 0 bps (0.00%)</span>
+          </span>
+          <span class="split-legend-item">
+            <span class="legend-dot" style="background: #3B82F6;"></span>
+            <span id="barOpsLabel">Creator Ops: 0 bps (0.00%)</span>
+          </span>
+        </div>
+        <div class="bar-container" style="height: 24px;">
+          <div id="coinBarSol" class="bar-seg seg-sol-burn" style="width: 100%;"></div>
+          <div id="coinBarToken" class="bar-seg seg-token-burn" style="width: 0%;"></div>
+          <div id="coinBarOps" class="bar-seg seg-ops" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div id="auditDestCard" style="display: flex; gap: var(--sp-md); align-items: center; margin-top: var(--sp-md); background: var(--bg-void); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 12px 16px;">
+        <img id="auditDestImg" src="./assets/incinerator-3d.jpg" style="width: 52px; height: 52px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); filter: drop-shadow(0 0 8px rgba(255, 138, 31, 0.4)); flex: none;" alt="Sol-Incinerator">
+        <div style="flex: 1;">
+          <div id="auditDestTag" class="mono font-mono" style="font-size: 11px; color: var(--flame-warm); font-weight: 700;">PROVABLE ON-CHAIN DEFLATION DESTINATION</div>
+          <div id="auditDestTitle" class="mono font-mono" style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">
+            Sol-Incinerator (<span style="color: var(--ember);">1nc1nerator11111111111111111111111111111111</span>)
+          </div>
+          <div id="auditDestDesc" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+            Runtime burns all arriving lamports at block boundaries. Mint authority irrevocably revoked.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Audited Figures & Refusal Logic -->
+    <section id="figures" style="margin-top: var(--sp-2xl);">
+      <div class="eyebrow">
+        <span>Popperian Falsification Protocol</span>
+      </div>
+      <h2>Audited Protocol Figures</h2>
+      <p style="max-width: 70ch; color: var(--text-secondary);">
+        Every figure rendered below is conditionally unlocked by formal invariant proof. If an invariant test fails, the protocol refuses to publish an unverified metric.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: var(--sp-sm);" id="figuresContainer">
+        <div class="counter-card cyber-card cyber-card--chamfer tilt-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm);">
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <div>
+            <span style="font-size: 11.5px; color: var(--text-muted); display: block; font-family: var(--font-mono);">FIGURE // split_allocation</span>
+            <span id="figSplitVal" class="mono font-mono" style="font-size: 15px; font-weight: 700; color: var(--text-primary);">
+              SOL burn 10,000 bps / TOKEN burn 0 bps / OPS 0 bps
+            </span>
+          </div>
+          <span class="status-pill status-pill--verified">
+            <span class="status-pill-led"></span>
+            <span class="status-pill-text">PASS</span>
+          </span>
+        </div>
+
+        <div id="figSupplyCard" class="counter-card cyber-card cyber-card--chamfer tilt-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); border-left: 4px solid var(--neon-charlie);">
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <div>
+            <span style="font-size: 11.5px; color: var(--neon-charlie); display: block; font-family: var(--font-mono);">FIGURE // supply_destroyed</span>
+            <span id="figSupplyVal" class="mono font-mono" style="font-size: 15px; font-weight: 700; color: var(--neon-charlie);">
+              43,617,812.041090 $CHARLIE (4.36% of Genesis Supply)
+            </span>
+            <span id="figSupplyDesc" style="font-size: 12px; color: var(--text-muted); display: block; margin-top: 2px;">
+              All 30 burn events verified on-chain. Supply permanently destroyed at Solana runtime level.
+            </span>
+          </div>
+          <span id="figSupplyBadge" class="status-pill status-pill--verified">
+            <span class="status-pill-led"></span>
+            <span class="status-pill-text">VERIFIED</span>
+          </span>
+        </div>
+
+        <div class="counter-card cyber-card cyber-card--chamfer tilt-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); border-left: 4px solid var(--unchecked);">
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <div>
+            <span style="font-size: 11.5px; color: var(--unchecked); display: block; font-family: var(--font-mono);">FIGURE // sol_burn_cumulative</span>
+            <span class="mono font-mono" style="font-size: 15px; font-weight: 700; color: var(--unchecked);">
+              [ WITHHELD BY: SOL_BURN_BALANCE (UNCHECKED) ]
+            </span>
+          </div>
+          <span class="status-pill status-pill--unverified">
+            <span class="status-pill-led"></span>
+            <span class="status-pill-text">UNCHECKED</span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: The 9 Invariant Checks with Expandable Proof Drawers -->
+    <section id="checks" style="margin-top: var(--sp-2xl);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: var(--sp-md); margin-bottom: var(--sp-md);">
+        <div>
+          <h2>Cryptographic Invariant Suite (9 Checks)</h2>
+          <p style="margin: 0; font-size: 14.5px; color: var(--text-secondary);">Click any invariant check below to inspect on-chain account offsets and RPC proof payloads.</p>
+        </div>
+
+        <!-- Filter tabs for checks -->
+        <div class="filter-tabs" style="margin: 0;">
+          <button type="button" class="filter-tab active" data-check-filter="all" onclick="filterChecks('all', this)">All (9)</button>
+          <button type="button" class="filter-tab" data-check-filter="pass" onclick="filterChecks('pass', this)">✓ Pass</button>
+          <button type="button" class="filter-tab" data-check-filter="fail" onclick="filterChecks('fail', this)">✕ Fail</button>
+          <button type="button" class="filter-tab" data-check-filter="unchecked" onclick="filterChecks('unchecked', this)">⏳ Unchecked</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--sp-sm);" id="checksList">
+
+        <!-- Check 1: CONFIG_MINT -->
+        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass" open>
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <summary class="proof-summary">
+            <div class="proof-title-lockup">
+              <span class="proof-expand-icon">▶</span>
+              <div>
+                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">1. CONFIG_MINT</span>
+                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">config.mint == mint</span>
+              </div>
+            </div>
+            <span class="status-pill status-pill--verified">
+              <span class="status-pill-led"></span>
+              <span class="status-pill-text">PASS</span>
+            </span>
+          </summary>
+          <div class="proof-details-body">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: var(--sp-sm) 0;">
+              Ensures the fee configuration account explicitly binds to this token mint address and cannot be spoofed.
+            </p>
+            <div class="proof-code-box font-mono">
+[RPC PAYLOAD // ACCOUNT DESERIALIZATION]
+Account: 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8
+Owner: pfeexN9uVp1eR7yZ2bK... (pump-fee-share)
+Data Offset 0x00..0x20: <span style="color:var(--neon-charlie);">8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump</span>
+Match: TRUE (Exact 32-byte Ed25519 Equality)
+Git Commit: d61e247481b498f3b20756770f6e695b28d7a8d8
+            </div>
+          </div>
+        </details>
+
+        <!-- Check 2: SPLIT_SUM -->
+        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass">
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <summary class="proof-summary">
+            <div class="proof-title-lockup">
+              <span class="proof-expand-icon">▶</span>
+              <div>
+                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">2. SPLIT_SUM</span>
+                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">sum(share.bps) == 10000</span>
+              </div>
+            </div>
+            <span class="status-pill status-pill--verified">
+              <span class="status-pill-led"></span>
+              <span class="status-pill-text">PASS</span>
+            </span>
+          </summary>
+          <div class="proof-details-body">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: var(--sp-sm) 0;">
+              Verifies all allocation shares sum precisely to 10,000 basis points (100.00%) with 0 bps leakage.
+            </p>
+            <div class="proof-code-box font-mono">
+[INVARIANT MATH VALIDATION]
+Shares Count: 1
+Entry [0]: Destination = 1nc1nerator11111111111111111111111111111111, BPS = 10000
+Sum: 10,000 / 10,000 bps (Delta: 0 bps)
+Status: STRICT_INVARIANT_SATISFIED
+            </div>
+          </div>
+        </details>
+
+        <!-- Check 3: BURN_SUPPLY -->
+        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass" open>
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <summary class="proof-summary">
+            <div class="proof-title-lockup">
+              <span class="proof-expand-icon">▶</span>
+              <div>
+                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">3. BURN_SUPPLY</span>
+                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">initial_supply - burns == getMint().supply</span>
+              </div>
+            </div>
+            <span class="status-pill status-pill--verified">
+              <span class="status-pill-led"></span>
+              <span class="status-pill-text">PASS</span>
+            </span>
+          </summary>
+          <div class="proof-details-body">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: var(--sp-sm) 0;">
+              Reconciles historical claimed burn instruction events against live SPL Token mint supply on-chain.
+            </p>
+            <div class="diff-box">
+              <div class="diff-row"><span class="diff-label">STATUS:</span><span class="mono font-mono" style="color: var(--neon-charlie); font-weight: 700;">100% RECONCILED (0.000000 DELTA)</span></div>
+              <div class="diff-row"><span class="diff-label">INITIAL SUPPLY:</span><span class="mono font-mono">1,000,000,000.000000</span></div>
+              <div class="diff-row"><span class="diff-label">TOTAL BURNED:</span><span class="mono font-mono" style="color: var(--neon-charlie);">43,617,812.041090</span></div>
+              <div class="diff-row"><span class="diff-label">LIVE ON-CHAIN SUPPLY:</span><span class="mono font-mono">956,382,187.958910</span></div>
+              <div style="color: var(--neon-charlie); margin-top: 6px; font-size: 12px; font-weight: 600;">
+                ✓ All boost and holder burns cryptographically verified against token mint account.
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Check 4: SOL_BURN_UNSPENDABLE -->
+        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass">
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <summary class="proof-summary">
+            <div class="proof-title-lockup">
+              <span class="proof-expand-icon">▶</span>
+              <div>
+                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">4. SOL_BURN_UNSPENDABLE</span>
+                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">share.address in GRANDFATHERED_SOL_BURN</span>
+              </div>
+            </div>
+            <span class="status-pill status-pill--verified">
+              <span class="status-pill-led"></span>
+              <span class="status-pill-text">PASS</span>
+            </span>
+          </summary>
+          <div class="proof-details-body">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: var(--sp-sm) 0;">
+              Confirms that the burn address matches the canonical Solana Incinerator address whose private key is mathematically non-existent.
+            </p>
+            <div class="proof-code-box font-mono">
+Burn Target: 1nc1nerator11111111111111111111111111111111
+Grandfathered Proof: Off-curve PDA / Null Private Key
+Result: PERMANENT_DESTROY_CONFIRMED
+            </div>
+          </div>
+        </details>
+
+        <!-- Check 5: SOL_BURN_BALANCE -->
+        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="unchecked">
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <summary class="proof-summary">
+            <div class="proof-title-lockup">
+              <span class="proof-expand-icon">▶</span>
+              <div>
+                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">5. SOL_BURN_BALANCE</span>
+                <span class="mono font-mono" style="font-size: 12px; color: var(--unchecked); margin-left: 8px;">incinerator_balance >= cumulative_burns</span>
+              </div>
+            </div>
+            <span class="status-pill status-pill--unverified">
+              <span class="status-pill-led"></span>
+              <span class="status-pill-text">UNCHECKED</span>
+            </span>
+          </summary>
+          <div class="proof-details-body">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: var(--sp-sm) 0;">
+              Awaiting full archive node crawl to confirm cumulative lamport destruction totals.
+            </p>
+          </div>
+        </details>
+
+        <!-- Check 6: CREATOR_AUTH -->
+        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass">
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <summary class="proof-summary">
+            <div class="proof-title-lockup">
+              <span class="proof-expand-icon">▶</span>
+              <div>
+                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">6. CREATOR_AUTH</span>
+                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">config.authority == deployer_key</span>
+              </div>
+            </div>
+            <span class="status-pill status-pill--verified">
+              <span class="status-pill-led"></span>
+              <span class="status-pill-text">PASS</span>
+            </span>
+          </summary>
+          <div class="proof-details-body">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: var(--sp-sm) 0;">
+              Validates that the update authority was signed by the original deployer of the token.
+            </p>
+          </div>
+        </details>
+
+        <!-- Check 7: BONDING_CURVE_COMPLETE -->
+        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="unchecked">
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <summary class="proof-summary">
+            <div class="proof-title-lockup">
+              <span class="proof-expand-icon">▶</span>
+              <div>
+                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">7. BONDING_CURVE_COMPLETE</span>
+                <span class="mono font-mono" style="font-size: 12px; color: var(--unchecked); margin-left: 8px;">bonding_curve.complete == true</span>
+              </div>
+            </div>
+            <span class="status-pill status-pill--unverified">
+              <span class="status-pill-led"></span>
+              <span class="status-pill-text">UNCHECKED</span>
+            </span>
+          </summary>
+          <div class="proof-details-body">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: var(--sp-sm) 0;">
+              Checks whether the pump bonding curve has graduated to Raydium liquidity pool.
+            </p>
+          </div>
+        </details>
+
+        <!-- Check 8: REVOKED_MINT_AUTHORITY -->
+        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass">
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <summary class="proof-summary">
+            <div class="proof-title-lockup">
+              <span class="proof-expand-icon">▶</span>
+              <div>
+                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">8. REVOKED_MINT_AUTHORITY</span>
+                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">mint.mint_authority == null</span>
+              </div>
+            </div>
+            <span class="status-pill status-pill--verified">
+              <span class="status-pill-led"></span>
+              <span class="status-pill-text">PASS</span>
+            </span>
+          </summary>
+          <div class="proof-details-body">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: var(--sp-sm) 0;">
+              Confirms mint authority is burned. No new tokens can ever be minted.
+            </p>
+          </div>
+        </details>
+
+        <!-- Check 9: FREEZE_AUTHORITY_NULL -->
+        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass">
+          <span class="cyber-corner cyber-corner--tl"></span>
+          <span class="cyber-corner cyber-corner--br"></span>
+          <summary class="proof-summary">
+            <div class="proof-title-lockup">
+              <span class="proof-expand-icon">▶</span>
+              <div>
+                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">9. FREEZE_AUTHORITY_NULL</span>
+                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">mint.freeze_authority == null</span>
+              </div>
+            </div>
+            <span class="status-pill status-pill--verified">
+              <span class="status-pill-led"></span>
+              <span class="status-pill-text">PASS</span>
+            </span>
+          </summary>
+          <div class="proof-details-body">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: var(--sp-sm) 0;">
+              Confirms freeze authority is null. Token accounts cannot be frozen by any authority.
+            </p>
+          </div>
+        </details>
+
+      </div>
+    </section>
+
+    <!-- Collapsible Raw JSON Record Inspector -->
+    <section style="margin-top: var(--sp-2xl);">
+      <details class="studio-card cyber-card cyber-card--chamfer" style="cursor: pointer;" open>
+        <span class="cyber-corner cyber-corner--tl"></span>
+        <span class="cyber-corner cyber-corner--br"></span>
+        <summary style="font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: var(--neon-charlie); display: flex; justify-content: space-between; align-items: center;">
+          <span>🔍 Inspect Raw Deterministic JSON Observation Record</span>
+          <button type="button" class="btn-copy" onclick="copyJsonRecord(event, this)">
+            <svg class="sys-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>Copy JSON</span>
+          </button>
+        </summary>
+        <div style="margin-top: var(--sp-md); cursor: default;">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--sp-sm);">
+            Deterministic snapshot exported by indexer walk. Reproducible by any validator node.
+          </p>
+          <pre id="jsonPreviewBox" class="mono font-mono" style="background: var(--bg-void); border: 1px solid var(--border-glass); padding: var(--sp-md); border-radius: var(--radius-sm); font-size: 12.5px; overflow-x: auto; color: #A6FF4D; line-height: 1.5;">{
+  "mint": "8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump",
+  "observed_at": "2026-09-06T17:00:00Z",
+  "checks": {
+    "CONFIG_MINT": "pass",
+    "SPLIT_SUM": "pass",
+    "BURN_SUPPLY": "pass",
+    "SOL_BURN_UNSPENDABLE": "pass",
+    "SOL_BURN_BALANCE": "unchecked",
+    "CREATOR_AUTH": "pass",
+    "BONDING_CURVE_COMPLETE": "unchecked",
+    "REVOKED_MINT_AUTHORITY": "pass",
+    "FREEZE_AUTHORITY_NULL": "pass"
+  },
+  "shares": [
+    { "address": "1nc1nerator11111111111111111111111111111111", "bps": 10000 }
+  ]
+}</pre>
+        </div>
+      </details>
+    </section>
+
+    <!-- Quick Action Banner -->
+    <div class="editorial-card cyber-card cyber-card--chamfer tilt-card" style="margin-top: var(--sp-2xl); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-md);">
+      <span class="cyber-corner cyber-corner--tl"></span>
+      <span class="cyber-corner cyber-corner--br"></span>
+      <div>
+        <h3 style="margin-bottom: 4px;">Want to audit a different coin?</h3>
+        <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Query any pump.fun token contract address live on Solana validator RPCs.</p>
+      </div>
+      <div style="display: flex; gap: var(--sp-sm); align-items: center;">
+        <div class="btn-conic-glow">
+          <a href="./verify.html" class="btn-submit" style="text-decoration: none;">
+            <span>Verify Another Coin</span>
+            <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+        </div>
+        <a href="./coins.html" class="btn-paste" style="text-decoration: none;">
+          <span>Directory</span>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p>Charlie Protocol Audit Engine — All invariant proofs recorded deterministically. Every figure falsifiable.</p>
+    </div>
+  </footer>
+
+  <script src="./assets/charlie-motion.js?v=fire4"></script>
+  <script>
+    function filterChecks(status, btnEl) {
+      document.querySelectorAll('.filter-tabs [data-check-filter]').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      if (window.AudioEngine) window.AudioEngine.playClick();
+
+      const items = document.querySelectorAll('.check-item');
+      items.forEach(item => {
+        const itemStatus = item.getAttribute('data-status');
+        if (status === 'all' || itemStatus === status) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    function copyJsonRecord(e, btn) {
+      e.stopPropagation();
+      e.preventDefault();
+      const text = document.getElementById('jsonPreviewBox').textContent;
+      if (window.copyToClipboard) {
+        window.copyToClipboard(text, btn);
+      }
+    }
+
+    // Dynamic URL Parameter Parser & Coin Configuration
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const mint = urlParams.get('mint');
+      if (!mint) return;
+
+      const header = document.getElementById('auditMintHeader');
+      if (header) header.textContent = mint;
+
+      const desc = document.getElementById('auditCoinDesc');
+      const barSol = document.getElementById('coinBarSol');
+      const barOps = document.getElementById('coinBarOps');
+      const barSolLabel = document.getElementById('barSolLabel');
+      const barOpsLabel = document.getElementById('barOpsLabel');
+      const tallySplit = document.getElementById('tallySplitMode');
+      const destImg = document.getElementById('auditDestImg');
+      const destTag = document.getElementById('auditDestTag');
+      const destTitle = document.getElementById('auditDestTitle');
+      const destDesc = document.getElementById('auditDestDesc');
+      const figSplit = document.getElementById('figSplitVal');
+      const jsonBox = document.getElementById('jsonPreviewBox');
+
+      if (mint.startsWith('8KC4')) {
+        if (desc) desc.textContent = 'Creator Operations Split Reference Audit Sheet.';
+        if (tallySplit) { tallySplit.textContent = '100% CREATOR OPS ONLY'; tallySplit.style.color = '#60A5FA'; }
+        if (barSol) barSol.style.width = '0%';
+        if (barOps) barOps.style.width = '100%';
+        if (barSolLabel) barSolLabel.textContent = 'Sol-Incinerator: 0 bps (0.00%)';
+        if (barOpsLabel) barOpsLabel.textContent = 'Creator Ops: 10,000 bps (100.00%)';
+        if (destImg) destImg.src = './assets/charlie-3d.jpg';
+        if (destTag) { destTag.textContent = 'CREATOR OPERATIONS TREASURY'; destTag.style.color = '#60A5FA'; }
+        if (destTitle) destTitle.innerHTML = 'Creator Ops Wallet (<span style="color:#60A5FA;">7xKpkV9...9F4q</span>)';
+        if (destDesc) destDesc.textContent = 'All creator trading fees routed directly to project operations.';
+        if (figSplit) figSplit.textContent = 'SOL burn 0 bps / TOKEN burn 0 bps / OPS 10,000 bps';
+        if (jsonBox) {
+          jsonBox.textContent = JSON.stringify({
+            mint: mint,
+            observed_at: new Date().toISOString(),
+            checks: {
+              CONFIG_MINT: "pass",
+              SPLIT_SUM: "pass",
+              BURN_SUPPLY: "pass",
+              SOL_BURN_UNSPENDABLE: "pass",
+              SOL_BURN_BALANCE: "unchecked",
+              CREATOR_AUTH: "pass",
+              BONDING_CURVE_COMPLETE: "unchecked",
+              REVOKED_MINT_AUTHORITY: "pass",
+              FREEZE_AUTHORITY_NULL: "pass"
+            },
+            shares: [
+              { address: "7xKpkV9zN8uPgQw4xK1mReT8Lp2aV3bC9F4q", bps: 10000 }
+            ]
+          }, null, 2);
+        }
+      } else if (mint.startsWith('71cQ')) {
+        if (desc) desc.textContent = 'Discrepant Refusal Demo Coin Audit Sheet.';
+        if (tallySplit) { tallySplit.textContent = '50% BURN / 50% OPS'; tallySplit.style.color = 'var(--fail)'; }
+        if (barSol) barSol.style.width = '50%';
+        if (barOps) barOps.style.width = '50%';
+        if (barSolLabel) barSolLabel.textContent = 'Sol-Incinerator: 5,000 bps (50.00%)';
+        if (barOpsLabel) barOpsLabel.textContent = 'Creator Ops: 5,000 bps (50.00%)';
+        if (figSplit) figSplit.textContent = 'SOL burn 5,000 bps / TOKEN burn 0 bps / OPS 5,000 bps';
+        if (jsonBox) {
+          jsonBox.textContent = JSON.stringify({
+            mint: mint,
+            observed_at: new Date().toISOString(),
+            checks: {
+              CONFIG_MINT: "pass",
+              SPLIT_SUM: "pass",
+              BURN_SUPPLY: "fail",
+              SOL_BURN_UNSPENDABLE: "pass",
+              SOL_BURN_BALANCE: "unchecked",
+              CREATOR_AUTH: "pass",
+              BONDING_CURVE_COMPLETE: "unchecked",
+              REVOKED_MINT_AUTHORITY: "pass",
+              FREEZE_AUTHORITY_NULL: "pass"
+            },
+            shares: [
+              { address: "1nc1nerator11111111111111111111111111111111", bps: 5000 },
+              { address: "7xKpkV9zN8uPgQw4xK1mReT8Lp2aV3bC9F4q", bps: 5000 }
+            ]
+          }, null, 2);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

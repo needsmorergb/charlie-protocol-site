@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coins Directory — Charlie Protocol Ledger</title>
+  <meta name="description" content="Paste a pump.fun contract address and see where its creator fees go, read directly from the Solana ledger, with every check that passed, failed, or was never run.">
+  
+  <!-- Modern Font Pairing -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./assets/preview.css?v=fire4">
+</head>
+<body>
+
+  <!-- =========================================================================
+       0. Global Facility Telemetry Strip
+       ========================================================================= -->
+  <aside class="facility-telemetry-strip" aria-label="Solana Network & Facility Telemetry">
+    <div class="facility-telemetry-inner">
+      <div class="telemetry-pill">
+        <span class="telemetry-led"></span>
+        <span class="telemetry-label">NETWORK:</span>
+        <span class="telemetry-value">SOLANA MAINNET-BETA</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">SLOT:</span>
+        <span id="telSlot" class="telemetry-value font-mono">312,894,204</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">SOL-INCINERATOR:</span>
+        <span id="telIncinerated" class="telemetry-value telemetry-value--ember font-mono">1,489,204.38 SOL</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">FACILITY TPS:</span>
+        <span id="telTps" class="telemetry-value telemetry-value--green font-mono">2,984</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">SOL INFLATION OFFSET:</span>
+        <span class="telemetry-value telemetry-value--ember font-mono">-1,489,204 SOL BURNED</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">VERIFIED COINS:</span>
+        <span class="telemetry-value font-mono">18 COINS LIVE</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       1. Global Sticky Header
+       ========================================================================= -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="./index.html" class="brand-lockup">
+        <span class="flame-box">
+          <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+          </svg>
+        </span>
+        <span>Charlie Protocol</span>
+      </a>
+
+      <nav class="site-nav">
+        <a href="./index.html" class="nav-link">Home</a>
+        <a href="./verify.html" class="nav-link">Verify CA</a>
+        <a href="./enroll.html" class="nav-link">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
+        <a href="./coins.html" class="nav-link active">Directory</a>
+        <a href="./coin.html" class="nav-link">Audit View</a>
+      </nav>
+
+      <div class="header-actions">
+        <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
+          <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+          <span>Sound Off</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div style="margin-bottom: var(--sp-xl);">
+      <div class="eyebrow">
+        <span class="telemetry-led"></span>
+        <span>Observed Token Registry // Sol-Incinerator Deflation Directory</span>
+      </div>
+      <h1>Measured Coins Directory</h1>
+      <p style="font-size: 16.5px; max-width: 68ch;">
+        Coins audited for verifiable fee-sharing and Sol-Incinerator destruction to decrease Solana network inflation. Sorted by mint address. Every figure links to an audited cryptographic proof.
+      </p>
+
+      <!-- Search & Filter Controls Bar -->
+      <div style="display: flex; gap: var(--sp-md); align-items: center; margin-top: var(--sp-lg); flex-wrap: wrap;">
+        <input 
+          id="filterInput" 
+          class="verify-input" 
+          style="background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); max-width: 420px;" 
+          type="text" 
+          placeholder="Filter by mint address, symbol, or allocation..." 
+          oninput="handleSearch(this.value)"
+        >
+        <span id="coinCountBadge" class="freshness-tag" style="margin: 0;">3 coins observed</span>
+      </div>
+
+      <!-- Quick Filter Category Tabs -->
+      <div class="filter-tabs">
+        <button type="button" class="filter-tab active" data-filter="all" onclick="setCategoryFilter('all', this)">
+          <span>All Coins</span>
+          <span class="filter-badge-count">3</span>
+        </button>
+        <button type="button" class="filter-tab" data-filter="sol-burn" onclick="setCategoryFilter('sol-burn', this)">
+          <span>🔥 100% Sol Burn</span>
+          <span class="filter-badge-count">1</span>
+        </button>
+        <button type="button" class="filter-tab" data-filter="ops" onclick="setCategoryFilter('ops', this)">
+          <span>💼 Creator Ops</span>
+          <span class="filter-badge-count">1</span>
+        </button>
+        <button type="button" class="filter-tab" data-filter="discrepancy" onclick="setCategoryFilter('discrepancy', this)">
+          <span>⚠️ Invariant Discrepancies</span>
+          <span class="filter-badge-count">2</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Structured Directory List -->
+    <div style="display: flex; flex-direction: column; gap: var(--sp-md);" id="coinsList">
+
+      <!-- Coin 1: 8FhAX... ($CHARLIE) -->
+      <div class="counter-card cyber-card cyber-card--chamfer tilt-card coin-item" data-search="8fhaxv2tfxupymbjshdhx9zfieb9perzfwsy9sglpump $charlie sol burn 10000 bps incinerator verified" data-cat="sol-burn verified">
+        <span class="cyber-corner cyber-corner--tl"></span>
+        <span class="cyber-corner cyber-corner--br"></span>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--sp-md);">
+          <div style="flex: 1 1 340px;">
+            <div style="display: flex; align-items: center; gap: var(--sp-sm); margin-bottom: 6px; flex-wrap: wrap;">
+              <span class="badge" style="background: rgba(255, 138, 31, 0.15); border: 1px solid rgba(255, 138, 31, 0.4); color: var(--flame-warm); font-size: 11.5px;">
+                SOL_BURN 10,000 BPS
+              </span>
+              <span class="status-pill status-pill--verified" style="font-size: 10px;">
+                <span class="status-pill-led"></span>
+                <span class="status-pill-text">CONFIG_MINT PASS</span>
+              </span>
+              <span class="status-pill status-pill--verified" style="font-size: 10px;">
+                <span class="status-pill-led"></span>
+                <span class="status-pill-text">SPLIT_SUM PASS</span>
+              </span>
+              <span class="status-pill status-pill--verified" style="font-size: 10px;">
+                <span class="status-pill-led"></span>
+                <span class="status-pill-text">BURN_SUPPLY PASS</span>
+              </span>
+              <span class="status-pill status-pill--verified" style="font-size: 10px;">
+                <span class="status-pill-led"></span>
+                <span class="status-pill-text">100% VERIFIED</span>
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-weight: 800; color: var(--neon-charlie); font-size: 16px;">$CHARLIE</span>
+              <h3 class="mono font-mono" style="font-size: 15px; word-break: break-all; margin: 0; color: var(--text-primary);">
+                8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump
+              </h3>
+              <button type="button" class="btn-copy" onclick="copyToClipboard('8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump', this)" title="Copy CA">
+                <svg class="sys-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy</span>
+              </button>
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-muted); margin: 4px 0 0 0;">
+              Official reference audit. 100% of pump fees burned via Sol-Incinerator (<span class="mono font-mono" style="color: var(--text-secondary);">1nc1n...</span>).
+            </p>
+
+            <!-- Micro Inline Split Visualizer -->
+            <div class="micro-split-wrap">
+              <div class="micro-split-header">
+                <span>Sol-Incinerator: 100.00%</span>
+                <span>Token Burn: 0.00% // Ops: 0.00%</span>
+              </div>
+              <div class="micro-split-bar">
+                <div class="bar-seg seg-sol-burn" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: var(--sp-sm); align-items: center; flex-wrap: wrap;">
+            <div class="btn-conic-glow">
+              <a href="./coin.html?mint=8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump" class="btn-submit" style="font-size: 13px; padding: 8px 16px; text-decoration: none;">
+                <span>Audit Sheet</span>
+                <svg class="sys-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </a>
+            </div>
+            <a href="./verify.html?mint=8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump" class="btn-paste" style="font-size: 12px; padding: 8px 12px; text-decoration: none;">
+              <span>Surveillance</span>
+            </a>
+            <a href="../8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json" target="_blank" class="btn-paste" style="font-size: 12px; padding: 8px 12px; text-decoration: none;">
+              <span>Raw JSON ↗</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coin 2: 8KC4H... (Ops Coin) -->
+      <div class="counter-card cyber-card cyber-card--chamfer tilt-card coin-item" data-search="8kc4hmffe6bpapv1zzlpag6brc5vbuqojfcj7wwapump ops only 10000 bps creator treasury" data-cat="ops">
+        <span class="cyber-corner cyber-corner--tl"></span>
+        <span class="cyber-corner cyber-corner--br"></span>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--sp-md);">
+          <div style="flex: 1 1 340px;">
+            <div style="display: flex; align-items: center; gap: var(--sp-sm); margin-bottom: 6px; flex-wrap: wrap;">
+              <span class="badge" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #60A5FA; font-size: 11.5px;">
+                OPS_ONLY 10,000 BPS
+              </span>
+              <span class="status-pill status-pill--verified" style="font-size: 10px;">
+                <span class="status-pill-led"></span>
+                <span class="status-pill-text">CONFIG_MINT PASS</span>
+              </span>
+              <span class="status-pill status-pill--verified" style="font-size: 10px;">
+                <span class="status-pill-led"></span>
+                <span class="status-pill-text">SPLIT_SUM PASS</span>
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-weight: 800; color: #60A5FA; font-size: 16px;">OPS COIN</span>
+              <h3 class="mono font-mono" style="font-size: 15px; word-break: break-all; margin: 0; color: var(--text-primary);">
+                8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump
+              </h3>
+              <button type="button" class="btn-copy" onclick="copyToClipboard('8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump', this)" title="Copy CA">
+                <svg class="sys-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy</span>
+              </button>
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-muted); margin: 4px 0 0 0;">
+              All creator trading fees allocated to developer project operations (<span class="mono font-mono" style="color: var(--text-secondary);">7xKp...</span>).
+            </p>
+
+            <!-- Micro Inline Split Visualizer -->
+            <div class="micro-split-wrap">
+              <div class="micro-split-header">
+                <span>Creator Ops: 100.00%</span>
+                <span>Sol-Incinerator: 0.00%</span>
+              </div>
+              <div class="micro-split-bar">
+                <div class="bar-seg seg-ops" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: var(--sp-sm); align-items: center; flex-wrap: wrap;">
+            <div class="btn-conic-glow">
+              <a href="./coin.html?mint=8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump" class="btn-submit" style="font-size: 13px; padding: 8px 16px; text-decoration: none;">
+                <span>Audit Sheet</span>
+                <svg class="sys-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </a>
+            </div>
+            <a href="./verify.html?mint=8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump" class="btn-paste" style="font-size: 12px; padding: 8px 12px; text-decoration: none;">
+              <span>Surveillance</span>
+            </a>
+            <a href="../8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump.json" target="_blank" class="btn-paste" style="font-size: 12px; padding: 8px 12px; text-decoration: none;">
+              <span>Raw JSON ↗</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coin 3: 71cQ... (Discrepancy Refusal Demo) -->
+      <div class="counter-card cyber-card cyber-card--chamfer tilt-card coin-item" data-search="71cq45z8gfh5jgyy4f7ed3bc2ap9lqrwk8xnvm1tpump refusal split burn 50 50 discrepancy" data-cat="discrepancy">
+        <span class="cyber-corner cyber-corner--tl"></span>
+        <span class="cyber-corner cyber-corner--br"></span>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--sp-md);">
+          <div style="flex: 1 1 340px;">
+            <div style="display: flex; align-items: center; gap: var(--sp-sm); margin-bottom: 6px; flex-wrap: wrap;">
+              <span class="status-pill status-pill--refused" style="font-size: 10px;">
+                <span class="status-pill-led"></span>
+                <span class="status-pill-text">REFUSAL ACTIVATED</span>
+              </span>
+              <span class="status-pill status-pill--verified" style="font-size: 10px;">
+                <span class="status-pill-led"></span>
+                <span class="status-pill-text">SPLIT_SUM PASS</span>
+              </span>
+              <span class="status-pill status-pill--refused" style="font-size: 10px;">
+                <span class="status-pill-led"></span>
+                <span class="status-pill-text">BURN_SUPPLY FAIL</span>
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-weight: 800; color: var(--fail); font-size: 16px;">DISCREPANT</span>
+              <h3 class="mono font-mono" style="font-size: 15px; word-break: break-all; margin: 0; color: var(--text-primary);">
+                71cQ45Z8GfH5JgYy4F7eD3bC2aP9LqRwK8xNvM1tPump
+              </h3>
+              <button type="button" class="btn-copy" onclick="copyToClipboard('71cQ45Z8GfH5JgYy4F7eD3bC2aP9LqRwK8xNvM1tPump', this)" title="Copy CA">
+                <svg class="sys-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy</span>
+              </button>
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-muted); margin: 4px 0 0 0;">
+              Supply discrepancy detected (184,912 tokens). Net burn metric permanently withheld by refusal logic.
+            </p>
+
+            <!-- Micro Inline Split Visualizer -->
+            <div class="micro-split-wrap">
+              <div class="micro-split-header">
+                <span>SOL Burn: 50.00%</span>
+                <span>Creator Ops: 50.00%</span>
+              </div>
+              <div class="micro-split-bar">
+                <div class="bar-seg seg-sol-burn" style="width: 50%;"></div>
+                <div class="bar-seg seg-ops" style="width: 50%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: var(--sp-sm); align-items: center; flex-wrap: wrap;">
+            <div class="btn-conic-glow">
+              <a href="./coin.html?mint=71cQ45Z8GfH5JgYy4F7eD3bC2aP9LqRwK8xNvM1tPump" class="btn-submit" style="font-size: 13px; padding: 8px 16px; text-decoration: none;">
+                <span>Audit Sheet</span>
+                <svg class="sys-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </a>
+            </div>
+            <a href="./verify.html?mint=71cQ45Z8GfH5JgYy4F7eD3bC2aP9LqRwK8xNvM1tPump" class="btn-paste" style="font-size: 12px; padding: 8px 12px; text-decoration: none;">
+              <span>Surveillance</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Empty Results Container -->
+    <div id="emptyResults" style="display: none; text-align: center; padding: var(--sp-2xl) var(--sp-lg); background: var(--bg-surface); border: 1px dashed var(--border-glass); border-radius: var(--radius-md); margin-top: var(--sp-lg);">
+      <p style="color: var(--text-secondary); font-size: 15px; margin-bottom: var(--sp-md);">
+        No coins matching the current search query or filter category.
+      </p>
+      <button type="button" class="btn-paste" onclick="clearFilters()">Clear Filters</button>
+    </div>
+
+    <!-- Missing Coin CTA -->
+    <div class="editorial-card cyber-card cyber-card--chamfer tilt-card" style="margin-top: var(--sp-2xl); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-md);">
+      <span class="cyber-corner cyber-corner--tl"></span>
+      <span class="cyber-corner cyber-corner--br"></span>
+      <div>
+        <h3 style="margin-bottom: 4px;">Don't see your pump coin in the directory?</h3>
+        <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Audit any contract address live on-chain, or submit your mint to be permanently tracked.</p>
+      </div>
+      <div class="btn-conic-glow">
+        <a href="./verify.html" class="btn-submit" style="text-decoration: none;">
+          <span>Verify Coin Now</span>
+          <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p>Charlie Protocol Directory — Immutable on-chain fee verification registry. Every figure falsifiable.</p>
+    </div>
+  </footer>
+
+  <script src="./assets/charlie-motion.js?v=fire4"></script>
+  <script>
+    let activeFilterCat = 'all';
+
+    function setCategoryFilter(cat, btnEl) {
+      activeFilterCat = cat;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      if (window.AudioEngine) window.AudioEngine.playClick();
+      applyFilters();
+    }
+
+    function handleSearch(query) {
+      applyFilters();
+    }
+
+    function clearFilters() {
+      const input = document.getElementById('filterInput');
+      if (input) input.value = '';
+      setCategoryFilter('all', document.querySelector('.filter-tab[data-filter="all"]'));
+    }
+
+    function applyFilters() {
+      const q = (document.getElementById('filterInput').value || '').toLowerCase().trim();
+      const items = document.querySelectorAll('.coin-item');
+      let visibleCount = 0;
+
+      items.forEach(item => {
+        const text = (item.getAttribute('data-search') || '').toLowerCase();
+        const cats = (item.getAttribute('data-cat') || '').split(' ');
+
+        const matchesSearch = q === '' || text.includes(q);
+        const matchesCat = activeFilterCat === 'all' || cats.includes(activeFilterCat);
+
+        if (matchesSearch && matchesCat) {
+          item.style.display = 'block';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      const emptyEl = document.getElementById('emptyResults');
+      if (emptyEl) {
+        emptyEl.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+
+      const badge = document.getElementById('coinCountBadge');
+      if (badge) {
+        badge.textContent = `${visibleCount} coin${visibleCount === 1 ? '' : 's'} matching`;
+      }
+    }
+  </script>
+</body>
+</html>
