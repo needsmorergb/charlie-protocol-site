@@ -977,11 +977,14 @@ main {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
-  width: 32%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  /* Optically centred, not just geometrically: the square frame carries smoke
+     the machine does not fill, so a centred BOX leaves the machine visibly
+     left and high inside the ring. The nudge is measured off a render -- the
+     art's luminance centroid against the ring's centre -- because in the
+     source file the smoke is as dark as the metal and no threshold separates
+     them. Re-measure with `optical.cjs` if the artwork is replaced. */
+  transform: translate(calc(-50% + 5.6%), calc(-50% + 2.4%));
+  width: 34%;
   line-height: 0;
   z-index: 2;
 }
@@ -994,13 +997,7 @@ main {
   filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 16px rgba(255, 138, 31, 0.4));
 }
 
-.fly-hub .smoke {
-  width: 62%;
-  height: auto;
-  image-rendering: auto;
-  transform-origin: 50% 100%;
-  animation: billow 9s ease-in-out infinite;
-}
+
 
 .fly-orbit {
   position: absolute;
@@ -1034,7 +1031,9 @@ main {
   width: 42%;
   height: auto;
   flex: none;
-  filter: drop-shadow(0 0 6px var(--flame-warm));
+  /* Neutral halo: the mark carries its own brand gradient, and the previous
+     warm glow tinted it. */
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .85)) drop-shadow(0 0 7px rgba(153, 69, 255, .55));
 }
 
 @keyframes fly-orbit {
