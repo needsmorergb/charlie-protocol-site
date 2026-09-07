@@ -1,777 +1,413 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Charlie Protocol — Forensic Fee Verification & Deflation Standard</title>
-  <meta name="description" content="Paste a pump.fun contract address and see where its creator fees go, read directly from the Solana ledger, with every check that passed, failed, or was never run.">
-  
-  <!-- Modern Font Pairing: Space Grotesk (Headings), Plus Jakarta Sans (UI), JetBrains Mono (Forensic tabular numbers) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="./assets/preview.css?v=fire4">
-  <!-- Vercel Web Analytics & Speed Insights -->
-  <script>
-    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-  </script>
-  <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
-  <script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
-</head>
-<body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Charlie Protocol</title><meta name="description" content="Paste a pump.fun contract address and see where its creator fees go, read from the chain, with every check that passed, failed, or was never run."><meta property="og:title" content="Charlie Protocol"><meta property="og:description" content="Paste a pump.fun contract address and see where its creator fees go, read from the chain, with every check that passed, failed, or was never run."><meta property="og:type" content="website"><meta property="og:image" content="https://charlieprotocol.fun/assets/meta-image.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Charlie Protocol"><meta name="twitter:description" content="Paste a pump.fun contract address and see where its creator fees go, read from the chain, with every check that passed, failed, or was never run."><meta name="twitter:image" content="https://charlieprotocol.fun/assets/meta-image.png"><style>
+:root {
+  --paper: #FAF7F0;
+  --panel: #EFEAE0;
+  --accent: #1D4E89;
+  --destructive: #A3271F;
+  --unchecked: #7A5A12;
+  --ink: #1A1A1A;
+  --pass-glyph: #6B6558;
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 32px;
+  --sp-2xl: 48px;
+  --sp-3xl: 64px;
+}
+.verify-form { display: flex; flex-wrap: wrap; gap: var(--sp-sm);
+  align-items: center; margin: var(--sp-lg) 0; }
+.verify-form label { flex: 1 1 100%; font-size: 14px; }
+.verify-form input {
+  flex: 1 1 22em; min-width: 0; padding: var(--sp-sm);
+  font-family: inherit; font-size: 16px;
+  border: 1px solid var(--unchecked); background: #fff; color: var(--ink);
+}
+.verify-form button {
+  padding: var(--sp-sm) var(--sp-lg); font-family: inherit; font-size: 16px;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+  cursor: pointer; min-height: 44px;
+}
+.verify-form button:hover, .verify-form button:focus-visible {
+  background: var(--accent); border-color: var(--accent);
+}
+.hero-verify { margin: var(--sp-xl) 0 0 0; }
+.hero-verify .meta { margin: 0; }
 
-  <!-- =========================================================================
-       0. Global Facility Telemetry Strip
-       ========================================================================= -->
-  <aside class="facility-telemetry-strip" aria-label="Solana Network & Facility Telemetry">
-    <div class="facility-telemetry-inner">
-      <div class="telemetry-pill">
-        <span class="telemetry-led"></span>
-        <span class="telemetry-label">NETWORK:</span>
-        <span class="telemetry-value">SOLANA MAINNET-BETA</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SLOT:</span>
-        <span id="telSlot" class="telemetry-value font-mono">312,894,204</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SOL-INCINERATOR:</span>
-        <span id="telIncinerated" class="telemetry-value telemetry-value--ember font-mono">1,489,204.38 SOL</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">FACILITY TPS:</span>
-        <span id="telTps" class="telemetry-value telemetry-value--green font-mono">2,984</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SOL INFLATION OFFSET:</span>
-        <span class="telemetry-value telemetry-value--ember font-mono">-1,489,204 SOL BURNED</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">VERIFIED COINS:</span>
-        <span class="telemetry-value font-mono">18 COINS LIVE</span>
-      </div>
-    </div>
-  </aside>
+/* -- the flywheel ------------------------------------------------------
+   The ring turns because the loop turns. A still picture of a cycle is a
+   picture of something that has stopped.
 
-  <!-- =========================================================================
-       1. Global Sticky Header
-       ========================================================================= -->
-  <header class="site-header">
-    <div class="header-inner">
-      <a href="./index.html" class="brand-lockup">
-        <span class="flame-box">
-          <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-          </svg>
-        </span>
-        <span>Charlie Protocol</span>
-      </a>
+   `.fly-orbit` sweeps the full circle and `.fly-rider` counter-sweeps on the
+   same period, so Charlie stays upright the whole way round instead of
+   cartwheeling. One element carries one transform animation; a second on the
+   same element overwrites the first, which is why there are two. */
+.fly { margin: var(--sp-xl) 0; }
+.fly-stage {
+  position: relative;
+  width: min(240px, 74vw);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+.fly-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fly-path {
+  fill: none;
+  stroke: var(--unchecked);
+  stroke-width: 1;
+  stroke-dasharray: 4 6;
+  opacity: 0.75;
+  animation: fly-crawl 5.5s linear infinite;
+}
+@keyframes fly-crawl { to { stroke-dashoffset: -40; } }
+.fly-ticks circle { fill: var(--pass-glyph); opacity: 0.5; }
+.fly-hub {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  display: flex; flex-direction: column; align-items: center;
+  line-height: 0;
+}
+.fly-hub .stack { width: 100%; height: auto; image-rendering: pixelated; }
+.fly-hub .smoke { width: 62%; height: auto; image-rendering: pixelated; }
+.fly-orbit {
+  position: absolute; inset: 0;
+  animation: fly-orbit 18s linear infinite;
+}
+/* The ring is r=92 in a 240 box, so its top sits 28/240 = 11.67% down. The
+   rider is centred ON that point rather than hung off the top edge of the
+   stage -- at the edge he orbited a larger circle than the one drawn and
+   leaned over the hub. Centring means the translate has to be carried into
+   the counter-rotation keyframe too, or the first frame snaps him sideways. */
+.fly-rider {
+  position: absolute;
+  left: 50%; top: 11.67%;
+  width: 15%;
+  transform: translate(-50%, -50%);
+  animation: fly-rider 18s linear infinite;
+  display: flex; align-items: flex-end; justify-content: center; gap: 3px;
+}
+.fly-rider .charlie { width: 100%; height: auto; image-rendering: pixelated; }
+/* Beside him, not above: carried, not hovering. */
+.fly-rider .payload { width: 38%; height: auto; flex: none; }
+.coin-body { fill: var(--accent); }
+.coin-mark { fill: var(--paper); }
+@keyframes fly-orbit { to { transform: rotate(360deg); } }
+@keyframes fly-rider {
+  to { transform: translate(-50%, -50%) rotate(-360deg); }
+}
+.fly figcaption {
+  text-align: center; font-size: 14px; margin-top: var(--sp-md);
+  color: var(--pass-glyph);
+}
+.fly-steps {
+  list-style: none; counter-reset: fly; padding: 0;
+  margin: var(--sp-xl) 0 0 0;
+  display: grid; gap: var(--sp-lg);
+  grid-template-columns: repeat(auto-fit, minmax(15em, 1fr));
+}
+.fly-steps li {
+  counter-increment: fly;
+  border-left: 1px dashed var(--unchecked);
+  padding-left: var(--sp-md);
+}
+.fly-steps li h3 {
+  font-size: 16px; margin: 0 0 var(--sp-xs) 0; line-height: 1.3;
+}
+.fly-steps li h3::before {
+  content: counter(fly) " ";
+  color: var(--pass-glyph); font-weight: 400;
+}
+.fly-steps li p { margin: 0; font-size: 15px; }
 
-      <nav class="site-nav">
-        <a href="./index.html" class="nav-link active">Home</a>
-        <a href="./verify.html" class="nav-link">Verify CA</a>
-        <a href="./enroll.html" class="nav-link">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
-        <a href="./coins.html" class="nav-link">Directory</a>
-        <a href="./coin.html" class="nav-link">Audit View</a>
-      </nav>
+/* Motion is decoration here: the list carries the mechanism, so a reader who
+   asks for less of it loses nothing. */
+@media (prefers-reduced-motion: reduce) {
+  .fly-path, .fly-orbit, .fly-rider { animation: none; }
+}
 
-      <div class="header-actions">
-        <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
-          <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <line x1="23" y1="9" x2="17" y2="15"></line>
-            <line x1="17" y1="9" x2="23" y2="15"></line>
-          </svg>
-          <span>Sound Off</span>
-        </button>
-        <a href="https://github.com/needsmorergb/charlie-protocol-v1" target="_blank" rel="noopener" class="btn-icon" title="View Source on GitHub">
-          <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-          <span>GitHub</span>
-        </a>
-      </div>
-    </div>
-  </header>
+:root {
+  /* Palette taken from the live $CHARLIE site (charlie-incinerator.com):
+     near-black ground with the brand green as the single accent. Matching it
+     is the point -- two surfaces for one project should not disagree about
+     what colour the project is. */
+  --ash: #0D0F0C;
+  --ash-raised: #161A14;
+  --ash-ink: #EAF3E3;
+  --ash-muted: #8B9585;
+  --ember: #8FE13F;
+  --hair: #D3D8CD;
+  --measure: 62ch;
+  --shell: 1120px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.55;
+  margin: 0;
+  padding: 0;
+  overflow-wrap: anywhere;
+}
 
-  <!-- =========================================================================
-       2. Hero: The Catwalk, Charlie & The Sol Incinerator
-       ========================================================================= -->
-  <section class="hero">
-    <div class="shell-inner">
-      <div class="eyebrow">
-        <span class="telemetry-led"></span>
-        <span>Solana Inflation Countermeasure // Sol-Incinerator Supply Destruction Standard</span>
-      </div>
+/* -- entrance motion -------------------------------------------------
+   Entrance only. Nothing here animates a VALUE: a count-up would render
+   figures that are not the observed ones for the length of the tween, and
+   a page whose whole claim is that every number is backed by a check must
+   not display numbers no check backs, not even for a second. Motion is
+   restricted to opacity and position, which carry no data. The landing
+   page also ships zero scripts, so this is CSS only and degrades to the
+   final state when animation is unavailable. */
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.rise { animation: rise 620ms cubic-bezier(.16,.84,.44,1) both; }
+.d1 { animation-delay: 60ms; } .d2 { animation-delay: 130ms; } .d3 { animation-delay: 200ms; }
+.d4 { animation-delay: 270ms; } .d5 { animation-delay: 340ms; } .d6 { animation-delay: 410ms; }
+@media (prefers-reduced-motion: reduce) {
+  .rise { animation: none; opacity: 1; transform: none; }
+  .hero-rule { animation: none; transform: none; }
+}
 
-      <h1>Burning Solana to Decrease Network Inflation. Every Number Audited On-Chain.</h1>
-      
-      <p class="tagline">
-        Solana issues new SOL every epoch through staking inflation. Charlie Protocol redirects pump.fun trading energy into the Sol-Incinerator (<code class="mono">1nc1nerator...</code>) to permanently destroy circulating SOL at the block boundary. We audit every fee route with adversarial cryptographic checks, rendering failures louder than passes.
-      </p>
+/* -- hero ------------------------------------------------------------ */
+.hero {
+  background: var(--ash);
+  color: var(--ash-ink);
+  padding: clamp(var(--sp-2xl), 9vw, 104px) var(--sp-lg) clamp(var(--sp-xl), 6vw, 72px);
+}
+.hero-inner { max-width: var(--shell); margin: 0 auto; }
+.eyebrow {
+  font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--ember); margin: 0 0 var(--sp-lg) 0;
+  display: flex; align-items: center; gap: var(--sp-sm);
+}
+.flame { display: inline-flex; line-height: 0; flex: 0 0 auto; }
+.hero h1 {
+  font-size: clamp(34px, 6.6vw, 72px);
+  font-weight: 700; line-height: 1.02; letter-spacing: -.03em;
+  margin: 0 0 var(--sp-lg) 0; overflow-wrap: anywhere;
+}
+.hero .tagline {
+  font-size: clamp(16px, 2.1vw, 21px); line-height: 1.45;
+  color: var(--ash-ink); max-width: var(--measure); margin: 0 0 var(--sp-xl) 0;
+}
+.hero-rule {
+  height: 1px; background: var(--ember); transform-origin: left center;
+  animation: draw 900ms cubic-bezier(.16,.84,.44,1) 120ms both;
+  margin: 0 0 var(--sp-lg) 0;
+}
+.hero .meta { color: var(--ash-muted); }
 
-      <!-- Hero Mode Switcher -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-xs);">
-        <div class="hero-mode-switch">
-          <button id="btnMode3d" type="button" class="btn-mode active" onclick="setHeroMode('3d')">⚡ Live Surveillance</button>
-          <button id="btnModeClassic" type="button" class="btn-mode" onclick="setHeroMode('classic')">👾 Classic Pixel View</button>
-        </div>
-      </div>
+/* -- shell ----------------------------------------------------------- */
+main { max-width: var(--shell); margin: 0 auto; padding: clamp(var(--sp-xl), 5vw, 64px) var(--sp-lg) var(--sp-3xl); }
+section { margin-bottom: clamp(var(--sp-2xl), 5vw, 72px); }
+.meta { font-size: 13px; font-weight: 400; line-height: 1.5; }
+.freshness .meta { margin: 0 0 var(--sp-xs) 0; }
+a { color: var(--accent); }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+.section-label {
+  font-size: 11.5px; letter-spacing: .17em; text-transform: uppercase;
+  color: var(--unchecked); margin: 0 0 var(--sp-lg) 0;
+}
+/* The label rides the art band's baseline, to the right of Charlie and the
+   chart, rather than wrapping in a narrow column of its own. */
+#counters .section-art .section-label { margin-bottom: 0; flex: 1 1 auto; align-self: flex-end; }
 
-      <!-- 3D Cinematic Scene Container with Master Cinemagraph -->
-      <div id="heroScene3d" class="scene-3d-box">
-        
-        <!-- Stage Top HUD & Interactive Controls -->
-        <div class="stage-hud">
-          <div class="stage-badge">
-            <span class="stage-pulse-dot"></span>
-            <span>SOL-INCINERATOR // CATWALK FACILITY // LIVE SURVEILLANCE</span>
-          </div>
+/* -- counters --------------------------------------------------------
+   Column minimum is set by the widest value, not by taste: the supply
+   counters run to 18 monospace characters, which at ~0.6em per character
+   needs ~260px at 24px type. A narrower column does not wrap them -- they
+   cannot wrap, by the rule below -- it makes them overflow the next cell. */
+#counters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--sp-xl) var(--sp-2xl);
+}
+.counter-cell { min-width: 0; border-top: 1px solid var(--hair); padding-top: var(--sp-md); }
+.counter-value {
+  font-size: clamp(19px, 2.7vw, 27px);
+  font-weight: 700; line-height: 1.2; letter-spacing: -.015em;
+  margin: 0 0 var(--sp-sm) 0;
+  overflow-wrap: normal; word-break: keep-all;
+  font-variant-numeric: tabular-nums;
+}
+.counter-label { font-size: 15px; font-weight: 400; margin: 0 0 var(--sp-xs) 0; }
+.counter-source { margin: 0; color: var(--unchecked); }
 
-          <div class="stage-controls" role="toolbar" aria-label="Atmospheric sound controls">
-            <button type="button" id="btnStageAudio" class="btn-stage-ctrl" onclick="toggleAudio()" title="Toggle fire rustling sound">
-              🔥 Fire Ambience
-            </button>
-          </div>
-        </div>
+/* -- artwork ---------------------------------------------------------
+   Original inline sprites. All motion is CSS on elements this module emits,
+   so the landing page keeps zero scripts: nothing here can alter a figure,
+   and there is no frame loop to get out of step with the record. */
+.hero-art { display: flex; align-items: flex-end; gap: var(--sp-xl); flex-wrap: wrap; }
+.hero-copy { flex: 1 1 24rem; min-width: 0; }
+.charlie { image-rendering: pixelated; display: block; }
 
-        <!-- Master Scene: Charlie on the Platform with Flowing Fire & Billowing Smoke -->
-        <img class="scene-3d-img" src="./assets/hero-animated.gif" alt="Sol-Incinerator catwalk surveillance: Charlie on the catwalk platform overlooking the roaring combustion furnace with billowing smoke">
+/* -- the scene: Charlie crawls, the incinerator burns -----------------
+   `.walker` travels the full width of `.scene-track` using the left/
+   translateX pair, which resolves against the track at any width without
+   the stylesheet needing to know that width. `.facing` flips him at the
+   turn; the <img> squashes. Three elements because they each animate
+   `transform`, and one element can only hold one. */
+.scene { display: flex; align-items: flex-end; gap: var(--sp-lg);
+  margin: var(--sp-xl) 0 var(--sp-lg); }
+/* Both sizes are driven by HEIGHT, not width, because that is the axis the
+   proportion lives on: the track's height IS Charlie's height, and the
+   furnace box is sized so its building half -- 59.16% of the box, the rest
+   being plume -- lands at roughly three times it. Sizing these by width
+   instead had him rendering 131px tall against a 95px building, a slug
+   taller than the incinerator he is walking to. */
+.scene-track { position: relative; flex: 1 1 auto;
+  height: clamp(38px, 5vw, 64px); }
+/* Both carry height:100% so the <img>'s own height:100% has something to
+   resolve against -- an auto-height ancestor leaves it indeterminate and the
+   image falls back to its intrinsic 484px. */
+.walker { position: absolute; bottom: 0; left: 0; height: 100%;
+  animation: crawl 21s ease-in-out infinite alternate; }
+.facing { height: 100%; animation: face 42s steps(1, end) infinite; }
+.scene .charlie.walk { height: 100%; width: auto;
+  transform-origin: 50% 100%; animation: lurch 1.9s ease-in-out infinite; }
 
-        <!-- Roaring Hearth Light / Thermal Fire Pulse Layer -->
-        <div class="stage-hearth-glow" aria-hidden="true"></div>
+@keyframes crawl { from { left: 0; transform: translateX(0); }
+                   to   { left: 100%; transform: translateX(-100%); } }
+/* The source art faces LEFT -- his eyes sit left of his body's centre. So
+   the mirrored half is the one where he travels RIGHT, which is the first
+   half of the crawl's alternate cycle. Getting this backwards makes him
+   moonwalk. Stepped, so the turn is a flip and not a smear. */
+@keyframes face { 0%, 49.99% { transform: scaleX(-1); }
+                  50%, 100%  { transform: scaleX(1); } }
+@keyframes lurch { 0%, 100% { transform: scaleY(1) scaleX(1); }
+                   45% { transform: scaleY(.93) scaleX(1.05); }
+                   70% { transform: scaleY(1.03) scaleX(.98); } }
 
-        <!-- Catwalk Reflected Heat Glow Layer -->
-        <div class="stage-catwalk-glow" aria-hidden="true"></div>
+/* The mark's own aspect ratio, so the two layers stay registered to each
+   other at every width: smoke pinned to the top, building to the bottom,
+   each keeping its share of the original 333px height. */
+.furnace { position: relative; flex: 0 0 auto; line-height: 0;
+  height: clamp(190px, 26vw, 325px); width: auto; aspect-ratio: 241 / 333; }
+.furnace img { image-rendering: pixelated; display: block;
+  position: absolute; left: 0; width: 100%; height: auto; }
+.furnace .stack { bottom: 0; }
+.smoke-drift { position: absolute; left: 0; top: 0; width: 100%;
+  transform-origin: 50% 100%;
+  animation: sway 11.9s ease-in-out infinite; }
+.furnace .smoke { top: 0; transform-origin: 50% 100%;
+  animation: billow 7.3s ease-in-out infinite; }
 
-        <!-- Interactive Canvas: Chimney smoke & drifting sparks -->
-        <canvas id="stageEmberCanvas" class="stage-fx-canvas" aria-hidden="true"></canvas>
+/* Two periods that do not divide into each other, so the combined drift
+   takes a long time to repeat itself and never reads as a short loop. */
+@keyframes sway {
+  0%   { transform: translateX(0)     skewX(0deg); }
+  28%  { transform: translateX(3.5%)  skewX(-2.6deg); }
+  54%  { transform: translateX(-2.2%) skewX(1.6deg); }
+  79%  { transform: translateX(4.4%)  skewX(-3.1deg); }
+  100% { transform: translateX(0)     skewX(0deg); }
+}
+@keyframes billow {
+  0%   { transform: translateY(0)     scale(1);     opacity: .95; }
+  38%  { transform: translateY(-3.2%) scale(1.05);  opacity: .74; }
+  71%  { transform: translateY(-1.4%) scale(1.018); opacity: .89; }
+  100% { transform: translateY(0)     scale(1);     opacity: .95; }
+}
+.hero-art .charlie { width: clamp(128px, 18vw, 200px); height: auto; flex: 0 0 auto; }
+/* Spans every column: the art band introduces the counters, it is not a
+   counter itself. Without this it takes the first grid cell and shoves the
+   first figure into column two. */
+.section-art { grid-column: 1 / -1; display: flex; align-items: flex-end; gap: var(--sp-lg);
+  margin-bottom: var(--sp-xl); flex-wrap: wrap; }
+.section-art .charlie-gif { image-rendering: pixelated; display: block;
+  width: clamp(88px, 11vw, 124px); height: auto; }
+.section-art .chart { width: clamp(104px, 13vw, 148px); height: auto; }
+.refusal-art { display: flex; gap: var(--sp-lg); align-items: flex-start; flex-wrap: wrap; }
+.refusal-copy { flex: 1 1 24rem; min-width: 0; }
 
-        <!-- Atmospheric Vignette & Void Gradient -->
-        <div class="scene-3d-overlay"></div>
-      </div>
+/* Blink: the eyes squash to a line and back. Long pause, quick close --
+   a steady metronome reads as a machine, not a slug. */
 
-      <!-- Classic Pixel Crawling Scene (Toggled) -->
-      <div id="heroSceneClassic" class="scene-wrapper" style="display: none;">
-        <div class="scene" aria-hidden="true">
-          <div class="scene-track">
-            <div class="walker">
-              <div class="facing">
-                <img class="charlie-img" src="./assets/charlie.png" width="383" height="484" alt="Charlie the slug" decoding="async">
-              </div>
-            </div>
-          </div>
-          <div class="furnace">
-            <span class="smoke-drift">
-              <img class="smoke" src="./assets/incinerator-smoke.png" alt="Incinerator smoke plume" decoding="async">
-            </span>
-            <img class="stack" src="./assets/incinerator-stack.png" alt="Incinerator furnace stack" decoding="async">
-          </div>
-        </div>
-      </div>
 
-      <!-- High-Impact Hero Command Bar Box -->
-      <div class="command-hero-box tilt-card">
-        <div class="command-header">
-          <div class="command-label-row">
-            <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <label for="mintInput" class="command-title">Audit Any pump.fun Contract Address (CA)</label>
-          </div>
-          <div class="command-shortcut-hint">
-            <span>Press</span> <kbd class="command-kbd">/</kbd> <span>anywhere to search</span>
-          </div>
-        </div>
+/* The flame gutters: two-frame pixel animation, stepped so it stays crisp
+   rather than smearing between states. */
+@keyframes gutter {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  25%      { transform: scaleY(1.14) translateY(-1px); }
+  50%      { transform: scaleY(.92) translateY(1px); }
+  75%      { transform: scaleY(1.06) translateY(0); }
+}
+.flame-svg { width: clamp(16px, 2vw, 22px); height: auto; transform-origin: 50% 100%;
+  animation: gutter 640ms steps(2, end) infinite; }
 
-        <form class="verify-form" method="get" action="./verify.html">
-          <input 
-            id="mintInput" 
-            name="mint" 
-            class="verify-input" 
-            type="text" 
-            inputmode="latin" 
-            autocomplete="off" 
-            spellcheck="false" 
-            placeholder="paste contract address (e.g. 8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump)..." 
-            pattern="[1-9A-HJ-NP-Za-km-z]{32,44}" 
-            required
-          >
-          <button type="button" class="btn-paste" onclick="pasteCA('mintInput')">
-            <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            <span>Paste</span>
-          </button>
-          
-          <div class="btn-conic-glow">
-            <button type="submit" class="btn-submit">
-              <span>Execute Chain Audit</span>
-              <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-          </div>
-        </form>
+/* The chart moves, because that is what a chart does. Each bar scales from
+   its own baseline on a staggered delay. */
+@keyframes tick { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.55); } }
+.chart .bar { transform-box: fill-box; transform-origin: 50% 100%; animation: tick 2.6s ease-in-out infinite; }
+.chart .b0 { animation-delay: 0ms; }   .chart .b1 { animation-delay: 180ms; }
+.chart .b2 { animation-delay: 360ms; } .chart .b3 { animation-delay: 540ms; }
+.chart .b4 { animation-delay: 720ms; } .chart .b5 { animation-delay: 900ms; }
 
-        <div class="chips-row">
-          <span style="color: var(--text-muted); font-size: 12px;">Forensic Targets:</span>
-          <button type="button" class="chip" onclick="setExampleCA('8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump')">
-            🔥 $CHARLIE (Official 100% Sol Burn)
-          </button>
-          <button type="button" class="chip" onclick="setExampleCA('8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump')">
-            ⚠️ 8KC4... (Ops-Only Split)
-          </button>
-          <button type="button" class="chip" onclick="setExampleCA('11111111111111111111111111111111')">
-            🛡️ Solana System Native
-          </button>
-        </div>
+@media (prefers-reduced-motion: reduce) {
+  .flame-svg, .chart .bar, .walker, .facing,
+  .scene .charlie.walk, .smoke-drift, .furnace .smoke { animation: none; }
+}
 
-        <div class="freshness-tag">
-          <span class="status-pill-led"></span>
-          <span>Zero signup or wallet signature needed. Solana RPC queried live with deterministic cryptographic verification.</span>
-        </div>
-      </div>
+/* -- status + refusal ------------------------------------------------- */
+.badge { display: inline-flex; align-items: center; gap: var(--sp-xs); padding: 2px 8px; }
+.status-pass { color: var(--pass-glyph); background: none; font-size: 14px; font-weight: 400; }
+.status-fail { background: var(--destructive); color: #fff; font-size: 20px; font-weight: 700; }
+.status-unchecked { border: 1px dashed var(--unchecked); color: var(--unchecked); font-size: 14px; font-weight: 400; }
+.supply-refusal {
+  padding: var(--sp-lg); margin: 0 0 clamp(var(--sp-2xl), 5vw, 72px) 0;
+  background: var(--panel);
+}
+.supply-refusal p { font-size: 16px; font-weight: 400; margin: 0 0 var(--sp-md) 0; max-width: var(--measure); }
+/* The row's spans are separate inline elements with no whitespace between
+   them in the markup, so without a flex gap they render as
+   BURN_SUPPLYFAILinitial_supply -- three fields read as one string. */
+.check-row {
+  padding: var(--sp-md) 0 0 0; border-top: 1px solid var(--hair);
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: var(--sp-xs) var(--sp-md);
+}
+.check-row .check-detail, .check-row .check-expected-actual { flex-basis: 100%; }
+.check-name { font-size: 14px; font-weight: 400; }
+.check-equation { font-size: 14px; font-weight: 400; }
+.check-detail { font-size: 16px; font-weight: 400; margin: var(--sp-xs) 0 0 0; }
+.check-expected-actual { font-size: 14px; font-weight: 400; margin: var(--sp-xs) 0 0 0; }
 
-    </div>
-  </section>
+/* -- prose + links ---------------------------------------------------- */
+#what-this-is p { font-size: clamp(16px, 1.9vw, 18px); line-height: 1.6; max-width: var(--measure); }
+/* Bordered like the refusal block above it, because it is the same kind of
+   statement: a thing this page will not claim yet. */
+#launch-soon {
+  border: 1px dashed var(--unchecked); padding: var(--sp-lg);
+  max-width: var(--measure);
+}
+.soon-head { display: flex; align-items: center; gap: var(--sp-md);
+  flex-wrap: wrap; margin-bottom: var(--sp-md); }
+.soon-head h2 { margin: 0; font-size: clamp(19px, 2.4vw, 24px); }
+#launch-soon p { font-size: clamp(15px, 1.8vw, 17px); line-height: 1.6;
+  margin: 0 0 var(--sp-md) 0; }
+#launch-soon p:last-child { margin-bottom: 0; }
 
-  <!-- =========================================================================
-       3. Live Verified Coins Marquee Ticker Tape
-       ========================================================================= -->
-  <div class="ticker-tape-container" aria-label="Live Verified Coins Stream">
-    <div class="marquee-content-loop">
-      <div class="marquee-item">
-        <span class="marquee-symbol">$CHARLIE</span>
-        <span class="marquee-stat">100% SOL BURN</span>
-        <span class="marquee-badge marquee-badge--pass">VERIFIED</span>
-      </div>
-      <div class="marquee-item">
-        <span class="marquee-symbol">$BONK-INC</span>
-        <span class="marquee-stat">80% TOKEN BURN // 20% OPS</span>
-        <span class="marquee-badge marquee-badge--pass">PASS</span>
-      </div>
-      <div class="marquee-item">
-        <span class="marquee-symbol">$SOL-FURNACE</span>
-        <span class="marquee-stat">100% LETHAL INCINERATOR</span>
-        <span class="marquee-badge marquee-badge--pass">PASS</span>
-      </div>
-      <div class="marquee-item">
-        <span class="marquee-symbol">$ASH</span>
-        <span class="marquee-stat">90% SUPPLY PURGE</span>
-        <span class="marquee-badge marquee-badge--pass">VERIFIED</span>
-      </div>
-      <div class="marquee-item">
-        <span class="marquee-symbol">$PYRE</span>
-        <span class="marquee-stat">100% ON-CHAIN PROVEN</span>
-        <span class="marquee-badge marquee-badge--pass">VERIFIED</span>
-      </div>
-    </div>
+#why-counted { max-width: var(--measure); }
+#why-counted p { font-size: clamp(15px, 1.8vw, 17px); line-height: 1.6;
+  margin: 0 0 var(--sp-md) 0; }
+#why-counted p:last-child { margin-bottom: 0; color: var(--unchecked); }
 
-    <!-- Clone for seamless infinite loop -->
-    <div class="marquee-content-loop" aria-hidden="true">
-      <div class="marquee-item">
-        <span class="marquee-symbol">$CHARLIE</span>
-        <span class="marquee-stat">100% SOL BURN</span>
-        <span class="marquee-badge marquee-badge--pass">VERIFIED</span>
-      </div>
-      <div class="marquee-item">
-        <span class="marquee-symbol">$BONK-INC</span>
-        <span class="marquee-stat">80% TOKEN BURN // 20% OPS</span>
-        <span class="marquee-badge marquee-badge--pass">PASS</span>
-      </div>
-      <div class="marquee-item">
-        <span class="marquee-symbol">$SOL-FURNACE</span>
-        <span class="marquee-stat">100% LETHAL INCINERATOR</span>
-        <span class="marquee-badge marquee-badge--pass">PASS</span>
-      </div>
-      <div class="marquee-item">
-        <span class="marquee-symbol">$ASH</span>
-        <span class="marquee-stat">90% SUPPLY PURGE</span>
-        <span class="marquee-badge marquee-badge--pass">VERIFIED</span>
-      </div>
-      <div class="marquee-item">
-        <span class="marquee-symbol">$PYRE</span>
-        <span class="marquee-stat">100% ON-CHAIN PROVEN</span>
-        <span class="marquee-badge marquee-badge--pass">VERIFIED</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- =========================================================================
-       4. Main Content: Flywheel, Comparison Matrix, Popperian Sandbox & Telemetry
-       ========================================================================= -->
-  <main>
-
-    <!-- Movement 2: The Loop / Flywheel -->
-    <section id="flywheel">
-      <div class="eyebrow">
-        <span>Solana Inflation Countermeasure // Autonomous Burn Crank</span>
-      </div>
-      <h2>The Sol-Incinerator Deflationary Flywheel</h2>
-      <p>
-        The core mission: combat Solana network inflation by turning trade volume into permanent SOL destruction. Trading creator fees are not hoarded—they are funneled into the Sol-Incinerator where lamports are permanently purged from the global ledger.
-      </p>
-
-      <figure class="fly">
-        <div class="fly-stage" aria-label="Interactive flywheel diagram. Drag to scrub rotation.">
-          <svg class="fly-ring" viewBox="0 0 240 240">
-            <circle class="fly-path" cx="120" cy="120" r="92"></circle>
-            <g class="fly-ticks" fill="var(--ember)">
-              <circle cx="120" cy="28" r="5"></circle>
-              <circle cx="212" cy="120" r="5"></circle>
-              <circle cx="120" cy="212" r="5"></circle>
-              <circle cx="28" cy="120" r="5"></circle>
-            </g>
-          </svg>
-
-          <div class="fly-hub">
-            <span class="smoke-drift">
-              <img class="smoke" src="./assets/incinerator-smoke.png" alt="Incinerator smoke plume" decoding="async">
-            </span>
-            <img class="stack-3d" src="./assets/incinerator-3d.png" alt="Sol-Incinerator facility" decoding="async">
-          </div>
-
-          <div class="fly-orbit">
-            <div class="fly-rider">
-              <svg class="payload" viewBox="0 0 16 16" width="16" height="16">
-                <rect x="2" y="2" width="12" height="12" fill="var(--flame-warm)" rx="2"></rect>
-                <rect x="4" y="5" width="8" height="2" fill="#fff"></rect>
-                <rect x="4" y="9" width="8" height="2" fill="#fff"></rect>
-              </svg>
-              <img class="charlie-3d" src="./assets/charlie-cute-3d.png" width="383" height="484" alt="Charlie the gastropod carrying token payload into the Sol-Incinerator" decoding="async">
-            </div>
-          </div>
-        </div>
-      </figure>
-
-      <ol class="fly-steps">
-        <li class="fly-step-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <span class="badge" style="background: rgba(143, 225, 63, 0.15); color: var(--neon-charlie); border-color: rgba(143, 225, 63, 0.3); margin-bottom: 8px;">STEP 01</span>
-          <h3>Trading Accrues Creator Fees</h3>
-          <p>Every trade on the bonding curve or AMM accrues fees on-chain automatically from market volume.</p>
-        </li>
-        <li class="fly-step-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <span class="badge" style="background: rgba(255, 138, 31, 0.15); color: var(--flame-warm); border-color: rgba(255, 138, 31, 0.3); margin-bottom: 8px;">STEP 02</span>
-          <h3>Fees Route to Sol-Incinerator</h3>
-          <p>Creator fees are funneled straight into <code class="mono">1nc1nerator...</code>, Solana’s native burning address.</p>
-        </li>
-        <li class="fly-step-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <span class="badge" style="background: rgba(255, 77, 46, 0.15); color: var(--flame-core); border-color: rgba(255, 77, 46, 0.3); margin-bottom: 8px;">STEP 03</span>
-          <h3>Purged at Block Boundary</h3>
-          <p>The Solana runtime permanently deletes all lamports credited to the Incinerator at each block boundary.</p>
-        </li>
-        <li class="fly-step-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <span class="badge" style="background: rgba(78, 250, 139, 0.15); color: #4EFA8B; border-color: rgba(78, 250, 139, 0.3); margin-bottom: 8px;">STEP 04</span>
-          <h3>Decreasing Network Inflation</h3>
-          <p>Global SOL supply contracts permanently. Verifiable deflation attracts volume that funds the next burn.</p>
-        </li>
-      </ol>
-    </section>
-
-    <!-- Comparison Matrix: Burned by Hand vs Automated Protocol -->
-    <section class="editorial-card cyber-card cyber-card--chamfer tilt-card" style="margin-bottom: var(--sp-2xl);">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div class="eyebrow">
-        <span>Forensic Integrity Analysis</span>
-      </div>
-      <h2 style="font-size: 26px; margin-bottom: var(--sp-xs);">Burned by Hand vs Automated Protocol</h2>
-      <p style="color: var(--text-secondary); margin-bottom: var(--sp-lg);">
-        Why manual social-media burns are fundamentally untrustworthy without adversarial on-chain verification.
-      </p>
-
-      <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
-          <thead>
-            <tr style="border-bottom: 2px solid var(--border-glass); color: var(--text-muted);">
-              <th style="padding: 12px 16px;">VERIFICATION DIMENSION</th>
-              <th style="padding: 12px 16px; color: var(--fail);">MANUAL / "TRUST ME" BURNS</th>
-              <th style="padding: 12px 16px; color: var(--neon-charlie);">CHARLIE AUTOMATED PROTOCOL</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom: 1px solid var(--border-glass);">
-              <td style="padding: 14px 16px; font-weight: 600;">Proof Standard</td>
-              <td style="padding: 14px 16px; color: var(--text-muted);">Social media screenshots, unverified tx links</td>
-              <td style="padding: 14px 16px; color: var(--neon-charlie); font-weight: 700;">Deterministic Solana Merkle RPC proofs</td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border-glass);">
-              <td style="padding: 14px 16px; font-weight: 600;">Supply Delta Accounting</td>
-              <td style="padding: 14px 16px; color: var(--text-muted);">Unchecked self-reporting; discrepancies hidden</td>
-              <td style="padding: 14px 16px; color: var(--neon-charlie); font-weight: 700;">Continuous delta check against live mint supply</td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border-glass);">
-              <td style="padding: 14px 16px; font-weight: 600;">Protocol Invariants</td>
-              <td style="padding: 14px 16px; color: var(--text-muted);">Zero mathematical invariants enforced</td>
-              <td style="padding: 14px 16px; color: var(--neon-charlie); font-weight: 700;">9 Popperian Invariants verified per block</td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border-glass);">
-              <td style="padding: 14px 16px; font-weight: 600;">Failure & Refusal Mode</td>
-              <td style="padding: 14px 16px; color: var(--text-muted);">Quietly swept away, zero accountability</td>
-              <td style="padding: 14px 16px; color: var(--neon-charlie); font-weight: 700;">Loud public refusal panel rendering the exact diff</td>
-            </tr>
-            <tr>
-              <td style="padding: 14px 16px; font-weight: 600;">Re-inflation Risk</td>
-              <td style="padding: 14px 16px; color: var(--text-muted);">Deployer may retain mint authority and re-mint</td>
-              <td style="padding: 14px 16px; color: var(--neon-charlie); font-weight: 700;">Zero tolerance: mint authority must be null</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Interactive Popperian Proof Explorer Sandbox -->
-    <section class="popper-sandbox-section" aria-label="Interactive Popperian Proof Sandbox">
-      <div class="eyebrow">
-        <span class="telemetry-led"></span>
-        <span>Adversarial Testing Environment</span>
-      </div>
-      <h2>The Popperian Proof Explorer</h2>
-      <p style="max-width: 68ch; margin-bottom: var(--sp-lg);">
-        Test our falsification engine in real time. De-activate any invariant below to watch the protocol instantly reject verification and render the forensic diff.
-      </p>
-
-      <div class="popper-sandbox-card tilt-card" id="sandboxCard">
-        <!-- Interactive Invariant Switches -->
-        <div class="sandbox-controls-grid">
-          <div class="sandbox-switch-col">
-            <div class="sandbox-switch-header">
-              <span class="mono" style="font-size: 11px; color: var(--text-muted);">INVARIANT // 01</span>
-              <button type="button" id="sandboxToggle_bps" class="switch-glow active" onclick="toggleSandboxInvariant('bps')" aria-pressed="true">
-                <span class="switch-thumb"></span>
-              </button>
-            </div>
-            <div class="sandbox-switch-title">Fee Split Sum == 10,000 BPS</div>
-            <p class="sandbox-switch-desc">Enforces that 100.00% of all accrued fees are accounted for with zero leakage to undeclared wallets.</p>
-          </div>
-
-          <div class="sandbox-switch-col">
-            <div class="sandbox-switch-header">
-              <span class="mono" style="font-size: 11px; color: var(--text-muted);">INVARIANT // 02</span>
-              <button type="button" id="sandboxToggle_dev" class="switch-glow active" onclick="toggleSandboxInvariant('dev')" aria-pressed="true">
-                <span class="switch-thumb"></span>
-              </button>
-            </div>
-            <div class="sandbox-switch-title">Dev Extraction == 0 BPS</div>
-            <p class="sandbox-switch-desc">Guarantees that no private developer addresses siphon protocol fees under the guise of deflation.</p>
-          </div>
-
-          <div class="sandbox-switch-col">
-            <div class="sandbox-switch-header">
-              <span class="mono" style="font-size: 11px; color: var(--text-muted);">INVARIANT // 03</span>
-              <button type="button" id="sandboxToggle_mint" class="switch-glow active" onclick="toggleSandboxInvariant('mint')" aria-pressed="true">
-                <span class="switch-thumb"></span>
-              </button>
-            </div>
-            <div class="sandbox-switch-title">Mint Authority == Revoked</div>
-            <p class="sandbox-switch-desc">Confirms that token mint authority is null, preventing deployers from inflating burned supply.</p>
-          </div>
-
-          <div class="sandbox-switch-col">
-            <div class="sandbox-switch-header">
-              <span class="mono" style="font-size: 11px; color: var(--text-muted);">INVARIANT // 04</span>
-              <button type="button" id="sandboxToggle_sig" class="switch-glow active" onclick="toggleSandboxInvariant('sig')" aria-pressed="true">
-                <span class="switch-thumb"></span>
-              </button>
-            </div>
-            <div class="sandbox-switch-title">Validator Signature Proof</div>
-            <p class="sandbox-switch-desc">Validates cryptographic Ed25519 Merkle signatures against Solana mainnet validator consensus.</p>
-          </div>
-        </div>
-
-        <!-- Live Reactive Sandbox Output Panel -->
-        <div class="sandbox-output-panel" style="margin-top: var(--sp-lg); padding-top: var(--sp-lg); border-top: 1px solid var(--border-glass);">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-sm);">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span id="sandboxStatusBadge" class="status-pill status-pill--verified">
-                <span class="status-pill-led"></span>
-                <span class="status-pill-text">ALL INVARIANTS SATISFIED</span>
-              </span>
-              <span id="sandboxStatusTitle" class="mono" style="font-size: 13px; font-weight: 700; color: var(--neon-charlie);">
-                VERIFIED DEFLATIONARY // PROTOCOL PASS
-              </span>
-            </div>
-            <span class="mono" style="font-size: 11px; color: var(--text-muted);">EVIDENCE RECONCILED AGAINST MAINNET</span>
-          </div>
-
-          <p id="sandboxStatusMessage" style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--sp-sm);">
-            Every byte of creator fee distribution matches Solana Merkle ledger proofs. Invariant BPS sum is exactly 10,000. Dev rent extraction is 0. Token mint authority is revoked.
-          </p>
-
-          <pre id="sandboxCodeDiff" class="mono" style="margin: 0; padding: 12px 16px; background: var(--bg-void); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); font-size: 12px; line-height: 1.6; color: var(--text-muted);"><span style="color: var(--neon-charlie);">// Falsification Audit Report: OK</span>
-EXPECTED: sum(bps) == 10000 && dev_bps == 0 && mint_auth == null
-OBSERVED: sum(bps) = 10000 | dev_bps = 0 | mint_auth = null
-STATUS: 0 BPS DISCREPANCY. ZERO RESIDUAL LEAKAGE.</pre>
-        </div>
-      </div>
-    </section>
-
-    <!-- Movement 3: The Live Ledger (Counters) -->
-    <section id="counters" aria-label="Live Telemetry Ledger">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-md); flex-wrap: wrap;">
-        <div>
-          <div class="eyebrow">
-            <span>Deterministic Solana RPC Metrics</span>
-          </div>
-          <h2>Audited Live Telemetry</h2>
-          <p>Direct chain observations backed by cryptographic proofs. Tabular precision with zero jitter.</p>
-        </div>
-        <span class="status-pill status-pill--verified">
-          <span class="status-pill-led"></span>
-          <span class="status-pill-text">EVIDENCE RECONCILED</span>
-        </span>
-      </div>
-
-      <div class="counters-grid">
-        <div class="counter-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div class="counter-header">
-            <span class="counter-label">Supply Remaining</span>
-            <span class="status-pill-led"></span>
-          </div>
-          <p class="counter-value font-mono spring-counter" data-counter-target="956382187.958910" data-decimals="6">956,382,187.958910</p>
-          <p class="counter-source">source: mint_state.supply</p>
-        </div>
-
-        <div class="counter-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div class="counter-header">
-            <span class="counter-label">Initial Supply</span>
-            <span class="status-pill-led"></span>
-          </div>
-          <p class="counter-value font-mono spring-counter" data-counter-target="1000000000.000000" data-decimals="6">1,000,000,000.000000</p>
-          <p class="counter-source">source: evidence.initial_supply</p>
-        </div>
-
-        <div class="counter-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div class="counter-header">
-            <span class="counter-label">Recorded Burn Txs</span>
-            <span class="status-pill-led"></span>
-          </div>
-          <p class="counter-value font-mono spring-counter" data-counter-target="30" data-decimals="0">30</p>
-          <p class="counter-source">source: len(burn_events)</p>
-        </div>
-
-        <div class="counter-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div class="counter-header">
-            <span class="counter-label">Tokens Destroyed in Burns</span>
-            <span class="status-pill-led"></span>
-          </div>
-          <p class="counter-value font-mono spring-counter" data-counter-target="43576580.427900" data-decimals="6">43,576,580.427900</p>
-          <p class="counter-source">source: sum(tokens_burned across events)</p>
-        </div>
-
-        <div class="counter-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div class="counter-header">
-            <span class="counter-label">SOL Spent Purchasing Burns</span>
-            <span class="status-pill-led"></span>
-          </div>
-          <p class="counter-value font-mono spring-counter" data-counter-target="17.584506" data-decimals="6" data-suffix=" SOL">17.584506 SOL</p>
-          <p class="counter-source">source: sum(sol_spent across events)</p>
-        </div>
-
-        <div class="counter-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div class="counter-header">
-            <span class="counter-label">Burned by Hand (Organic)</span>
-            <span class="status-pill-led"></span>
-          </div>
-          <p class="counter-value font-mono spring-counter" data-counter-target="1100.000000" data-decimals="6" data-prefix="1 tx — ">1 tx — 1,100.000000</p>
-          <p class="counter-source">source: burn_events where source != boost</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Movement 4: Verifiable Supply Invariance & Cryptographic Reconciliation -->
-    <section class="editorial-card cyber-card cyber-card--chamfer tilt-card">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <h3>The Human Element: Reconciled On-Chain Token Burns</h3>
-      <p>
-        Every single burn event across $CHARLIE's history is accounted for: from pump.fun migration boost burns (43,575,480.42 tokens) to direct community-driven holder burns (42,331.61 tokens). Charlie Protocol continuously audits the entire ledger.
-      </p>
-      <p style="margin-bottom: 0; color: var(--text-secondary); font-size: 14px;">
-        All burn instruction receipts reconcile against the live SPL Token mint account. Zero inflation, revoked mint authority, provable permanent deflation.
-      </p>
-    </section>
-
-    <section class="verified-panel cyber-card cyber-card--chamfer tilt-card" style="border: 1px solid rgba(143, 225, 63, 0.4); border-left: 5px solid var(--neon-charlie); background: linear-gradient(135deg, rgba(143, 225, 63, 0.04), rgba(5, 7, 6, 0.95));">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div class="check-row-header">
-        <span class="check-title">CHECK // BURN_SUPPLY</span>
-        <span class="status-pill status-pill--verified">
-          <span class="status-pill-led"></span>
-          <span class="status-pill-text">PASS</span>
-        </span>
-        <span class="mono" style="font-size: 13px; color: var(--neon-charlie);">initial_supply - sum(burn_amounts) == getMint(mint).supply</span>
-      </div>
-
-      <p style="color: var(--text-primary); font-size: 15px; margin-bottom: var(--sp-sm);">
-        All on-chain supply metrics are <strong>100% reconciled and cryptographically verified</strong> against Solana validator state. Net deflation: <strong style="color: var(--neon-charlie);">43,617,812.041090 $CHARLIE (4.36% permanently incinerated)</strong>.
-      </p>
-
-      <div class="diff-box" style="border-color: rgba(143, 225, 63, 0.25); background: rgba(0,0,0,0.45);">
-        <div class="diff-row">
-          <span class="diff-label">STATUS:</span>
-          <span style="color: var(--neon-charlie); font-weight: 700;">All claimed burns reconciled against live mint supply</span>
-        </div>
-        <div class="diff-row">
-          <span class="diff-label">INITIAL SUPPLY:</span>
-          <span class="mono">1,000,000,000.000000 tokens</span>
-        </div>
-        <div class="diff-row">
-          <span class="diff-label">TOTAL VERIFIED BURNED:</span>
-          <span class="mono" style="color: var(--neon-charlie); font-weight: 700;">43,617,812.041090 tokens (Boost + Community Burns)</span>
-        </div>
-        <div class="diff-row">
-          <span class="diff-label">LIVE ON-CHAIN SUPPLY:</span>
-          <span class="mono" style="color: var(--text-primary);">956,382,187.958910 tokens</span>
-        </div>
-        <div class="diff-row" style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(143, 225, 63, 0.3);">
-          <span class="diff-label">INVARIANT RESULT:</span>
-          <span class="mono" style="color: var(--neon-charlie); font-weight: 700;">DELTA: 0.000000 // VERIFIED ON-CHAIN AT BLOCK BOUNDARY</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Protocol Dossier -->
-    <section id="dossier">
-      <div class="eyebrow">
-        <span>Protocol Dossier</span>
-      </div>
-      <h2>Canonical Facility Entities</h2>
-      <p>
-        The verified mascot and the physical Sol-Incinerator facility driving Solana's native fee destruction.
-      </p>
-
-      <div class="dossier-grid">
-        <!-- Entity Charlie Card -->
-        <div class="dossier-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div class="dossier-media">
-            <img src="./assets/charlie-3d.jpg" alt="Charlie the Gastropod Slug">
-            <span class="scene-3d-badge" style="top: 12px; left: 12px;">MASCOT // GASTROPOD</span>
-          </div>
-          <div class="dossier-content">
-            <div class="dossier-tag">Biological Telemetry</div>
-            <h3 class="dossier-title">Charlie</h3>
-            <p style="font-size: 14px; margin-bottom: 12px;">
-              The relentless, unhurried gastropod carrying token payloads into the furnace. Translucent bioluminescent epidermis with cybernetic jaw tracking and ocular telemetry tentacles.
-            </p>
-            <div class="mono" style="font-size: 12px; color: var(--text-muted); background: var(--bg-void); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
-              ROLE: Supply Destruction Bearer<br>
-              VELOCITY: Constant (Unyielding)
-            </div>
-          </div>
-        </div>
-
-        <!-- Entity Sol-Incinerator Card -->
-        <div class="dossier-card cyber-card cyber-card--chamfer tilt-card">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div class="dossier-media">
-            <img src="./assets/incinerator-3d.jpg" alt="The Sol-Incinerator Industrial Furnace">
-            <span class="scene-3d-badge" style="top: 12px; left: 12px; border-color: rgba(255, 138, 31, 0.5); color: var(--flame-warm);">
-              ENGINE // SOL-INCINERATOR
-            </span>
-          </div>
-          <div class="dossier-content">
-            <div class="dossier-tag" style="color: var(--flame-warm);">Combustion Telemetry</div>
-            <h3 class="dossier-title">The Sol-Incinerator</h3>
-            <p style="font-size: 14px; margin-bottom: 12px;">
-              Industrial heavy cast-iron and volcanic brick furnace. Roaring with molten orange and plasma green combustion fire. Permanently destroys lamports at Solana's native address.
-            </p>
-            <div class="mono" style="font-size: 12px; color: var(--text-muted); background: var(--bg-void); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
-              DESTINATION: 1nc1nerator...<br>
-              STATUS: Active Permanent Deflation
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Movement 5: The Protocol Horizon & Onboarding -->
-    <section class="studio-card cyber-card cyber-card--chamfer tilt-card" style="border-left: 4px solid var(--unchecked);">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-md); margin-bottom: var(--sp-md);">
-        <h2 style="margin: 0;">Launch with Charlie Protocol</h2>
-        <span class="status-pill status-pill--unverified">
-          <span class="status-pill-led"></span>
-          <span class="status-pill-text">COMING SOON — SPEC V1</span>
-        </span>
-      </div>
-
-      <p>
-        When V1 ships, new pump.fun coins will derive deterministic fee vaults at launch: 
-        <strong style="color: var(--flame-warm);">SOL_BURN</strong>, <strong style="color: var(--ember);">TOKEN_BURN</strong>, and <strong style="color: #3B82F6;">OPS</strong>. No figure will render unless passing checks back it.
-      </p>
-
-      <p>
-        Automated creator fee-splitting enrollment is coming soon with Phase 5 protocol deployment. Creators will be able to lock trading fees directly into the Sol-Incinerator to decrease Solana network inflation with a single non-custodial transaction (with a nominal 0.25% fee per transaction maintaining automated $CHARLIE buybacks and burns). Our upcoming 
-        <a href="./enroll.html" style="font-weight: 700; color: var(--sol-blue);">Enrollment Engine</a> will construct non-custodial transactions, route fees to the Sol-Incinerator, and lock permanent deflation with one wallet signature.
-      </p>
-
-      <div style="display: flex; gap: var(--sp-md); flex-wrap: wrap; margin-top: var(--sp-lg);">
-        <div class="btn-conic-glow">
-          <a href="./coin.html" class="btn-submit" style="display: inline-block; text-decoration: none;">
-            <span>View $CHARLIE Full Audit</span>
-            <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </a>
-        </div>
-        <a href="./enroll.html" class="btn-paste" style="display: inline-block; text-decoration: none; padding: 12px 20px;">
-          <span>Phase 5 Blueprint & Gatekeep (Standby)</span>
-        </a>
-        <a href="./coins.html" class="btn-paste" style="display: inline-block; text-decoration: none; padding: 12px 20px;">
-          <span>Explore Coin Directory</span>
-        </a>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- =========================================================================
-       5. Global Footer
-       ========================================================================= -->
-  <footer>
-    <div class="footer-inner">
-      <p>
-        Specification, deterministic contracts, and committed evidence: 
-        <a href="https://github.com/needsmorergb/charlie-protocol-v1" target="_blank" rel="noopener">needsmorergb/charlie-protocol-v1</a>
-      </p>
-      <p style="margin-bottom: 0;">
-        Every counter is mathematically recomputable from public on-chain ledger records. Publication gates prevent any ungated figure from leaking into this interface.
-      </p>
-    </div>
-  </footer>
-
-  <!-- Progressive Motion & Studio-Grade Audio Synthesizer Engine -->
-  <script src="./assets/charlie-motion.js?v=fire4"></script>
-</body>
-</html>
+#two-ways-in { display: flex; flex-wrap: wrap; gap: var(--sp-md); }
+#two-ways-in p { margin: 0; }
+#two-ways-in a {
+  display: inline-block; padding: var(--sp-md) var(--sp-lg);
+  background: var(--ash); color: var(--ash-ink); text-decoration: none;
+  font-size: 15px; border: 1px solid var(--ash);
+}
+#two-ways-in a:hover, #two-ways-in a:focus-visible { background: var(--ember); border-color: var(--ember); color: var(--ash); }
+footer { border-top: 1px solid var(--hair); padding-top: var(--sp-lg); margin-top: var(--sp-2xl); }
+footer p { font-size: 13px; font-weight: 400; margin: 0 0 var(--sp-sm) 0; color: var(--unchecked); max-width: var(--measure); }
+footer a { word-break: break-all; overflow-wrap: anywhere; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style><script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };</script><script defer src="https://va.vercel-scripts.com/v1/script.js"></script><script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script></head><body><header class="hero"><div class="hero-inner"><div class="hero-art"><div class="hero-copy"><p class="eyebrow rise"><span class="flame"><svg class="flame-svg" viewBox="0 0 16 20" width="16" height="20" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="7" y="1" width="1" height="1" fill="#ff4d2e"/><rect x="6" y="2" width="1" height="1" fill="#ff4d2e"/><rect x="7" y="2" width="1" height="1" fill="#ff4d2e"/><rect x="6" y="3" width="1" height="1" fill="#ff4d2e"/><rect x="7" y="3" width="1" height="1" fill="#ff8a1f"/><rect x="5" y="4" width="1" height="1" fill="#ff4d2e"/><rect x="6" y="4" width="1" height="1" fill="#ff8a1f"/><rect x="7" y="4" width="1" height="1" fill="#ff8a1f"/><rect x="4" y="5" width="1" height="1" fill="#ff4d2e"/><rect x="5" y="5" width="1" height="1" fill="#ff4d2e"/><rect x="6" y="5" width="1" height="1" fill="#ff8a1f"/><rect x="7" y="5" width="1" height="1" fill="#ff8a1f"/><rect x="3" y="6" width="1" height="1" fill="#ff4d2e"/><rect x="4" y="6" width="1" height="1" fill="#ff4d2e"/><rect x="5" y="6" width="1" height="1" fill="#ff8a1f"/><rect x="6" y="6" width="1" height="1" fill="#ff8a1f"/><rect x="7" y="6" width="1" height="1" fill="#ff8a1f"/><rect x="9" y="6" width="1" height="1" fill="#ff4d2e"/><rect x="3" y="7" width="1" height="1" fill="#ff4d2e"/><rect x="4" y="7" width="1" height="1" fill="#ff8a1f"/><rect x="5" y="7" width="1" height="1" fill="#ff8a1f"/><rect x="6" y="7" width="1" height="1" fill="#ff8a1f"/><rect x="7" y="7" width="1" height="1" fill="#ff8a1f"/><rect x="8" y="7" width="1" height="1" fill="#ff4d2e"/><rect x="9" y="7" width="1" height="1" fill="#ff4d2e"/><rect x="2" y="8" width="1" height="1" fill="#ff4d2e"/><rect x="3" y="8" width="1" height="1" fill="#ff4d2e"/><rect x="4" y="8" width="1" height="1" fill="#ff8a1f"/><rect x="5" y="8" width="1" height="1" fill="#ff8a1f"/><rect x="6" y="8" width="1" height="1" fill="#ff8a1f"/><rect x="7" y="8" width="1" height="1" fill="#ff8a1f"/><rect x="8" y="8" width="1" height="1" fill="#ff4d2e"/><rect x="9" y="8" width="1" height="1" fill="#ff4d2e"/><rect x="2" y="9" width="1" height="1" fill="#ff4d2e"/><rect x="3" y="9" width="1" height="1" fill="#ff8a1f"/><rect x="4" y="9" width="1" height="1" fill="#ff8a1f"/><rect x="5" y="9" width="1" height="1" fill="#ff8a1f"/><rect x="6" y="9" width="1" height="1" fill="#ff8a1f"/><rect x="7" y="9" width="1" height="1" fill="#ff8a1f"/><rect x="8" y="9" width="1" height="1" fill="#ff8a1f"/><rect x="9" y="9" width="1" height="1" fill="#ff4d2e"/><rect x="1" y="10" width="1" height="1" fill="#ff4d2e"/><rect x="2" y="10" width="1" height="1" fill="#ff4d2e"/><rect x="3" y="10" width="1" height="1" fill="#ff8a1f"/><rect x="4" y="10" width="1" height="1" fill="#ff8a1f"/><rect x="5" y="10" width="1" height="1" fill="#ff8a1f"/><rect x="6" y="10" width="1" height="1" fill="#ffd84a"/><rect x="7" y="10" width="1" height="1" fill="#ff8a1f"/><rect x="8" y="10" width="1" height="1" fill="#ff8a1f"/><rect x="9" y="10" width="1" height="1" fill="#ff8a1f"/><rect x="10" y="10" width="1" height="1" fill="#ff4d2e"/><rect x="1" y="11" width="1" height="1" fill="#ff4d2e"/><rect x="2" y="11" width="1" height="1" fill="#ff8a1f"/><rect x="3" y="11" width="1" height="1" fill="#ff8a1f"/><rect x="4" y="11" width="1" height="1" fill="#ff8a1f"/><rect x="5" y="11" width="1" height="1" fill="#ffd84a"/><rect x="6" y="11" width="1" height="1" fill="#ffd84a"/><rect x="7" y="11" width="1" height="1" fill="#ffd84a"/><rect x="8" y="11" width="1" height="1" fill="#ff8a1f"/><rect x="9" y="11" width="1" height="1" fill="#ff8a1f"/><rect x="10" y="11" width="1" height="1" fill="#ff8a1f"/><rect x="11" y="11" width="1" height="1" fill="#ff4d2e"/><rect x="1" y="12" width="1" height="1" fill="#ff4d2e"/><rect x="2" y="12" width="1" height="1" fill="#ff8a1f"/><rect x="3" y="12" width="1" height="1" fill="#ff8a1f"/><rect x="4" y="12" width="1" height="1" fill="#ffd84a"/><rect x="5" y="12" width="1" height="1" fill="#ffd84a"/><rect x="6" y="12" width="1" height="1" fill="#ffd84a"/><rect x="7" y="12" width="1" height="1" fill="#ffd84a"/><rect x="8" y="12" width="1" height="1" fill="#ffd84a"/><rect x="9" y="12" width="1" height="1" fill="#ff8a1f"/><rect x="10" y="12" width="1" height="1" fill="#ff8a1f"/><rect x="11" y="12" width="1" height="1" fill="#ff8a1f"/><rect x="12" y="12" width="1" height="1" fill="#ff4d2e"/><rect x="1" y="13" width="1" height="1" fill="#ff4d2e"/><rect x="2" y="13" width="1" height="1" fill="#ff8a1f"/><rect x="3" y="13" width="1" height="1" fill="#ff8a1f"/><rect x="4" y="13" width="1" height="1" fill="#ffd84a"/><rect x="5" y="13" width="1" height="1" fill="#ffd84a"/><rect x="6" y="13" width="1" height="1" fill="#ffd84a"/><rect x="7" y="13" width="1" height="1" fill="#ffd84a"/><rect x="8" y="13" width="1" height="1" fill="#ffd84a"/><rect x="9" y="13" width="1" height="1" fill="#ff8a1f"/><rect x="10" y="13" width="1" height="1" fill="#ff8a1f"/><rect x="11" y="13" width="1" height="1" fill="#ff8a1f"/><rect x="12" y="13" width="1" height="1" fill="#ff4d2e"/><rect x="1" y="14" width="1" height="1" fill="#ff4d2e"/><rect x="2" y="14" width="1" height="1" fill="#ff4d2e"/><rect x="3" y="14" width="1" height="1" fill="#ff8a1f"/><rect x="4" y="14" width="1" height="1" fill="#ff8a1f"/><rect x="5" y="14" width="1" height="1" fill="#ffd84a"/><rect x="6" y="14" width="1" height="1" fill="#ffd84a"/><rect x="7" y="14" width="1" height="1" fill="#ffd84a"/><rect x="8" y="14" width="1" height="1" fill="#ff8a1f"/><rect x="9" y="14" width="1" height="1" fill="#ff8a1f"/><rect x="10" y="14" width="1" height="1" fill="#ff8a1f"/><rect x="11" y="14" width="1" height="1" fill="#ff4d2e"/><rect x="2" y="15" width="1" height="1" fill="#ff4d2e"/><rect x="3" y="15" width="1" height="1" fill="#ff8a1f"/><rect x="4" y="15" width="1" height="1" fill="#ff8a1f"/><rect x="5" y="15" width="1" height="1" fill="#ffd84a"/><rect x="6" y="15" width="1" height="1" fill="#ffd84a"/><rect x="7" y="15" width="1" height="1" fill="#ffd84a"/><rect x="8" y="15" width="1" height="1" fill="#ff8a1f"/><rect x="9" y="15" width="1" height="1" fill="#ff8a1f"/><rect x="10" y="15" width="1" height="1" fill="#ff8a1f"/><rect x="11" y="15" width="1" height="1" fill="#ff4d2e"/><rect x="2" y="16" width="1" height="1" fill="#ff4d2e"/><rect x="3" y="16" width="1" height="1" fill="#ff4d2e"/><rect x="4" y="16" width="1" height="1" fill="#ff8a1f"/><rect x="5" y="16" width="1" height="1" fill="#ff8a1f"/><rect x="6" y="16" width="1" height="1" fill="#ff8a1f"/><rect x="7" y="16" width="1" height="1" fill="#ff8a1f"/><rect x="8" y="16" width="1" height="1" fill="#ff8a1f"/><rect x="9" y="16" width="1" height="1" fill="#ff8a1f"/><rect x="10" y="16" width="1" height="1" fill="#ff4d2e"/><rect x="11" y="16" width="1" height="1" fill="#ff4d2e"/><rect x="3" y="17" width="1" height="1" fill="#ff4d2e"/><rect x="4" y="17" width="1" height="1" fill="#ff4d2e"/><rect x="5" y="17" width="1" height="1" fill="#ff8a1f"/><rect x="6" y="17" width="1" height="1" fill="#ff8a1f"/><rect x="7" y="17" width="1" height="1" fill="#ff8a1f"/><rect x="8" y="17" width="1" height="1" fill="#ff8a1f"/><rect x="9" y="17" width="1" height="1" fill="#ff4d2e"/><rect x="10" y="17" width="1" height="1" fill="#ff4d2e"/><rect x="4" y="18" width="1" height="1" fill="#ff4d2e"/><rect x="5" y="18" width="1" height="1" fill="#ff4d2e"/><rect x="6" y="18" width="1" height="1" fill="#ff4d2e"/><rect x="7" y="18" width="1" height="1" fill="#ff4d2e"/><rect x="8" y="18" width="1" height="1" fill="#ff4d2e"/><rect x="9" y="18" width="1" height="1" fill="#ff4d2e"/><rect x="5" y="19" width="1" height="1" fill="#ff4d2e"/><rect x="6" y="19" width="1" height="1" fill="#ff4d2e"/><rect x="7" y="19" width="1" height="1" fill="#ff4d2e"/><rect x="8" y="19" width="1" height="1" fill="#ff4d2e"/></svg></span>Fee routing, and what may be claimed about it</p><h1 class="rise d1">Charlie Protocol</h1><p class="tagline rise d2">Every number on this page names the check that could falsify it.</p></div></div><div class="scene" aria-hidden="true"><div class="scene-track"><div class="walker"><div class="facing"><img class="charlie walk" src="/assets/charlie.png" width="383" height="484" alt="" decoding="async"></div></div></div><div class="furnace"><span class="smoke-drift"><img class="smoke" src="/assets/incinerator-smoke.png" alt="" decoding="async"></span><img class="stack" src="/assets/incinerator-stack.png" alt="" decoding="async"></div></div><div class="hero-verify rise d3"><form class="verify-form" method="get" action="/verify"><label for="mint">Check a coin. Paste its contract address (CA)</label><input id="mint" name="mint" type="text" inputmode="latin" autocomplete="off" spellcheck="false" placeholder="paste the CA here" pattern="[1-9A-HJ-NP-Za-km-z]{32,44}" required><button type="submit">Verify</button></form><p class="meta">Any pump.fun coin. No wallet, no signup. The chain is read while you wait.</p><p class="meta">Own a coin? <a href="/enroll">Set where its creator fee goes</a>.</p></div><div class="hero-rule"></div><div class="rise d3"><div class="freshness"><p class="meta">observed at 2026-09-07 21:31:12Z (epoch 1788816672.6547034)</p><p class="meta">age: 1 second</p><p class="meta snapshot-note">This page is a snapshot taken at the observation time above -- it does not update itself, and nothing on it reads your clock.</p></div></div></div></header><main><section id="flywheel"><h2>The loop</h2><p>Fees are not collected here. They are spent destroying supply, and the destroying is what produces the next fee.</p><figure class="fly"><div class="fly-stage" aria-hidden="true"><svg class="fly-ring" viewBox="0 0 240 240" focusable="false"><circle class="fly-path" cx="120" cy="120" r="92"></circle><g class="fly-ticks"><circle cx="120" cy="28" r="5"></circle><circle cx="212" cy="120" r="5"></circle><circle cx="120" cy="212" r="5"></circle><circle cx="28" cy="120" r="5"></circle></g></svg><div class="fly-hub"><span class="smoke-drift"><img class="smoke" src="/assets/incinerator-smoke.png" alt="" decoding="async"></span><img class="stack" src="/assets/incinerator-stack.png" alt="" decoding="async"></div><div class="fly-orbit"><div class="fly-rider"><svg class="payload" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><rect x="2" y="2" width="12" height="12" class="coin-body"></rect><rect x="4" y="5" width="8" height="2" class="coin-mark"></rect><rect x="4" y="9" width="8" height="2" class="coin-mark"></rect></svg><img class="charlie" src="/assets/charlie.png" width="383" height="484" alt="" decoding="async"></div></div></div><figcaption>Charlie carrying it round, and into the fire.</figcaption></figure><ol class="fly-steps"><li><h3>Trading pays a creator fee</h3><p>Every buy and every sell on the coin generates one. It accrues whether anyone is watching or not.</p></li><li><h3>The fee buys the token, and the token is burned</h3><p>Supply falls, and it cannot be reissued: the mint authority is revoked.</p></li><li><h3>Buying is volume, and volume pays more fees</h3><p>The burn is funded by the activity it creates. That is the part that turns a mechanism into a loop.</p></li><li><h3>A share reaches Solana&#x27;s incinerator</h3><p>The runtime removes those lamports from the total supply at the end of the block. Two supplies fall at once: the coin&#x27;s, and Solana&#x27;s.</p></li></ol><p class="meta">Every number this produces is checked before it is shown, and withheld when it is not. That is the rest of this site.</p></section><section id="counters" aria-label="live counters"><div class="section-art"><img class="charlie-gif" src="/assets/charlie-found.gif" width="256" height="256" alt="Charlie, throwing out the drafts that did not check out" decoding="async" loading="lazy"><svg class="chart" viewBox="0 0 52 28" width="52" height="28" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A chart, moving"><rect x="0" y="8" width="52" height="1" fill="#3E6B1C"/><rect x="0" y="16" width="52" height="1" fill="#3E6B1C"/><rect x="0" y="24" width="52" height="1" fill="#3E6B1C"/><rect class="bar b0" x="4" y="14" width="5" height="10" fill="#8FE13F"/><rect class="bar b1" x="12" y="9" width="5" height="16" fill="#8FE13F"/><rect class="bar b2" x="20" y="18" width="5" height="6" fill="#8FE13F"/><rect class="bar b3" x="28" y="5" width="5" height="20" fill="#8FE13F"/><rect class="bar b4" x="36" y="12" width="5" height="13" fill="#8FE13F"/><rect class="bar b5" x="44" y="2" width="5" height="23" fill="#8FE13F"/></svg><p class="section-label">Observed, and where each one comes from</p></div><div class="counter-cell rise d1"><p class="counter-value">956,338,570.365904</p><p class="counter-label">Supply remaining</p><p class="counter-source meta">mint_state.supply</p></div><div class="counter-cell rise d2"><p class="counter-value">1,000,000,000.000000</p><p class="counter-label">Initial supply</p><p class="counter-source meta">evidence.initial_supply.raw_supply</p></div><div class="counter-cell rise d3"><p class="counter-value">30</p><p class="counter-label">Recorded burn transactions</p><p class="counter-source meta">len(burn_events)</p></div><div class="counter-cell rise d4"><p class="counter-value">43,576,580.427900</p><p class="counter-label">Tokens in those burns</p><p class="counter-source meta">sum(tokens_burned across burn_events)</p></div><div class="counter-cell rise d5"><p class="counter-value">17.584506254</p><p class="counter-label">SOL spent buying them</p><p class="counter-source meta">sum(sol_spent across burn_events)</p></div><div class="counter-cell rise d6"><p class="counter-value">1 transaction -- 1,100.000000 tokens</p><p class="counter-label">Burned by hand, not by boost</p><p class="counter-source meta">burn_events where source != boost_buy_and_burn</p></div></section><section id="why-counted"><p>The last counter is people destroying their own tokens. No mechanism ran, nothing asked them to, and no reward was paid for it -- one of them so far. They are counted anyway, on purpose. The figure they feed asks how much of this token is gone, not how much of it this protocol destroyed; a protocol that counted only its own burns would report the ones it caused and quietly drop everyone else's. So the walk records every burn against the mint, by anyone.</p><p>It does not follow that the shortfall below is more of the same. That gap is unattributed. Naming a cause for it here is exactly the claim this page will not make.</p></section><section class="supply-refusal status-unchecked" data-refusal="supply"><p>Both supply endpoints render above. This page declines to subtract them -- the difference would be a checked figure, and the check that backs it is shown below, exactly as it reads right now.</p><div class="check-row" data-check="BURN_SUPPLY"><span class="check-name">BURN_SUPPLY</span><span class="badge status-fail">FAIL</span><span class="check-equation">initial_supply - sum(burn_amounts) == getMint(mint).supply</span><p class="check-detail">claimed burns do not reconcile against the mint supply</p><p class="check-expected-actual">expected 956423419572100 | actual 956338570365904</p></div></section><section id="what-this-is"><p>Charlie Protocol is a fee-routing and verification standard for pump.fun coins, naming three destinations for creator fees -- BURN (SOL), BURN (token), OPS -- and specifying the part nobody else does: what a coin is permitted to claim about them in public. Both burn: a SOL burn is deflation, SOL sent where no key can spend it, a BURN destroys token supply. The word is only permitted where the destination is provably unspendable -- and $CHARLIE&#x27;s is not.</p></section><section id="launch-soon"><div class="soon-head"><h2>Launch with Charlie Protocol</h2><span class="badge status-unchecked">Coming soon</span></div><p>When it ships, a coin will name its three fee destinations when it is created -- SOL_BURN, BURN and OPS -- and its SOL burn vault will be derived by the program rather than chosen by whoever deploys it. The coin then gets a page like this one, on which no figure renders unless a passing check backs it.</p><p>Enrollment is open at /enroll. The protocol&#x27;s share is 0.24% of every trade -- pump pays the coin&#x27;s creator a fee out of each one, and the protocol takes 25% of that fee. A coin is enrolled when its pump fee-sharing config pays the protocol&#x27;s collection wallet that share. pump enforces the config, paying every destination from the coin&#x27;s creator vault, and once the coin&#x27;s one change is spent no key can alter it. The other 75% goes wherever the coin&#x27;s creator sends it. Every coin page and the index say whether a coin is enrolled, read from its config on the chain.</p><p>The trade figure moves with pump, not with us: the quarter is fixed, and pump&#x27;s creator fee is 95 bps of the trade at the tier a coin lands on when it graduates, 30 bps while it is still on its bonding curve, and as little as 5 bps above roughly 98,240 SOL of market cap. The quoted rate is the graduation tier.</p><p>What does not exist yet is our program: the vaults it would derive and the buy-and-burn crank. Until it does, the protocol&#x27;s share is collected from pump by hand and spent buying $CHARLIE and burning it, and the chain shows the collecting, not the spending.</p><p>$CHARLIE itself cannot enroll. Its config reads admin_revoked, which is how pump records that a coin has already used the single change it is allowed, and only pump can reset it.</p><p>It will land in the repository linked below. There is nothing to sign up for and nothing to buy in order to be ready for it.</p></section><section id="two-ways-in"><p><a href="/coin/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump">View $CHARLIE, checked<span class="visually-hidden"> (opens the checked coin page)</span></a></p><p><a href="/coin/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json">View its raw observation record<span class="visually-hidden"> (opens the raw JSON record)</span></a></p></section><footer><p>Spec, code and committed evidence: <a href="https://github.com/needsmorergb/charlie-protocol-v1">https://github.com/needsmorergb/charlie-protocol-v1</a></p><p>Every counter above is recomputable from the record published at <a href="/coin/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json">/coin/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json</a>.</p><p>The publication sweep proves no ungated figure can leak onto this page. It does not prove the numbers shown are the right ones, because nothing independently checks that this renderer faithfully reflects the record it was generated from.</p></footer></main></body></html>

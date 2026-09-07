@@ -1,420 +1,378 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Enroll Coin — Burn SOL to Decrease Inflation (Phase 5 Standby)</title>
-  <meta name="description" content="Route pump.fun trading creator fees directly to the Sol-Incinerator to permanently burn SOL and decrease Solana network inflation. Phase 5 Protocol Standby.">
-  
-  <!-- Modern Font Pairing -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="./assets/preview.css?v=fire5">
-  <!-- Vercel Web Analytics & Speed Insights -->
-  <script>
-    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-  </script>
-  <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
-  <script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
-</head>
-<body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Enroll your coin -- Charlie Protocol</title><meta name="description" content="Connect the wallet that launched your pump.fun coin and set where its creator fee goes, in one signature."><meta property="og:title" content="Enroll your coin -- Charlie Protocol"><meta property="og:description" content="Connect the wallet that launched your pump.fun coin and set where its creator fee goes, in one signature."><meta property="og:type" content="website"><meta property="og:image" content="https://charlieprotocol.fun/assets/meta-image.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Enroll your coin -- Charlie Protocol"><meta name="twitter:description" content="Connect the wallet that launched your pump.fun coin and set where its creator fee goes, in one signature."><meta name="twitter:image" content="https://charlieprotocol.fun/assets/meta-image.png"><style>
+:root {
+  --paper: #FAF7F0;
+  --panel: #EFEAE0;
+  --accent: #1D4E89;
+  --destructive: #A3271F;
+  --unchecked: #7A5A12;
+  --ink: #1A1A1A;
+  --pass-glyph: #6B6558;
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 32px;
+  --sp-2xl: 48px;
+  --sp-3xl: 64px;
+}
+.verify-form { display: flex; flex-wrap: wrap; gap: var(--sp-sm);
+  align-items: center; margin: var(--sp-lg) 0; }
+.verify-form label { flex: 1 1 100%; font-size: 14px; }
+.verify-form input {
+  flex: 1 1 22em; min-width: 0; padding: var(--sp-sm);
+  font-family: inherit; font-size: 16px;
+  border: 1px solid var(--unchecked); background: #fff; color: var(--ink);
+}
+.verify-form button {
+  padding: var(--sp-sm) var(--sp-lg); font-family: inherit; font-size: 16px;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+  cursor: pointer; min-height: 44px;
+}
+.verify-form button:hover, .verify-form button:focus-visible {
+  background: var(--accent); border-color: var(--accent);
+}
+.hero-verify { margin: var(--sp-xl) 0 0 0; }
+.hero-verify .meta { margin: 0; }
 
-  <!-- =========================================================================
-       0. Global Facility Telemetry Strip
-       ========================================================================= -->
-  <aside class="facility-telemetry-strip" aria-label="Solana Network & Facility Telemetry">
-    <div class="facility-telemetry-inner">
-      <div class="telemetry-pill">
-        <span class="telemetry-led"></span>
-        <span class="telemetry-label">NETWORK:</span>
-        <span class="telemetry-value">SOLANA MAINNET-BETA</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SLOT:</span>
-        <span id="telSlot" class="telemetry-value font-mono">312,894,204</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SOL-INCINERATOR:</span>
-        <span id="telIncinerated" class="telemetry-value telemetry-value--ember font-mono">1,489,204.38 SOL</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">FACILITY TPS:</span>
-        <span id="telTps" class="telemetry-value telemetry-value--green font-mono">2,984</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">SOL INFLATION OFFSET:</span>
-        <span class="telemetry-value telemetry-value--ember font-mono">-1,489,204 SOL BURNED</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">ENROLLMENT STATUS:</span>
-        <span class="telemetry-value telemetry-value--ember font-mono">GATED // PHASE 5 STANDBY</span>
-      </div>
-    </div>
-  </aside>
+.scanner {
+  display: inline-flex; background: #000; padding: var(--sp-sm);
+  margin: var(--sp-md) 0 0 0; line-height: 0;
+  border: 1px solid var(--unchecked);
+}
+.scanner .scanning {
+  image-rendering: pixelated; display: block;
+  width: clamp(132px, 20vw, 188px); height: auto;
+}
+.verify-form { display: flex; flex-wrap: wrap; gap: var(--sp-sm);
+  align-items: center; margin: var(--sp-lg) 0; }
+.verify-form label { flex: 1 1 100%; font-size: 14px; }
+.verify-form input {
+  flex: 1 1 22em; min-width: 0; padding: var(--sp-sm);
+  font-family: inherit; font-size: 15px;
+  border: 1px solid var(--unchecked); background: #fff; color: var(--ink);
+}
+.verify-form button {
+  padding: var(--sp-sm) var(--sp-lg); font-family: inherit; font-size: 15px;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+  cursor: pointer;
+}
+.verify-form button:hover, .verify-form button:focus-visible { background: var(--accent); border-color: var(--accent); }
 
-  <!-- =========================================================================
-       1. Global Sticky Header
-       ========================================================================= -->
-  <header class="site-header">
-    <div class="header-inner">
-      <a href="./index.html" class="brand-lockup">
-        <span class="flame-box">
-          <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-          </svg>
-        </span>
-        <span>Charlie Protocol</span>
-      </a>
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
+  padding: var(--sp-xl) var(--sp-lg);
+  overflow-wrap: anywhere;
+}
+h1 { font-size: 28px; font-weight: 700; margin: 0 0 var(--sp-md) 0; }
+.meta { font-size: 14px; font-weight: 400; margin: 0 0 var(--sp-xs) 0; }
+a { color: var(--accent); }
+.index-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-xs) var(--sp-md);
+  background: var(--panel);
+  padding: var(--sp-md);
+  margin-bottom: var(--sp-md);
+  border-left: 1px dashed var(--unchecked);
+}
+.index-mint {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.index-split, .index-withheld { font-size: 14px; flex: 2 1 260px; min-width: 0; }
+.index-enrolled { font-size: 13px; color: var(--pass-glyph); border: 1px solid var(--pass-glyph); padding: 1px 6px; }
+.index-not-enrolled { font-size: 13px; color: var(--unchecked); border: 1px dashed var(--unchecked); padding: 1px 6px; }
+.index-backs { font-size: 13px; color: var(--unchecked); flex-basis: 100%; }
+.index-links { font-size: 14px; display: flex; gap: var(--sp-sm); flex: 0 0 auto; }
+.index-nav { margin-top: var(--sp-lg); display: flex; gap: var(--sp-md); }
 
-      <nav class="site-nav">
-        <a href="./index.html" class="nav-link">Home</a>
-        <a href="./verify.html" class="nav-link">Verify CA</a>
-        <a href="./enroll.html" class="nav-link active">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
-        <a href="./coins.html" class="nav-link">Directory</a>
-        <a href="./coin.html" class="nav-link">Audit View</a>
-      </nav>
+button.primary { padding: var(--sp-sm) var(--sp-lg); font-family: inherit;
+  font-size: 16px; min-height: 44px; border: 1px solid var(--ink);
+  background: var(--ink); color: var(--paper); cursor: pointer; }
+button.primary:hover, button.primary:focus-visible {
+  background: var(--accent); border-color: var(--accent); }
+.share-row { display: flex; flex-wrap: wrap; gap: var(--sp-sm);
+  margin-bottom: var(--sp-sm); align-items: center; }
+.share-row .share-addr { flex: 1 1 18em; min-width: 0; padding: var(--sp-sm);
+  font-family: inherit; font-size: 16px; border: 1px solid var(--unchecked); background: #fff; }
+.share-row .share-bps { flex: 0 0 6em; padding: var(--sp-sm); font-family: inherit;
+  font-size: 16px; border: 1px solid var(--unchecked); background: #fff; }
+.share-row .rm { padding: var(--sp-sm); font-family: inherit; background: none;
+  border: 1px dashed var(--unchecked); cursor: pointer; min-height: 44px; color: var(--ink); }
+.share-row .share-what { flex: 1 1 100%; font-size: 14px; line-height: 1.4;
+  color: var(--ink); opacity: 0.8; margin-top: -2px; }
+.share-row.locked .share-addr, .share-row.locked .share-bps { background: var(--panel); color: var(--ink); }
+.share-row.locked .rm { border-style: solid; cursor: default; }
+#total.ok { color: var(--pass-glyph); font-weight: 700; }
+#total.bad { color: var(--destructive); font-weight: 700; }
+.note { font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.note.bad { color: var(--destructive); }
+.note.good { color: var(--pass-glyph); }
+/* NOT `warn`: `say()` writes class="note <kind>", and `.warn` below is a
+   destructive red callout used for the one-way-door notice. A caution the dev
+   may act on must not wear the styling of a refusal. */
+.note.caution { color: var(--unchecked); }
+pre.note { background: var(--panel); padding: var(--sp-md); overflow-x: auto; margin: var(--sp-md) 0; }
+.warn { border-left: 4px solid var(--destructive); background: rgba(163,39,31,0.08);
+  padding: var(--sp-md); margin: var(--sp-md) 0; }
+</style><script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };</script><script defer src="https://va.vercel-scripts.com/v1/script.js"></script><script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script></head><body><header><h1>Enroll your coin</h1><p>Connect the wallet that launched the coin and set where its creator fee goes. If the coin has no pump fee-sharing config yet, which is normal for a new launch, one signature creates it and sets the split. Your key never leaves your wallet: this page builds a transaction, your wallet signs it.</p></header><main><section><h2>1. Connect</h2><button type="button" id="connect" class="primary">Connect wallet</button><p id="connected" hidden>Connected: <code id="walletAddr"></code></p><p id="walletNote" class="note"></p></section><section><h2>2. Name the coin</h2><p>Ownership is decided by the chain. For a coin with no fee-sharing config yet, that means the wallet its bonding curve names as creator; for a coin that has one, the key its config names as admin.</p><div class="verify-form"><label for="mint">Contract address (CA)</label><input id="mint" type="text" spellcheck="false" autocomplete="off" placeholder="paste the CA here"><button type="button" id="inspect">Check ownership</button></div><p id="coinNote" class="note"></p></section><section id="splitBox" hidden><h2>3. Set the split</h2><p>The first row is the protocol&#x27;s share: <strong>0.24% of every trade</strong>, fixed. It is the price of enrolling, and it funds buying and burning $CHARLIE. Every other row is yours to set. The second row is the buy-back-and-burn row: a wallet you hold that runs the keeper against this coin, so the SOL that lands there buys your coin and burns it. Paste that wallet and give it a share, or leave the row blank and it is not sent. The defaults send 20% to Solana&#x27;s incinerator and the rest to your wallet. Each row says what it does; the section below says how to run the keeper.</p><p class="note">Where that number comes from: pump pays the coin&#x27;s creator a fee out of every trade, and the protocol takes 25% of it. The 25% is what is fixed. The creator fee itself is a rate pump sets: 95 bps of the trade on the pump AMM at the tier a coin lands on when it graduates, which is 0.24% to the protocol, and 30 bps while the coin is still on its bonding curve, which is 0.075%. Above roughly 98,240 SOL of market cap pump&#x27;s creator fee falls to 5 bps and the protocol&#x27;s share falls with it.</p><div class="warn"><strong>pump lets a coin&#x27;s split be changed once.</strong> After this is sent, no key can change it again, including yours. Check every destination before you sign.</div><div id="shares"></div><p><button type="button" id="addRow">Add a destination</button> &nbsp; Total: <span id="total">100.00%</span> (must be exactly 100%)</p><p><button type="button" id="build" class="primary">Check this split</button></p><pre id="buildNote" class="note"></pre><p><button type="button" id="send" class="primary" hidden>Sign and send</button></p><p id="sendNote" class="note"></p></section><section><h2>What a destination means</h2><p>One row is filled in with <code>1nc1nerator11111111111111111111111111111111</code>, Solana&#x27;s incinerator. Its source says lamports credited there are removed from the total supply at the end of the block. SOL sent there is destroyed, not stored, and that is what deflation means.</p><p>Any other address you put here simply receives the SOL. Only the incinerator reduces the supply, so if that is what you want, keep it in the split.</p><p>Buying your own coin back and burning it is the protocol&#x27;s BURN leg: SOL buys the token on its pump pool, then an SPL burn destroys what was bought, in one transaction, so the coin&#x27;s own supply falls and nothing is left in a wallet. No on-chain program runs that leg yet, so there is no address you can paste that does it by itself. Today it is run from a wallet you hold: put that wallet in the split, and run the keeper from the repository against it (<code>python -m indexer buyback &lt;mint&gt; --keypair ... --every N</code>). It buys on the coin&#x27;s bonding curve while the coin is on it, and on the pump AMM after it graduates, switching by itself; the burn is the same either way.</p><p>The coin&#x27;s page records every such burn as burned by hand, counts it toward supply destroyed, and until the program exists names that wallet an ordinary wallet rather than a protocol burn, because that is what the chain shows. When the program ships it will derive a burn address per coin, and a share pointed there will be cranked for you.</p><p>The protocol&#x27;s 25% is collected at the address on the first row and spent running that same leg on $CHARLIE: buying it and burning it. No on-chain program enforces that share yet: this page refuses to build a split without it, and the program that will enforce it is in the repository linked from the front page.</p><p><a href="/verify.html">Check any coin</a>.</p></section></main><p class="meta">generated at 2026-09-07 21:31:12Z</p><script>
+var state = {wallet: null, mint: null, built: null, toll: null, create: false};
+function $(id) { return document.getElementById(id); }
+function say(id, msg, kind) { var n = $(id); n.textContent = msg; n.className = 'note ' + (kind || ''); }
 
-      <div class="header-actions">
-        <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
-          <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <line x1="23" y1="9" x2="17" y2="15"></line>
-            <line x1="17" y1="9" x2="23" y2="15"></line>
-          </svg>
-          <span>Sound Off</span>
-        </button>
-      </div>
-    </div>
-  </header>
+function provider() {
+  var p = (window.phantom && window.phantom.solana) || window.solana;
+  if (p && p.isPhantom) { return p; }
+  if (window.solflare && window.solflare.isSolflare) { return window.solflare; }
+  return p || null;
+}
 
-  <main>
-    <!-- =========================================================================
-         2. Standby Hero Header: Mission to Decrease Solana Inflation
-         ========================================================================= -->
-    <div style="margin-bottom: var(--sp-xl);">
-      <div class="eyebrow">
-        <span class="status-pill status-pill--unverified" style="border-color: rgba(255, 138, 31, 0.4); background: rgba(255, 138, 31, 0.1);">
-          <span class="status-pill-led" style="background: var(--flame-warm); box-shadow: 0 0 10px var(--flame-warm);"></span>
-          <span class="status-pill-text" style="color: var(--flame-warm);">SOL INFLATION COUNTERMEASURE // STANDBY</span>
-        </span>
-        <span class="gatekeep-tag font-mono">PHASE 5 COMING SOON // NOT LIVE ON MAINNET YET</span>
-      </div>
-      <h1 style="margin-top: var(--sp-sm);">Burn SOL to Decrease Solana Inflation</h1>
-      <p style="font-size: 17px; max-width: 68ch; color: var(--text-secondary); line-height: 1.6;">
-        The primary mission of Charlie Protocol is combating Solana network inflation by routing trading creator fees directly into the native Sol-Incinerator (<code class="mono">1nc1nerator...</code>). Lamports are destroyed at the block boundary to permanently reduce circulating SOL supply. Public creator enrollment will unlock with Phase 5 mainnet deployment.
-      </p>
-    </div>
+async function connect() {
+  var p = provider();
+  if (!p) { say('walletNote', 'No Solana wallet found in this browser. Install Phantom or Solflare, then reload.', 'bad'); return; }
+  try {
+    var r = await p.connect();
+    var key = (r && r.publicKey) || p.publicKey;
+    state.wallet = key.toString();
+    $('walletAddr').textContent = state.wallet;
+    $('connected').hidden = false;
+    $('connect').hidden = true;
+    say('walletNote', '', '');
+    if ($('mint').value.trim()) { await inspect(); }
+  } catch (e) {
+    say('walletNote', 'Wallet connection was refused. Nothing happened.', 'bad');
+  }
+}
 
-    <!-- =========================================================================
-         3. Master Gatekeep Standby Console
-         ========================================================================= -->
-    <section class="gatekeep-banner cyber-card cyber-card--chamfer" aria-label="Protocol Gatekeep Notice">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div class="gatekeep-header">
-        <div style="display: flex; align-items: center; gap: var(--sp-sm); flex-wrap: wrap;">
-          <span class="gatekeep-badge">
-            <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-            ENROLLMENT LOCKED // STANDBY
-          </span>
-          <span class="mono font-mono" style="font-size: 11px; color: var(--flame-warm);">
-            TARGET: PERMANENT SOL DEFLATION VIA 1nc1nerator...
-          </span>
-        </div>
-        <span class="mono font-mono" style="font-size: 11px; color: var(--text-muted);">
-          SAFETY INVARIANT: ZERO LIVE SENDS
-        </span>
-      </div>
-
-      <div class="gatekeep-body">
-        <h2>Why is Enrollment Gated?</h2>
-        <p>
-          On Solana pump.fun, creator fee routing is a <strong>permanent, irreversible one-way door</strong>. Once deployer authority is delegated to fee-sharing instructions, no key on earth can alter it. To ensure total community security and absolute fidelity to the Sol-Incinerator burn mandate, Charlie Protocol enrollments remain strictly gated while our smart contracts undergo formal verification and automated liquidation fuzzing.
-        </p>
-        <p>
-          When Phase 5 ships, coin deployers will be able to lock permanent Sol-Incinerator fee burns in a <strong>single client-side signature</strong> with zero custody risk, permanently decreasing Solana's circulating supply with every trade.
-        </p>
-
-        <div class="gatekeep-grid font-mono" style="margin-top: var(--sp-md);">
-          <div class="gatekeep-stat">
-            <span class="stat-lbl">CORE MISSION:</span>
-            <span class="stat-val" style="color: var(--flame-warm);">Combat Solana Network Inflation</span>
-          </div>
-          <div class="gatekeep-stat">
-            <span class="stat-lbl">PRIMARY DESTINATION:</span>
-            <span class="stat-val" style="color: var(--sol-blue);">Sol-Incinerator (1nc1nerator...)</span>
-          </div>
-          <div class="gatekeep-stat">
-            <span class="stat-lbl">SUPPLY REDUCTION:</span>
-            <span class="stat-val" style="color: var(--neon-charlie);">100% Destroyed at Block Boundary</span>
-          </div>
-          <div class="gatekeep-stat">
-            <span class="stat-lbl">ENROLLMENT ACCESS:</span>
-            <span class="stat-val" style="color: var(--flame-warm);">Gated // Standby for Phase 5</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- =========================================================================
-         4. Phase 5 Protocol Architecture & Blueprint Preview
-         ========================================================================= -->
-    <section class="blueprint-card cyber-card--chamfer" aria-label="Phase 5 Architecture Blueprint">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-md);">
-        <div>
-          <div class="eyebrow" style="margin-bottom: 4px;">
-            <span class="status-pill-led" style="background: var(--neon-charlie); box-shadow: 0 0 10px var(--neon-charlie);"></span>
-            <span>SPECIFICATION ARCHITECTURE // COMING IN PHASE 5</span>
-          </div>
-          <h2 style="font-size: 22px; margin: 0;">How Phase 5 Enrollment Operates</h2>
-        </div>
-        <span class="mono font-mono" style="font-size: 11.5px; color: var(--neon-charlie); background: rgba(143, 225, 63, 0.1); border: 1px solid rgba(143, 225, 63, 0.3); padding: 4px 10px; border-radius: 4px;">
-          NON-CUSTODIAL ATOMIC INSTRUCTION
-        </span>
-      </div>
-
-      <p style="font-size: 14.5px; color: var(--text-secondary); max-width: 72ch; margin-bottom: var(--sp-lg);">
-        Below is the deterministic execution pipeline that will unlock for coin deployers in Phase 5. No key ever leaves the creator's wallet; the Charlie client compiles the instructions and the creator signs once.
-      </p>
-
-      <!-- 4-Step Architectural Flow Grid -->
-      <div class="blueprint-flow-grid">
-        <div class="blueprint-flow-item">
-          <span class="blueprint-flow-num">01</span>
-          <div class="blueprint-flow-title">1. Deployer Authority Check</div>
-          <p class="blueprint-flow-desc">
-            The client reads the pump.fun bonding curve on Solana mainnet to verify that your wallet holds the unspent fee-sharing allocation slot.
-          </p>
-        </div>
-
-        <div class="blueprint-flow-item">
-          <span class="blueprint-flow-num">02</span>
-          <div class="blueprint-flow-title">2. Sol-Incinerator Route</div>
-          <p class="blueprint-flow-desc">
-            Up to <strong style="color: var(--flame-warm);">100%</strong> of creator fees are routed to <code style="font-size: 11px;">1nc1nerator...</code> where lamports are permanently destroyed to combat SOL inflation.
-          </p>
-        </div>
-
-        <div class="blueprint-flow-item">
-          <span class="blueprint-flow-num">03</span>
-          <div class="blueprint-flow-title">3. Autonomous Crank Maintenance</div>
-          <p class="blueprint-flow-desc">
-            A nominal <strong style="color: var(--neon-charlie);">0.25% fee per transaction</strong> sustains the decentralized crank infrastructure and buys/burns $CHARLIE.
-          </p>
-        </div>
-
-        <div class="blueprint-flow-item">
-          <span class="blueprint-flow-num">04</span>
-          <div class="blueprint-flow-title">4. One-Way Door Lock</div>
-          <p class="blueprint-flow-desc">
-            Deployer key signs one atomic transaction. The split is permanently committed on-chain and registered in the Charlie Verification Engine.
-          </p>
-        </div>
-      </div>
-
-      <!-- Protocol Specification Matrix -->
-      <div style="margin-top: var(--sp-xl); border-top: 1px solid var(--border-glass); padding-top: var(--sp-md);">
-        <h3 style="font-size: 16px; margin-bottom: var(--sp-xs); color: var(--text-primary);">
-          Phase 5 Invariant Specification Matrix
-        </h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--sp-md);">
-          Deterministic parameters enforced mathematically at the smart-contract level.
-        </p>
-
-        <div style="overflow-x: auto;">
-          <table class="blueprint-spec-table">
-            <thead>
-              <tr>
-                <th>Parameter</th>
-                <th>Standard Value</th>
-                <th>Security & Verification Invariant</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="font-weight: 700; color: var(--flame-warm);">Primary Burn Destination</td>
-                <td><code>1nc1nerator11111111111111111111111111111111</code></td>
-                <td>Solana native incinerator. Lamports are permanently removed from total supply at block boundary to decrease global SOL inflation.</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 700; color: var(--text-primary);">Solana Inflation Impact</td>
-                <td><span style="color: var(--flame-warm); font-weight: 700;">Permanent Supply Contraction</span></td>
-                <td>Directly counteracts annual validator staking issuance by converting trading volume into continuous supply destruction.</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 700; color: var(--text-primary);">Creator Operations Share (Optional)</td>
-                <td><span style="color: #60A5FA;">0.00% – 99.75%</span></td>
-                <td>Optional secondary destination for verified transparent team operational treasuries.</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 700; color: var(--text-primary);">Autonomous Crank Fee</td>
-                <td><span style="color: var(--neon-charlie);">0.25% fee per transaction</span></td>
-                <td>Nominal transaction fee allocated 100% to automated open-market purchase and burning of $CHARLIE tokens to sustain crank execution.</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 700; color: var(--text-primary);">Invariant BPS Sum</td>
-                <td><span style="color: var(--neon-charlie);">10,000 BPS (100.00%)</span></td>
-                <td>Sum of all destination basis points must equal exactly 10,000. Underflow or overflow is rejected.</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 700; color: var(--text-primary);">Revocation State</td>
-                <td><span style="color: var(--flame-warm);">Irrevocable One-Way Door</span></td>
-                <td>Authority is surrendered on-chain; no admin key can alter or redirect fees post-enrollment.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- =========================================================================
-         5. Genesis Early Access / Phase 5 Waitlist Console
-         ========================================================================= -->
-    <section class="waitlist-card cyber-card--chamfer" aria-label="Genesis Early Access Signup">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-md);">
-        <div>
-          <span class="status-pill status-pill--verified" style="margin-bottom: 6px;">
-            <span class="status-pill-led"></span>
-            <span class="status-pill-text">GENESIS WAITLIST ACTIVE</span>
-          </span>
-          <h2 style="font-size: 22px; margin: 0; color: #fff;">Get Notified for Phase 5 Mainnet Launch</h2>
-        </div>
-        <span class="mono font-mono" style="font-size: 11px; color: var(--text-muted);">
-          PRIORITY DISPATCH
-        </span>
-      </div>
-
-      <p style="font-size: 14.5px; color: var(--text-secondary); max-width: 68ch; margin-bottom: var(--sp-lg); line-height: 1.6;">
-        Want to enroll your coin to burn SOL the exact second Phase 5 smart contracts deploy to Solana mainnet? Enter your contact handle or Solana wallet address to join the Genesis launch queue.
-      </p>
-
-      <form id="waitlistForm" onsubmit="handleWaitlistSubmit(event)" style="display: flex; gap: var(--sp-sm); flex-wrap: wrap; margin-bottom: var(--sp-sm);">
-        <input 
-          type="text" 
-          id="waitlistInput" 
-          class="waitlist-input" 
-          placeholder="Enter Telegram (@handle), X (@handle), or Solana wallet address..." 
-          required
-        >
-        <div class="btn-conic-glow">
-          <button type="submit" class="btn-submit" style="white-space: nowrap;">
-            <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 2L11 13"></path>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-            <span>Request Genesis Early Access</span>
-          </button>
-        </div>
-      </form>
-
-      <div id="waitlistSuccess" class="waitlist-confirm" style="display: none;">
-        <svg class="sys-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        <span>Registration confirmed! Your address has been added to the Genesis Phase 5 mainnet dispatch queue.</span>
-      </div>
-    </section>
-
-    <!-- =========================================================================
-         6. Active Tools Navigation Deck
-         ========================================================================= -->
-    <section class="cyber-card cyber-card--chamfer" style="padding: var(--sp-xl); margin-bottom: var(--sp-2xl);">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div style="margin-bottom: var(--sp-md);">
-        <h3 style="font-size: 18px; margin: 0 0 4px 0; color: var(--text-primary);">
-          Explore Active Charlie Protocol Tools
-        </h3>
-        <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
-          While enrollment is on standby, our live on-chain forensic verification engine is fully operational.
-        </p>
-      </div>
-
-      <div style="display: flex; gap: var(--sp-md); flex-wrap: wrap;">
-        <div class="btn-conic-glow">
-          <a href="./verify.html" class="btn-submit" style="display: inline-flex; text-decoration: none;">
-            <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <span>Verify Any Token CA Live</span>
-          </a>
-        </div>
-        <a href="./coin.html" class="btn-paste" style="display: inline-flex; text-decoration: none; padding: 12px 18px;">
-          <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-          </svg>
-          <span>Inspect $CHARLIE Full Audit</span>
-        </a>
-        <a href="./coins.html" class="btn-paste" style="display: inline-flex; text-decoration: none; padding: 12px 18px;">
-          <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="8" y1="6" x2="21" y2="6"></line>
-            <line x1="8" y1="12" x2="21" y2="12"></line>
-            <line x1="8" y1="18" x2="21" y2="18"></line>
-            <line x1="3" y1="6" x2="3.01" y2="6"></line>
-            <line x1="3" y1="12" x2="3.01" y2="12"></line>
-            <line x1="3" y1="18" x2="3.01" y2="18"></line>
-          </svg>
-          <span>Browse 18 Verified Coins</span>
-        </a>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="footer-inner">
-      <p>Charlie Protocol — Dedicated to decreasing Solana network inflation via native Sol-Incinerator supply destruction. Autonomous crank maintenance: 0.25% fee per transaction.</p>
-    </div>
-  </footer>
-
-  <script src="./assets/charlie-motion.js?v=fire5"></script>
-  <script>
-    function handleWaitlistSubmit(e) {
-      e.preventDefault();
-      const input = document.getElementById('waitlistInput');
-      const success = document.getElementById('waitlistSuccess');
-      if (input && input.value.trim().length > 0) {
-        try {
-          localStorage.setItem('charlie_phase5_waitlist', input.value.trim());
-        } catch (err) {}
-        input.style.display = 'none';
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.parentElement.style.display = 'none';
-        success.style.display = 'flex';
-        if (window.AudioEngine) {
-          window.AudioEngine.playConfirmationHum();
-        }
-        if (window.CharlieAnalytics) {
-          window.CharlieAnalytics.track('Waitlist Signup');
-        }
-      }
+async function inspect() {
+  var mint = $('mint').value.trim();
+  if (!mint) { say('coinNote', 'Paste the coin address first.', 'bad'); return; }
+  if (!state.wallet) { say('coinNote', 'Connect a wallet first.', 'bad'); return; }
+  state.mint = mint;
+  say('coinNote', 'Reading the chain...', '');
+  $('splitBox').hidden = true;
+  try {
+    var r = await fetch('/api/enroll?mint=' + encodeURIComponent(mint) + '&authority=' + encodeURIComponent(state.wallet));
+    var d = await r.json();
+    if (d.error) { say('coinNote', d.error, 'bad'); return; }
+    var rows = (d.current || []).map(function (c) { return (c.bps / 100) + '% ' + c.address; }).join('   ');
+    if (d.cashback === true) {
+      say('coinNote', 'This coin has pump Trader Cashback on, chosen at launch and locked on chain. Its whole creator fee goes to traders, so every share of any split would be zero. Enrolling would spend this coin one permanent change for nothing.', 'bad');
+      return;
     }
+    state.toll = d.toll || null;
+    if (d.reason === 'no_sharing_config') {
+      if (d.can_create) {
+        state.create = true;
+        say('coinNote', 'You launched this coin, and it has no pump fee-sharing config yet, which is normal for a new launch. One signature will create the config and set the split at the same time. Its creator fee currently goes to your wallet, ' + d.creator + '.' + (d.graduated ? ' It has graduated to the pump AMM, so the config is created with its pool named, and the fee the pool collects follows the split from then on.' : ''), 'good');
+        openForm();
+        return;
+      }
+      say('coinNote', 'This coin has no pump fee-sharing config yet, and pump lets only the wallet that launched it create one.' + (d.creator ? ' That wallet is ' + d.creator + '. Connect it and check again.' : ''), 'bad');
+      return;
+    }
+    state.create = false;
+    if (d.admin_revoked) {
+      say('coinNote', 'This coin has already used its one change, so the split is permanent. pump allows exactly one update and nothing can alter it now, including us. Current: ' + rows, 'bad');
+      return;
+    }
+    if (!d.owns) {
+      say('coinNote', 'This wallet does not administer that coin. Its config names ' + d.admin + '. Current split: ' + rows, 'bad');
+      return;
+    }
+    var cautions = [];
+    if (d.cashback === null) {
+      cautions.push('Its bonding curve predates pump cashback flag, so we cannot read it, and absent is not the same as off. If creator fees have never arrived in your wallet, cashback is on and enrolling would waste your one change.');
+    }
+    if (d.graduated) {
+      cautions.push('It has graduated to the pump AMM, where the creator fee collects as wrapped SOL in a pool vault instead of as lamports on the config. Setting the split still works and still binds. Paying it out takes an extra pump instruction first, and a payout attempted without that instruction moves nothing at all; the protocol\u0027s crank sends that instruction before every payout.');
+    }
+    if (cautions.length) {
+      say('coinNote', 'You administer this coin. Before you spend the one change: ' + cautions.join(' ') + ' Current split: ' + rows, 'caution');
+      openForm();
+      return;
+    }
+    say('coinNote', 'You administer this coin. Current split: ' + rows, 'good');
+    openForm();
+  } catch (e) {
+    say('coinNote', 'Could not reach the chain just now. Try again in a moment.', 'bad');
+  }
+}
 
-    // Check if user already registered previously
-    (function() {
-      try {
-        const saved = localStorage.getItem('charlie_phase5_waitlist');
-        if (saved) {
-          const input = document.getElementById('waitlistInput');
-          const success = document.getElementById('waitlistSuccess');
-          const form = document.getElementById('waitlistForm');
-          if (input && success && form) {
-            input.value = saved;
-          }
-        }
-      } catch (e) {}
-    })();
-  </script>
-</body>
-</html>
+function total() {
+  var t = 0;
+  document.querySelectorAll('.share-bps').forEach(function (i) {
+    var v = parseFloat(i.value);
+    if (!isNaN(v)) { t += Math.round(v * 100); }
+  });
+  var el = $('total');
+  el.textContent = (t / 100).toFixed(2) + '%';
+  el.className = (t === 10000) ? 'ok' : 'bad';
+  return t;
+}
+
+function addRow(addr, pct, locked, label, caption, hint) {
+  var row = document.createElement('div');
+  row.className = 'share-row' + (locked ? ' locked' : '');
+  var a = document.createElement('input');
+  a.className = 'share-addr'; a.placeholder = hint || 'destination address';
+  a.spellcheck = false; a.autocomplete = 'off'; a.value = addr || '';
+  var b = document.createElement('input');
+  b.className = 'share-bps'; b.type = 'number'; b.step = '0.01';
+  b.min = '0'; b.max = '100'; b.placeholder = '%';
+  b.value = (pct === undefined || pct === null) ? '' : pct;
+  var rm = document.createElement('button');
+  rm.type = 'button'; rm.className = 'rm';
+  if (locked) {
+    // The protocol's share. Not editable and not removable: it is the price
+    // of using the protocol, and the server will not build a split without it.
+    a.readOnly = true; b.readOnly = true;
+    rm.textContent = label || 'protocol share'; rm.disabled = true;
+  } else {
+    rm.textContent = 'remove';
+    rm.onclick = function () { row.remove(); total(); };
+  }
+  a.oninput = total; b.oninput = total;
+  row.appendChild(a); row.appendChild(b); row.appendChild(rm);
+  if (caption) {
+    // What this destination does, on the row itself. A split is money and a
+    // dev reads the rows, not the prose below them.
+    var what = document.createElement('span');
+    what.className = 'share-what'; what.textContent = caption;
+    row.appendChild(what);
+  }
+  $('shares').appendChild(row);
+  total();
+}
+
+function openForm() {
+  // Rebuilt on every inspection, so the toll row is the one the server
+  // named and the defaults reflect the wallet that is connected.
+  $('shares').textContent = '';
+  if (!state.toll || !state.toll.address) {
+    say('coinNote', 'Enrollment is not open yet: the protocol\u0027s collection address has not been set. Nothing can be built until it is.', 'bad');
+    $('splitBox').hidden = true;
+    return;
+  }
+  var tollPct = state.toll.bps / 100;
+  addRow(state.toll.address, tollPct, true, 'Charlie Protocol ' + tollPct + '%',
+         'The protocol\u0027s share. It buys $CHARLIE and burns it.');
+  // The BURN leg has its own row, blank. It is a wallet the dev holds and
+  // runs the keeper from, so there is no address to fill in for them; left
+  // blank it is simply not sent, and the other rows still total 100.
+  addRow('', '', false, null,
+         'Buy back and burn. A wallet you hold that runs the keeper against ' +
+         'this coin: SOL sent here buys your coin and burns it. Paste that ' +
+         'wallet and give it a share, or leave this row blank and it is not sent.',
+         'wallet that runs the keeper (optional)');
+  addRow('1nc1nerator11111111111111111111111111111111', 20, false, null,
+         'Solana\u0027s incinerator. SOL sent here is destroyed.');
+  addRow(state.wallet, 100 - 20 - tollPct, false, null,
+         'Your wallet. This share is simply yours.');
+  $('splitBox').hidden = false;
+}
+
+function shareRows() {
+  // A blank row is skipped: that is the buy-back row left alone. A row that
+  // is half filled is a mistake, and the total above cannot show it because
+  // it counts percentages whether or not an address is there.
+  var out = [], problems = [];
+  document.querySelectorAll('.share-row').forEach(function (row) {
+    var a = row.querySelector('.share-addr').value.trim();
+    var p = row.querySelector('.share-bps').value.trim();
+    if (!a && p === '') { return; }
+    if (!a) { problems.push('A row has ' + p + '% but no address. Paste a wallet into it or remove the row.'); return; }
+    if (p === '') { problems.push('The row for ' + a + ' has no percentage. Give it one or remove the row.'); return; }
+    out.push(a + ':' + Math.round(parseFloat(p) * 100));
+  });
+  return {shares: out, problems: problems};
+}
+
+async function build() {
+  var rows = shareRows();
+  var shares = rows.shares;
+  $('send').hidden = true;
+  state.built = null;
+  if (rows.problems.length) { say('buildNote', rows.problems.join('\n'), 'bad'); return; }
+  if (!shares.length) { say('buildNote', 'Add at least one destination.', 'bad'); return; }
+  say('buildNote', 'Checking this split against pump, before anything is signed...', '');
+  try {
+    var url = '/api/enroll?mint=' + encodeURIComponent(state.mint) +
+              '&authority=' + encodeURIComponent(state.wallet) +
+              '&shares=' + encodeURIComponent(shares.join(','));
+    var r = await fetch(url);
+    var d = await r.json();
+    if (d.error) { say('buildNote', d.error, 'bad'); return; }
+    state.built = d;
+    var lines = d.summary.map(function (s) { return '  ' + (s.bps / 100) + '%   ' + s.address; }).join('\n');
+    say('buildNote', 'Simulated against mainnet: no error. This is exactly what you will sign:\n\n' + lines, 'good');
+    $('send').hidden = false;
+  } catch (e) {
+    say('buildNote', 'Could not check that split just now. Nothing was sent.', 'bad');
+  }
+}
+
+async function send() {
+  if (!state.built) { return; }
+  var p = provider();
+  if (!p || !p.request) {
+    say('sendNote', 'This wallet cannot sign from a page like this. Phantom can.', 'bad');
+    return;
+  }
+  say('sendNote', 'Approve it in your wallet...', '');
+  try {
+    // Phantom calls it `message` and parses it as a whole transaction:
+    // signature count, signatures, then the message. Handed the bare message
+    // it answered "Reached end of buffer unexpectedly". `signable` is the
+    // unsigned transaction, and it is what the server simulated.
+    var res = await p.request({method: 'signAndSendTransaction', params: {message: state.built.signable}});
+    var sig = (res && (res.signature || res)) || '';
+    var n = $('sendNote');
+    n.className = 'note good';
+    n.textContent = '';
+    var done = document.createElement('p');
+    done.textContent = state.create
+      ? 'Sent. The fee-sharing config was created and your split is set. pump allows the split to be changed once, so it is now fixed.'
+      : 'Sent. Your split is set. pump allows this once, so it is now fixed.';
+    var next = document.createElement('p');
+    next.textContent = 'From here the protocol finds your coin on the chain: the hourly crank asks pump to pay the split whenever the creator vault holds more than pump\u0027s minimum, and the index gives the coin a committed page within a few hours. Nothing to submit.';
+    var txp = document.createElement('p');
+    var tx = document.createElement('a');
+    tx.href = 'https://solscan.io/tx/' + sig;
+    tx.textContent = sig;
+    txp.textContent = 'Transaction: ';
+    txp.appendChild(tx);
+    // The loop closes here. The dev just changed where the fee goes; the next
+    // thing they want is the page that reads it back off the chain, and it
+    // is the page they will share.
+    var check = document.createElement('p');
+    var link = document.createElement('a');
+    link.href = '/verify/' + state.mint;
+    link.textContent = 'See your coin checked';
+    check.appendChild(link);
+    n.appendChild(done); n.appendChild(next); n.appendChild(txp); n.appendChild(check);
+    $('send').hidden = true;
+    $('build').hidden = true;
+  } catch (e) {
+    say('sendNote', 'Not sent: ' + ((e && e.message) || 'the wallet refused it') + '. Nothing changed.', 'bad');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  $('connect').onclick = connect;
+  $('inspect').onclick = inspect;
+  $('addRow').onclick = function () { addRow('', ''); };
+  $('build').onclick = build;
+  $('send').onclick = send;
+});
+</script></body></html>
