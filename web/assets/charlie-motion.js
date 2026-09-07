@@ -10,6 +10,21 @@
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // =========================================================================
+  // Telemetry & Traffic Analytics Dispatcher (Vercel Web Analytics)
+  // =========================================================================
+  window.CharlieAnalytics = {
+    track: function(eventName, data) {
+      if (typeof window.va === 'function') {
+        try {
+          window.va('track', eventName, data || {});
+        } catch (e) {
+          console.debug('Analytics dispatch skipped:', e);
+        }
+      }
+    }
+  };
+
+  // =========================================================================
   // 1. Studio-Grade Seamless Web Audio Fire Ambience Engine (Zero Cutoff Loop)
   // =========================================================================
   const AudioEngine = {
@@ -211,6 +226,10 @@
       this.muted = !this.muted;
       localStorage.setItem('charlie_preview_audio', !this.muted);
       this.updateButtonUI();
+
+      if (window.CharlieAnalytics) {
+        window.CharlieAnalytics.track('Audio Toggle', { state: this.muted ? 'off' : 'on' });
+      }
 
       if (!this.muted) {
         this.startFireAmbience();
