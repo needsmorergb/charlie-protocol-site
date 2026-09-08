@@ -212,6 +212,7 @@
     "version": 2
   },
   "error": null,
+  "error_kind": null,
   "evidence": {
     "initial_supply": null
   },
@@ -229,7 +230,7 @@
     "supply": 1000000000000000,
     "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
   },
-  "observed_at": 1788816670.781819,
+  "observed_at": 1788842180.2362618,
   "publishable": [
     "split"
   ],
