@@ -983,7 +983,7 @@ main {
      art's luminance centroid against the ring's centre -- because in the
      source file the smoke is as dark as the metal and no threshold separates
      them. Re-measure with `optical.cjs` if the artwork is replaced. */
-  transform: translate(calc(-50% + 5.6%), calc(-50% + 2.4%));
+  transform: translate(-50%, -50%);
   width: 34%;
   line-height: 0;
   z-index: 2;
@@ -4346,21 +4346,6 @@ html { background: var(--bg-void); }
 @keyframes enter-away { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
 .fly-orbit { animation: fly-orbit 42s linear infinite; }
 .fly-rider { animation: fly-rider 42s linear infinite; }
-/* Scrolling adds turn on top of the wheel's own rotation rather than
-   replacing it. The previous version swapped the continuous animation for a
-   scroll-linked one, so the flywheel only moved while the page was moving and
-   sat frozen the rest of the time. Layered here on the STAGE, so the orbit
-   keeps its own infinite spin underneath. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) and (pointer: fine) {
-    .motion-capable .fly-stage {
-      view-timeline-name: --flywheel; view-timeline-axis: block;
-      animation: fly-scroll-assist 1s linear both;
-      animation-timeline: --flywheel; animation-range: entry 15% exit 85%;
-    }
-  }
-}
-@keyframes fly-scroll-assist { to { rotate: 40deg; } }
 @property --hearth-y { syntax: '<percentage>'; inherits: true; initial-value: 72%; }
 body::before {
   content: ''; position: fixed; inset: 0; pointer-events: none; z-index: -1;
