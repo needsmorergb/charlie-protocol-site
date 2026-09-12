@@ -1,0 +1,11 @@
+# `tools/shared_sync.py` compares the two repositories byte for byte, so a
+# line ending is a difference. A commit made from Windows can land CRLF and
+# the check then fails on files whose content is identical -- which is
+# exactly what happened to the first sync of the flywheel pages.
+#
+# LF everywhere, decided here rather than per-machine.
+* text=auto eol=lf
+*.png binary
+*.gif binary
+*.jpg binary
+*.ico binary
