@@ -16,4 +16,28 @@ state/*.db
 state/*.db-wal
 state/*.db-shm
 
+# Agent tooling and internal handoffs. This repository is PUBLIC.
+#
+# Handoff documents are operational: they name the crank's fee-payer wallet,
+# which secrets are set where, and the open-items roadmap. That is detail
+# about running the protocol, not about verifying it, and it does not belong
+# on a public surface. The glob covers the family -- a dated successor
+# (HANDOFF-2026-09-13.md) is the normal way the next one gets written, and a
+# rule matching only the literal name it had at the time misses every one of
+# them.
+#
+# NOTE, because a rule that looked like it covered these would be worse than
+# no rule: `HANDOFF.md` and `HANDOFF-CLAUDE.md` are ALREADY TRACKED and are
+# already in this repository's public history on origin/main. .gitignore does
+# nothing for a tracked file. Untracking them changes what ships from here on
+# and does NOT remove them from history; that is the owner's call. Nothing in
+# them exposes a key -- the crank's private key lives in the repository secret
+# CHARLIE_CRANK_KEYPAIR and is never written to a file -- so this is a
+# disclosure question, not a rotation one.
 .maestro/
+.codex/
+.cursor/
+CLAUDE.md
+AGENTS.md
+HANDOFF.md
+HANDOFF-*.md
