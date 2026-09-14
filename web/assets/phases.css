@@ -34,25 +34,6 @@
   pointer-events: none; z-index: -1;
 }
 
-/* The census. A verdict count, never a ratio: a denominator of completion
-   would imply the unmeasured part is merely pending rather than unmeasured. */
-.phases-census {
-  display: flex; flex-wrap: wrap; gap: var(--sp-md) var(--sp-xl);
-  align-items: baseline; margin: var(--sp-lg) 0 var(--sp-xl) 0;
-  padding: var(--sp-md) var(--sp-lg);
-  background: var(--bg-void); border: 1px solid var(--border-glass);
-  border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 13px;
-}
-.census-pair { display: flex; align-items: baseline; gap: var(--sp-xs); }
-.census-label {
-  color: var(--text-muted); text-transform: uppercase;
-  letter-spacing: 0.1em; font-size: 11px;
-}
-.census-value {
-  color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums;
-}
-.census-value[data-verdicts="0"] { color: var(--unchecked); }
-
 .phase-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--sp-lg); }
 
 .phase-card {
@@ -96,17 +77,18 @@
 }
 .phase-card--open h3 { color: var(--text-secondary); }
 
-/* The two axes, side by side, each labelled, never merged. */
+/* One axis now. The gate column was removed -- its content was the named
+   check vocabulary, which is internal jargon a visitor has no use for. What
+   survives is the fact a reader actually wants: when the work landed. The
+   status badge still carries whether its measurements came back, and it is
+   still computed from the record rather than typed in. */
 .phase-axes {
-  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-md);
+  display: grid; grid-template-columns: 1fr; gap: var(--sp-md);
   margin: var(--sp-md) 0; padding: var(--sp-sm) 0;
   border-top: 1px solid var(--border-glass);
   border-bottom: 1px solid var(--border-glass);
 }
 .phase-axis { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.phase-axis + .phase-axis {
-  border-left: 1px solid var(--border-glass); padding-left: var(--sp-md);
-}
 .phase-axis-label {
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
   text-transform: uppercase; color: var(--text-muted);
@@ -120,40 +102,6 @@
 .phase-glyph { font-size: 13px; line-height: 1; color: var(--phase-accent); }
 
 .phase-body { margin: 0 0 var(--sp-md) 0; color: var(--text-secondary); font-size: 15px; }
-
-/* Gate checks: a recessed terminal readout, matching the .diff-box idiom. */
-.phase-gates {
-  list-style: none; margin: 0; padding: var(--sp-sm) var(--sp-md);
-  background: var(--bg-void); border: 1px solid var(--border-glass);
-  border-radius: var(--radius-sm);
-}
-.phase-gate-row {
-  display: grid; grid-template-columns: 14px 1fr auto;
-  align-items: center; gap: var(--sp-sm); padding: 4px 0;
-  font-family: var(--font-mono); font-size: 12px;
-}
-.phase-gate-glyph { line-height: 1; text-align: center; }
-.phase-gate-name {
-  color: var(--text-secondary); letter-spacing: 0.04em; word-break: break-all;
-}
-.phase-gate-verdict { font-size: 11px; letter-spacing: 0.08em; white-space: nowrap; }
-.gate--pass .phase-gate-glyph, .gate--pass .phase-gate-verdict { color: var(--pass); }
-.gate--fail .phase-gate-glyph, .gate--fail .phase-gate-verdict { color: var(--fail-crimson); }
-.gate--unchecked .phase-gate-glyph,
-.gate--unchecked .phase-gate-verdict { color: var(--unchecked); }
-
-/* A phase with no gates. An empty row would read as UNCHECKED, falsely
-   implying a check exists and is pending. The absence gets its own mark and
-   occupies the space the gates would have. */
-.phase-nogates {
-  display: flex; align-items: center; gap: var(--sp-sm);
-  padding: var(--sp-sm) var(--sp-md); background: var(--bg-void);
-  border: 1px dashed var(--border-glass); border-radius: var(--radius-sm);
-  font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);
-}
-.phase-nogates hr {
-  flex: 1; border: 0; border-top: 1px dashed var(--border-subtle); margin: 0;
-}
 
 .phase-note {
   margin: var(--sp-md) 0 0 0; font-size: 13px; color: var(--text-muted);
@@ -171,40 +119,6 @@
   font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--text-muted);
 }
-
-/* THE ASSAY -- one check, demonstrated once on entry. Not a loop: a looping
-   verdict is a screensaver, and it would dramatise a result no check
-   returned. It runs on a sample name, never on a real gate. */
-.assay {
-  margin: var(--sp-lg) 0 0 0; padding: var(--sp-md) var(--sp-lg);
-  background: var(--bg-void); border: 1px solid var(--border-glass);
-  border-radius: var(--radius-sm);
-}
-.assay-caption {
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--text-muted); margin: 0 0 var(--sp-sm) 0;
-}
-.assay-chip {
-  position: relative; display: inline-flex; align-items: center; gap: var(--sp-sm);
-  padding: 6px var(--sp-md); border: 1px solid var(--unchecked-border);
-  background: var(--unchecked-bg); border-radius: var(--radius-sm);
-  font-family: var(--font-mono); font-size: 12px; color: var(--unchecked);
-  overflow: hidden;
-  transition: border-color 200ms var(--e-out), background 200ms var(--e-out),
-              color 200ms var(--e-out);
-}
-.assay-chip::before {
-  content: ""; position: absolute; inset: 0; transform: scaleX(0);
-  transform-origin: left; pointer-events: none;
-  background: linear-gradient(90deg, transparent, var(--ember-halo), transparent);
-}
-.assay.is-running .assay-chip::before { animation: assay-probe 440ms var(--e-out) forwards; }
-.assay.is-done .assay-chip {
-  border-color: var(--pass-border); background: var(--pass-bg); color: var(--pass);
-  animation: assay-settle 160ms var(--e-snap);
-}
-@keyframes assay-probe { to { transform: scaleX(1); } }
-@keyframes assay-settle { 50% { transform: scale(1.035); } }
 
 /* Arrival. Uses the same reveal contract signature-motion.js already owns.
  *
@@ -233,11 +147,6 @@
 }
 
 @media (max-width: 640px) {
-  .phase-axes { grid-template-columns: 1fr; }
-  .phase-axis + .phase-axis {
-    border-left: 0; padding-left: 0;
-    border-top: 1px solid var(--border-glass); padding-top: var(--sp-sm);
-  }
   .phase-card { transform: none !important; }
 }
 
@@ -248,7 +157,6 @@
   .motion-ready .phase-reveal { opacity: 1; transform: none; }
   .motion-ready .phase-reveal.revealed { animation: none !important; }
   .phase-card::after { transform: scaleY(1); }
-  .assay-chip::before { display: none; }
 }
 @media (pointer: coarse) {
   .motion-ready .phase-reveal { opacity: 1; transform: none; }

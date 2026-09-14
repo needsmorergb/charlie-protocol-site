@@ -67,7 +67,6 @@
     }
   ];
 
-  var GLYPH = {PASS: '✓', FAIL: '✕', UNCHECKED: '○'};
   var STATE_GLYPH = {SHIPPED: '✓', OPEN: '○', DEVNET: '◐', GATED: '▣', SLIPPED: '△'};
   var STATE_DESC = {
     SHIPPED: 'Checks ran and returned a verdict.',
@@ -105,29 +104,9 @@
     return {glyph: '○', text: 'not built'};
   }
 
-  function renderGates(phase, byName) {
-    if (!phase.gates.length) {
-      return '<div class="phase-nogates"><hr aria-hidden="true">' +
-        '<span>no gates defined</span><hr aria-hidden="true"></div>';
-    }
-    var rows = phase.gates.map(function (name) {
-      var status = byName[name] || 'UNCHECKED';
-      return '<li class="phase-gate-row gate--' + status.toLowerCase() + '">' +
-        '<span class="phase-gate-glyph" aria-hidden="true">' + GLYPH[status] + '</span>' +
-        '<span class="phase-gate-name">' + esc(name) + '</span>' +
-        '<span class="phase-gate-verdict"><span class="sr-only">verdict: </span>' +
-        esc(status === 'UNCHECKED' ? 'no verdict' : status) + '</span></li>';
-    }).join('');
-    return '<ul class="phase-gates" aria-label="Gate checks for phase ' + phase.n + '">' + rows + '</ul>';
-  }
-
   function renderCard(phase, byName, index) {
     var state = gradeOf(phase, byName);
     var axis = buildAxis(phase);
-    var gateSummary = phase.gates.length
-      ? phase.gates.filter(function (g) { return byName[g] && byName[g] !== 'UNCHECKED'; }).length +
-        ' of ' + phase.gates.length + ' returned'
-      : 'none defined';
 
     return '<li class="phase-card cyber-card cyber-card--chamfer phase-reveal phase-card--' +
       state.toLowerCase() + '" style="--i:' + index + '">' +
@@ -145,41 +124,18 @@
         '<div class="phase-axis"><span class="phase-axis-label">Build</span>' +
           '<span class="phase-axis-value"><span class="phase-glyph" aria-hidden="true">' +
           axis.glyph + '</span>' + esc(axis.text) + '</span></div>' +
-        '<div class="phase-axis"><span class="phase-axis-label">Gates</span>' +
-          '<span class="phase-axis-value">' + esc(gateSummary) + '</span></div>' +
       '</div>' +
       '<p class="phase-body">' + esc(phase.body) + '</p>' +
-      renderGates(phase, byName) +
       (phase.note ? '<p class="phase-note">' + phase.note + '</p>' : '') +
       (phase.code ? '<code class="phase-code">' + esc(phase.code) + '</code>' +
         '<span class="phase-code-label">' + esc(phase.codeLabel) + '</span>' : '') +
       '</li>';
   }
 
-  function census(byName, read) {
-    var names = [];
-    PHASES.forEach(function (p) {
-      p.gates.forEach(function (g) { if (names.indexOf(g) < 0) names.push(g); });
-    });
-    var returned = names.filter(function (n) {
-      return byName[n] && byName[n] !== 'UNCHECKED';
-    }).length;
-    return '<div class="phases-census">' +
-      '<span class="census-pair"><span class="census-label">Gates defined</span>' +
-        '<span class="census-value">' + names.length + '</span></span>' +
-      '<span class="census-pair"><span class="census-label">Verdicts returned</span>' +
-        '<span class="census-value" data-verdicts="' + returned + '">' + returned + '</span></span>' +
-      '<span class="census-pair"><span class="census-label">Still unchecked</span>' +
-        '<span class="census-value">' + (names.length - returned) + '</span></span>' +
-      '<span class="census-pair"><span class="census-label">Read from</span>' +
-        '<span class="census-value">' + esc(read) + '</span></span>' +
-      '</div>';
-  }
-
   function paint(byName, read) {
     var mount = document.getElementById('phases-mount');
     if (!mount) return;
-    mount.innerHTML = census(byName, read) +
+    mount.innerHTML =
       '<ol class="phase-list">' +
       PHASES.map(function (p, i) { return renderCard(p, byName, i); }).join('') +
       '</ol>';
@@ -213,17 +169,6 @@
       });
     }, 1200);
 
-    var assay = document.getElementById('assay');
-    if (!assay) return;
-    var once = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        once.unobserve(entry.target);
-        assay.classList.add('is-running');
-        setTimeout(function () { assay.classList.add('is-done'); }, 620);
-      });
-    }, {threshold: 0.5});
-    once.observe(assay);
   }
 
   function start() {

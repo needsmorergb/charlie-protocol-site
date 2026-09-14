@@ -398,26 +398,14 @@ would freeze on the day it was written and then quietly lie.
     <span class="telemetry-led"></span>
     <span>Build ledger // shipped is not verified</span>
   </div>
-  <h2 id="phases-heading">The roadmap grades itself</h2>
+  <h2 id="phases-heading">What is built, and what is not</h2>
   <p id="phases-intro">
-    Five phases, each graded by named gate checks rather than by hand. A phase
-    reads SHIPPED only once its checks return a verdict anyone can re-run.
-    OPEN means those checks have not run yet -- not that the work is broken or
-    late. The protocol verifies coins today; this section refuses to claim a
-    measurement nobody made.
+    Five phases. SHIPPED means the measurements behind that phase have come
+    back; OPEN means they have not been run yet -- not that the work is broken
+    or late. The status on each card is computed from the published
+    observation record, never typed in by hand. The full detail is on
+    <a href="/phases">the phases page</a>.
   </p>
-
-  <div class="assay" id="assay">
-    <p class="assay-caption">What a returned verdict looks like</p>
-    <span class="assay-chip">
-      <span aria-hidden="true">◦</span>
-      <span>SAMPLE_CHECK</span>
-    </span>
-    <p class="assay-caption" style="margin-top: var(--sp-sm); margin-bottom: 0;">
-      A demonstration on a sample name, run once. No gate below is animated
-      into a verdict it did not return.
-    </p>
-  </div>
 
   <div id="phases-mount" aria-describedby="phases-intro">
     <noscript>
