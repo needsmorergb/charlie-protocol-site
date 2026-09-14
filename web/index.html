@@ -13,6 +13,10 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="./assets/preview.css?v=fire4">
+    <!-- Loaded after preview.css on purpose: .cyber-card and .cyber-corner are
+         each defined twice in that file and the later block wins, so a
+         separate sheet last in the cascade beats guessing an insertion point. -->
+    <link rel="stylesheet" href="./assets/phases.css?v=1">
     <!-- Vercel Web Analytics & Speed Insights -->
     <script>
  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -376,6 +380,58 @@ VERIFIED. Those coins do not exist in the record. -->
 
 <section id="counters"><div class="eyebrow">$CHARLIE recorded observation</div><h2>What the record shows</h2><p>Read on 2026-09-07 21:31 UTC. These are saved figures, not a live counter.</p><div class="counters-grid"><div class="counter-card cyber-card"><h3>Supply remaining</h3><p class="counter-value font-mono">956,338,570.365904</p><p class="counter-source">mint_state.supply</p></div><div class="counter-card cyber-card"><h3>Initial supply</h3><p class="counter-value font-mono">1,000,000,000.000000</p><p class="counter-source">evidence.initial_supply.raw_supply</p></div><div class="counter-card cyber-card"><h3>SOL at the burn address</h3><p class="counter-value font-mono">179.668087718 SOL</p><p class="counter-source">sol_burn_balances</p></div></div><p><a href="/coin/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json">Read the source record</a></p></section>
 <section class="editorial-card"><h2>Burns stay burned</h2><p>The recorded SOL burn address check passed, and the token's mint authority is revoked. Burned tokens cannot be issued again.</p><p>The recorded token burn total is withheld because its checks do not fully support it. This page does not claim that every burn has been reconciled.</p><a class="btn-submit" href="/verify/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump">Read the full report</a></section>
+<!-- =========================================================================
+Phases: the roadmap, graded by its own checks rather than by hand.
+
+Placed after the counters because that section ends on the page's strongest
+honesty beat -- a withheld figure -- and this is the same refusal applied to
+a roadmap instead of a number. It inherits earned trust rather than spending
+it, and it lands above the studio card that already name-checks phase 5.
+
+The states are NOT written here. phases.js reads them out of the committed
+observation record at runtime: this page carries the `charlie:authored-page`
+marker, so no publishing job regenerates it, and a hardcoded verdict table
+would freeze on the day it was written and then quietly lie.
+========================================================================= -->
+<section id="phases" aria-labelledby="phases-heading">
+  <div class="eyebrow">
+    <span class="telemetry-led"></span>
+    <span>Build ledger // shipped is not verified</span>
+  </div>
+  <h2 id="phases-heading">The roadmap grades itself</h2>
+  <p id="phases-intro">
+    Five phases, each graded by named gate checks rather than by hand. A phase
+    reads SHIPPED only once its checks return a verdict anyone can re-run.
+    OPEN means those checks have not run yet -- not that the work is broken or
+    late. The protocol verifies coins today; this section refuses to claim a
+    measurement nobody made.
+  </p>
+
+  <div class="assay" id="assay">
+    <p class="assay-caption">What a returned verdict looks like</p>
+    <span class="assay-chip">
+      <span aria-hidden="true">◦</span>
+      <span>SAMPLE_CHECK</span>
+    </span>
+    <p class="assay-caption" style="margin-top: var(--sp-sm); margin-bottom: 0;">
+      A demonstration on a sample name, run once. No gate below is animated
+      into a verdict it did not return.
+    </p>
+  </div>
+
+  <div id="phases-mount" aria-describedby="phases-intro">
+    <noscript>
+      <p class="phase-note">
+        The phase states are read from a committed observation record in the
+        browser, so they cannot be shown without JavaScript. The same record
+        is published at
+        <a href="/coin/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json">its raw JSON</a>,
+        and every check it carries is listed there.
+      </p>
+    </noscript>
+  </div>
+</section>
+
 <!-- Protocol Dossier -->
 <section id="dossier">
   <div class="eyebrow">
@@ -493,5 +549,6 @@ VERIFIED. Those coins do not exist in the record. -->
 <!-- Progressive Motion & Studio-Grade Audio Synthesizer Engine -->
 <script src="./assets/charlie-motion.js?v=fire4"></script>
 <script src="./assets/signature-motion.js" defer></script>
+<script src="./assets/phases.js?v=1" defer></script>
 </body>
 </html>

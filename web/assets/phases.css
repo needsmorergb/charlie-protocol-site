@@ -1,0 +1,243 @@
+/* ==========================================================================
+   PHASES -- the roadmap, graded by its own checks
+   ==========================================================================
+   Its own file rather than appended to preview.css, for one concrete reason:
+   `.cyber-card`, `.cyber-card--chamfer` and `.cyber-corner` are each defined
+   TWICE in that file (L2996 and L3517) and the later block wins. Anything
+   inserted between them is silently overridden. Loading after preview.css
+   puts this block last in the cascade without depending on where it lands.
+
+   TWO AXES, NEVER ONE. "Shipped" is history; "verified" is what a check
+   says. A single progress bar collapses them and implies a measurement
+   nobody ran -- the exact claim this protocol exists to refuse. Every card
+   carries a BUILD axis and a GATES axis and they never merge into a figure.
+
+   ON THE COLOUR OF AN UNGRADED PHASE. Amber (--unchecked) is this system's
+   UNCHECKED semantic and it is correct at CHIP scale, on one named check. At
+   CARD scale it telegraphs alarm, and an unrun check is not an alarm. So an
+   ungraded phase is --ember-dim: the same hue as a graded one, unlit.
+   Absence of glow reads as not-yet-measured; a hostile hue would read as
+   failed. No card shell in this section ever uses --fail. Nothing here has
+   failed.
+
+   ON MOTION. The UNCHECKED chips do NOT pulse. preview.css already recorded
+   that lesson twice: animated stripes "made settled data read as perpetually
+   loading" (L4295) and blinking dots "read as filler" (L4298). A pulsing
+   gate would say "working on it" about work nobody is doing. Motion lives in
+   arrival and in one non-looping verdict demonstration, never in state.
+   ========================================================================== */
+
+#phases { position: relative; margin: var(--sp-3xl) 0; }
+#phases::before {
+  content: ""; position: absolute; inset: -32px -24px;
+  background: radial-gradient(ellipse at 50% 0%, var(--ember-halo), transparent 70%);
+  pointer-events: none; z-index: -1;
+}
+
+/* The census. A verdict count, never a ratio: a denominator of completion
+   would imply the unmeasured part is merely pending rather than unmeasured. */
+.phases-census {
+  display: flex; flex-wrap: wrap; gap: var(--sp-md) var(--sp-xl);
+  align-items: baseline; margin: var(--sp-lg) 0 var(--sp-xl) 0;
+  padding: var(--sp-md) var(--sp-lg);
+  background: var(--bg-void); border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 13px;
+}
+.census-pair { display: flex; align-items: baseline; gap: var(--sp-xs); }
+.census-label {
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.1em; font-size: 11px;
+}
+.census-value {
+  color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.census-value[data-verdicts="0"] { color: var(--unchecked); }
+
+.phase-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--sp-lg); }
+
+.phase-card {
+  --phase-accent: var(--ember-dim);
+  --phase-halo: transparent;
+  position: relative;
+  padding: var(--sp-lg) var(--sp-lg) var(--sp-lg) calc(var(--sp-lg) + 6px);
+  content-visibility: auto; contain-intrinsic-size: auto 260px;
+}
+/* An inset rail rather than border-left: the chamfer clip-path shears a real
+   border off at the corners. */
+.phase-card::after {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 3px;
+  background: var(--phase-accent); box-shadow: 0 0 12px var(--phase-halo);
+  transform: scaleY(0.6); transform-origin: top;
+  transition: transform var(--d-3) var(--e-out-soft);
+}
+.phase-card:hover::after, .phase-card:focus-within::after { transform: scaleY(1); }
+.phase-card:hover, .phase-card:focus-within { border-color: var(--border-highlight); }
+
+.phase-card--shipped { --phase-accent: var(--ember); --phase-halo: var(--ember-glow); }
+.phase-card--devnet  { --phase-accent: var(--sol-cyan); --phase-halo: var(--sol-glow); }
+.phase-card--gated   { --phase-accent: var(--flame-warm); }
+.phase-card--open    { --phase-accent: var(--ember-dim); }
+.phase-card--open .cyber-corner { opacity: 0.35; }
+.phase-card--gated::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: repeating-linear-gradient(-45deg,
+    rgba(255, 138, 31, 0.055) 0 6px, transparent 6px 14px);
+}
+.phase-card > * { position: relative; z-index: 1; }
+
+.phase-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-sm); }
+.phase-ordinal {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.phase-card h3 {
+  flex: 1 1 100%; margin: var(--sp-xs) 0 0 0;
+  font-family: var(--font-display); font-size: clamp(17px, 2.1vw, 21px); line-height: 1.25;
+}
+.phase-card--open h3 { color: var(--text-secondary); }
+
+/* The two axes, side by side, each labelled, never merged. */
+.phase-axes {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-md);
+  margin: var(--sp-md) 0; padding: var(--sp-sm) 0;
+  border-top: 1px solid var(--border-glass);
+  border-bottom: 1px solid var(--border-glass);
+}
+.phase-axis { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.phase-axis + .phase-axis {
+  border-left: 1px solid var(--border-glass); padding-left: var(--sp-md);
+}
+.phase-axis-label {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.phase-axis-value {
+  font-family: var(--font-mono); font-size: 13px; color: var(--text-primary);
+  display: flex; align-items: center; gap: var(--sp-xs);
+}
+/* Shape, not colour alone: the glyph survives greyscale and all three
+   dichromacies, and the text label beside it survives everything. */
+.phase-glyph { font-size: 13px; line-height: 1; color: var(--phase-accent); }
+
+.phase-body { margin: 0 0 var(--sp-md) 0; color: var(--text-secondary); font-size: 15px; }
+
+/* Gate checks: a recessed terminal readout, matching the .diff-box idiom. */
+.phase-gates {
+  list-style: none; margin: 0; padding: var(--sp-sm) var(--sp-md);
+  background: var(--bg-void); border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+}
+.phase-gate-row {
+  display: grid; grid-template-columns: 14px 1fr auto;
+  align-items: center; gap: var(--sp-sm); padding: 4px 0;
+  font-family: var(--font-mono); font-size: 12px;
+}
+.phase-gate-glyph { line-height: 1; text-align: center; }
+.phase-gate-name {
+  color: var(--text-secondary); letter-spacing: 0.04em; word-break: break-all;
+}
+.phase-gate-verdict { font-size: 11px; letter-spacing: 0.08em; white-space: nowrap; }
+.gate--pass .phase-gate-glyph, .gate--pass .phase-gate-verdict { color: var(--pass); }
+.gate--fail .phase-gate-glyph, .gate--fail .phase-gate-verdict { color: var(--fail-crimson); }
+.gate--unchecked .phase-gate-glyph,
+.gate--unchecked .phase-gate-verdict { color: var(--unchecked); }
+
+/* A phase with no gates. An empty row would read as UNCHECKED, falsely
+   implying a check exists and is pending. The absence gets its own mark and
+   occupies the space the gates would have. */
+.phase-nogates {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  padding: var(--sp-sm) var(--sp-md); background: var(--bg-void);
+  border: 1px dashed var(--border-glass); border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);
+}
+.phase-nogates hr {
+  flex: 1; border: 0; border-top: 1px dashed var(--border-subtle); margin: 0;
+}
+
+.phase-note {
+  margin: var(--sp-md) 0 0 0; font-size: 13px; color: var(--text-muted);
+  font-family: var(--font-mono); line-height: 1.6;
+}
+.phase-note strong { color: var(--flame-warm); font-weight: 700; }
+.phase-code {
+  display: block; margin-top: var(--sp-sm); padding: var(--sp-sm);
+  background: var(--bg-void); border: 1px solid var(--border-glass);
+  font-family: var(--font-mono); font-size: 11px; word-break: break-all;
+  color: var(--sol-cyan);
+}
+.phase-code-label {
+  display: block; margin-top: 4px; font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* THE ASSAY -- one check, demonstrated once on entry. Not a loop: a looping
+   verdict is a screensaver, and it would dramatise a result no check
+   returned. It runs on a sample name, never on a real gate. */
+.assay {
+  margin: var(--sp-lg) 0 0 0; padding: var(--sp-md) var(--sp-lg);
+  background: var(--bg-void); border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+}
+.assay-caption {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-muted); margin: 0 0 var(--sp-sm) 0;
+}
+.assay-chip {
+  position: relative; display: inline-flex; align-items: center; gap: var(--sp-sm);
+  padding: 6px var(--sp-md); border: 1px solid var(--unchecked-border);
+  background: var(--unchecked-bg); border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: 12px; color: var(--unchecked);
+  overflow: hidden;
+  transition: border-color 200ms var(--e-out), background 200ms var(--e-out),
+              color 200ms var(--e-out);
+}
+.assay-chip::before {
+  content: ""; position: absolute; inset: 0; transform: scaleX(0);
+  transform-origin: left; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--ember-halo), transparent);
+}
+.assay.is-running .assay-chip::before { animation: assay-probe 440ms var(--e-out) forwards; }
+.assay.is-done .assay-chip {
+  border-color: var(--pass-border); background: var(--pass-bg); color: var(--pass);
+  animation: assay-settle 160ms var(--e-snap);
+}
+@keyframes assay-probe { to { transform: scaleX(1); } }
+@keyframes assay-settle { 50% { transform: scale(1.035); } }
+
+/* Arrival. Uses the same reveal contract signature-motion.js already owns. */
+.phase-reveal { opacity: 0; transform: translateY(14px) scale(0.985); }
+.phase-reveal.revealed {
+  animation: phase-in 420ms var(--e-out) forwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+@keyframes phase-in { to { opacity: 1; transform: none; } }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (max-width: 640px) {
+  .phase-axes { grid-template-columns: 1fr; }
+  .phase-axis + .phase-axis {
+    border-left: 0; padding-left: 0;
+    border-top: 1px solid var(--border-glass); padding-top: var(--sp-sm);
+  }
+  .phase-card { transform: none !important; }
+}
+
+/* Belt and braces, matching preview.css's own convention: the blanket
+   override there already neuters durations, but each new animation gets an
+   intentional still state rather than a frozen mid-frame. */
+@media (prefers-reduced-motion: reduce) {
+  .phase-reveal { opacity: 1; transform: none; }
+  .phase-reveal.revealed { animation: none !important; }
+  .phase-card::after { transform: scaleY(1); }
+  .assay-chip::before { display: none; }
+}
+@media (pointer: coarse) {
+  .phase-reveal { opacity: 1; transform: none; }
+  .phase-reveal.revealed { animation: none !important; }
+}
