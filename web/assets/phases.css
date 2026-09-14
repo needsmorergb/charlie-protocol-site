@@ -206,9 +206,22 @@
 @keyframes assay-probe { to { transform: scaleX(1); } }
 @keyframes assay-settle { 50% { transform: scale(1.035); } }
 
-/* Arrival. Uses the same reveal contract signature-motion.js already owns. */
-.phase-reveal { opacity: 0; transform: translateY(14px) scale(0.985); }
-.phase-reveal.revealed {
+/* Arrival. Uses the same reveal contract signature-motion.js already owns.
+ *
+ * VISIBLE BY DEFAULT, and this is not a style preference. The first version
+ * of this block started the cards at opacity 0 and cleared it when an
+ * IntersectionObserver fired -- and every card shipped invisible, because
+ * `content-visibility: auto` above makes the browser skip layout for
+ * offscreen cards, so the observer never reports them intersecting and the
+ * class that reveals them is never added. Nothing below the fold ever
+ * appeared.
+ *
+ * So the hidden state is opt-in: JS adds `.motion-ready` to the list only
+ * once it is actually running and about to observe. A dead script, a thrown
+ * error, a browser with no IntersectionObserver, or a print stylesheet now
+ * all fall back to fully visible content rather than a blank section. */
+.motion-ready .phase-reveal { opacity: 0; transform: translateY(14px) scale(0.985); }
+.motion-ready .phase-reveal.revealed {
   animation: phase-in 420ms var(--e-out) forwards;
   animation-delay: calc(var(--i, 0) * 70ms);
 }
@@ -232,12 +245,12 @@
    override there already neuters durations, but each new animation gets an
    intentional still state rather than a frozen mid-frame. */
 @media (prefers-reduced-motion: reduce) {
-  .phase-reveal { opacity: 1; transform: none; }
-  .phase-reveal.revealed { animation: none !important; }
+  .motion-ready .phase-reveal { opacity: 1; transform: none; }
+  .motion-ready .phase-reveal.revealed { animation: none !important; }
   .phase-card::after { transform: scaleY(1); }
   .assay-chip::before { display: none; }
 }
 @media (pointer: coarse) {
-  .phase-reveal { opacity: 1; transform: none; }
-  .phase-reveal.revealed { animation: none !important; }
+  .motion-ready .phase-reveal { opacity: 1; transform: none; }
+  .motion-ready .phase-reveal.revealed { animation: none !important; }
 }

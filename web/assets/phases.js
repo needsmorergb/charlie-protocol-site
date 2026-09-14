@@ -188,11 +188,14 @@
     // into SHIPPED would dramatise a verdict no check returned.
     var reduced = matchMedia('(prefers-reduced-motion: reduce)');
     if (reduced.matches || !('IntersectionObserver' in window)) {
-      mount.querySelectorAll('.phase-reveal').forEach(function (el) {
-        el.classList.add('revealed');
-      });
+      // Cards are visible by default. Nothing to do: never hide them behind a
+      // class that this path is not going to add.
       return;
     }
+    // Only now does the hidden-then-revealed contract switch on. Setting this
+    // before observing is the whole safeguard -- if anything below throws, the
+    // cards are already painted rather than waiting on a class.
+    mount.classList.add('motion-ready');
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) return;
@@ -201,6 +204,14 @@
       });
     }, {threshold: 0.12});
     mount.querySelectorAll('.phase-reveal').forEach(function (el) { io.observe(el); });
+    // content-visibility: auto lets the browser skip layout for offscreen
+    // cards, and an observer cannot report what was never laid out. A card
+    // still unrevealed after the reveal window is shown unconditionally.
+    setTimeout(function () {
+      mount.querySelectorAll('.phase-reveal:not(.revealed)').forEach(function (el) {
+        el.classList.add('revealed');
+      });
+    }, 1200);
 
     var assay = document.getElementById('assay');
     if (!assay) return;
