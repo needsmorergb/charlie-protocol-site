@@ -2,28 +2,21 @@
   "attribution": [
     {
       "address": "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8",
-      "bps": 500,
+      "bps": 2500,
       "keyless": false,
       "leg": "paid",
       "reason": "the protocol's collection wallet: the share every enrolled coin pays. A spendable wallet, so an OPS destination; what it is spent on is not something the chain shows and not something this page claims"
     },
     {
-      "address": "Wak5qWkdu5cTQFrKnMfYRDXy4nc244fZSkj3Ced2kuQ",
-      "bps": 2500,
-      "keyless": false,
-      "leg": "paid",
-      "reason": "an ordinary account, not program-derived"
-    },
-    {
       "address": "1nc1nerator11111111111111111111111111111111",
-      "bps": 2000,
+      "bps": 2250,
       "keyless": true,
       "leg": "sol_burn",
       "reason": "Solana's incinerator: the runtime removes lamports credited here from the total supply at the end of the block. Not merely unspendable -- destroyed."
     },
     {
-      "address": "BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW",
-      "bps": 5000,
+      "address": "9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9",
+      "bps": 5250,
       "keyless": false,
       "leg": "paid",
       "reason": "an ordinary account, not program-derived"
@@ -51,7 +44,7 @@
     "ops_total": [
       {
         "check": "OPS_ROUTED",
-        "detail": "the walk of 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 is incomplete -- reached no signature yet; the walk of Wak5qWkdu5cTQFrKnMfYRDXy4nc244fZSkj3Ced2kuQ is incomplete -- reached no signature yet; the walk of BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW is incomplete -- reached no signature yet",
+        "detail": "the walk of 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 is incomplete -- reached no signature yet; the walk of 9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9 is incomplete -- reached no signature yet",
         "status": "UNCHECKED"
       }
     ],
@@ -77,7 +70,7 @@
   },
   "checks": [
     {
-      "actual": "7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump",
+      "actual": "4dHdbxPANfuuvzXCTjngsqpjsUytE6KfBtQuGrT1nc1n",
       "backs": [
         "split",
         "sol_burn_total",
@@ -87,7 +80,7 @@
       ],
       "detail": "the sharing config names this coin",
       "equation": "sharing_config.mint == mint",
-      "expected": "7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump",
+      "expected": "4dHdbxPANfuuvzXCTjngsqpjsUytE6KfBtQuGrT1nc1n",
       "name": "CONFIG_MINT",
       "status": "PASS"
     },
@@ -103,11 +96,11 @@
       "status": "PASS"
     },
     {
-      "actual": "500",
+      "actual": "2500",
       "backs": [],
-      "detail": "the split pays the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 500 bps, at or above the 500 bps every enrolled coin carries",
-      "equation": "bps(TOLL_DESTINATION) >= 500",
-      "expected": ">= 500",
+      "detail": "the split pays the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 2500 bps, at or above the 2500 bps every enrolled coin carries",
+      "equation": "bps(TOLL_DESTINATION) >= 2500",
+      "expected": ">= 2500",
       "name": "PROTOCOL_SHARE",
       "status": "PASS"
     },
@@ -184,7 +177,7 @@
       "backs": [
         "ops_total"
       ],
-      "detail": "the walk of 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 is incomplete -- reached no signature yet; the walk of Wak5qWkdu5cTQFrKnMfYRDXy4nc244fZSkj3Ced2kuQ is incomplete -- reached no signature yet; the walk of BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW is incomplete -- reached no signature yet",
+      "detail": "the walk of 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 is incomplete -- reached no signature yet; the walk of 9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9 is incomplete -- reached no signature yet",
       "equation": "sum(routed_to_OPS) == sum(protocol_inflows(ops_wallet))",
       "expected": null,
       "name": "OPS_ROUTED",
@@ -192,26 +185,22 @@
     }
   ],
   "config": {
-    "address": "Gg8KGc2LDbAeBnyFtoqBZcosQGz1NBzsH3NRhQWdsriA",
-    "admin": "BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW",
+    "address": "FCJUMm8HTq6hw5Pp2epccp6LYWyp7xBXcKdJPE695NUs",
+    "admin": "9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9",
     "admin_revoked": true,
-    "mint": "7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump",
+    "mint": "4dHdbxPANfuuvzXCTjngsqpjsUytE6KfBtQuGrT1nc1n",
     "shareholders": [
       {
         "address": "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8",
-        "bps": 500
-      },
-      {
-        "address": "Wak5qWkdu5cTQFrKnMfYRDXy4nc244fZSkj3Ced2kuQ",
         "bps": 2500
       },
       {
         "address": "1nc1nerator11111111111111111111111111111111",
-        "bps": 2000
+        "bps": 2250
       },
       {
-        "address": "BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW",
-        "bps": 5000
+        "address": "9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9",
+        "bps": 5250
       }
     ],
     "status": 1,
@@ -225,19 +214,18 @@
   "evidence_coverage": {
     "1nc1nerator11111111111111111111111111111111": 0,
     "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8": 0,
-    "BKoMRi2Tvac2YfJ5q6E6oNBpQcK8cXgYsUqV9uapUuMW": 0,
-    "Wak5qWkdu5cTQFrKnMfYRDXy4nc244fZSkj3Ced2kuQ": 0
+    "9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9": 0
   },
   "graduated": false,
-  "mint": "7mr9vEN4XEUDCjaDzZnVLAAE2VV5FmzBBti7t2Kpump",
+  "mint": "4dHdbxPANfuuvzXCTjngsqpjsUytE6KfBtQuGrT1nc1n",
   "mint_state": {
     "decimals": 6,
     "freeze_authority": null,
     "mint_authority": null,
     "supply": 1000000000000000,
-    "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+    "token_program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
   },
-  "observed_at": 1789680160.8775988,
+  "observed_at": 1789680160.3312364,
   "publishable": [
     "split"
   ],
@@ -247,7 +235,7 @@
   },
   "split": {
     "burn": 0,
-    "paid": 8000,
-    "sol_burn": 2000
+    "paid": 7750,
+    "sol_burn": 2250
   }
 }
