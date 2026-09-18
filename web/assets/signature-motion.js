@@ -18,7 +18,7 @@
       el.addEventListener('animationend', () => el.classList.remove('reveal-ready'), {once: true});
     }
   }, {threshold: 0.08});
-  document.querySelectorAll('main > section, .counter-card, .fly-step-card, .dossier-card').forEach((el, i) => {
+  document.querySelectorAll('main > section, .counter-card, .fly-step-card, .dossier-card, [data-reveal]').forEach((el, i) => {
     el.style.setProperty('--i', i % 5);
     el.classList.add('reveal-ready');
     reveals.observe(el);

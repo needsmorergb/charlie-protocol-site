@@ -517,9 +517,9 @@
       const isEditing = activeTag === 'input' || activeTag === 'textarea';
 
       if (isSearchKey && !isEditing) {
-        e.preventDefault();
         const searchInput = document.getElementById('commandSearchInput') || document.getElementById('mintInput') || document.getElementById('verifyInput');
         if (searchInput) {
+          e.preventDefault();
           searchInput.focus();
           searchInput.select();
           AudioEngine.playClick();

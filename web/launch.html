@@ -1,0 +1,708 @@
+<!doctype html>
+<!-- charlie:authored-page -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Launch a Coin — Charlie Protocol</title>
+    <meta name="description" content="Create a pump.fun coin and set its permanent fee split in the next transaction. Two approvals. Your key stays in your wallet.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="./assets/preview.css?v=fire5">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=Space+Grotesk:wght@700&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=Space+Grotesk:wght@700&amp;display=swap">
+    <style>
+    :root { --text-muted: #7C887B; }
+    [hidden] { display: none !important; }
+    .btn-conic-glow:has(> [hidden]) { display: none; }
+    main { min-width: 0; }
+    main h2 { font-size: clamp(22px, 2.4vw, 26px); margin: 0 0 16px; }
+    main h3 { font-size: 18px; margin-bottom: 12px; }
+    main p { font-size: 15px; line-height: 1.6; color: var(--text-secondary); }
+    .launch-hero { position: relative; isolation: isolate; margin-bottom: 40px; }
+    .launch-hero h1 { font-size: clamp(36px, 5vw, 56px); font-weight: 800; letter-spacing: -0.035em; text-wrap: balance; max-width: 16ch; line-height: 1.09; margin: 20px 0; }
+    .launch-hero p { max-width: 60ch; }
+    .launch-prereqs { font: 400 13px/1.7 var(--font-mono); color: var(--text-secondary); margin: 0 0 36px; }
+    .launch-prereqs a { color: inherit; }
+    .warn .gatekeep-badge { display: inline-block; margin: 0 0 10px; }
+    .launch-chain > summary { cursor: pointer; list-style: none; font: 500 12px/1.6 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-secondary); padding: 16px 0; border-top: 1px solid var(--border-highlight); }
+    .launch-chain > summary::-webkit-details-marker { display: none; }
+    .launch-chain > summary::before { content: '+ '; }
+    .launch-chain[open] > summary::before { content: '\2013 '; }
+    .launch-chain[open] > summary { color: var(--text-primary); }
+    .launch-chain .chain-columns { margin-top: 24px; }
+    .split-explainer { display: grid; gap: 20px 28px; margin: 4px 0 28px; }
+    .split-explainer h3 { font-size: 15px; margin: 0 0 6px; }
+    .split-explainer p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
+    @media (min-width: 900px) { .split-explainer { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    #launchEmbers { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+    .launch-card { margin-bottom: 20px; scroll-margin-top: 120px; }
+    .launch-card:last-of-type, #reviewBox { margin-bottom: 64px; }
+    .launch-card .eyebrow { margin-bottom: 12px; }
+    .cyber-card, .gatekeep-banner { backdrop-filter: none; -webkit-backdrop-filter: none; contain: paint; transition: border-color .2s ease; }
+    .cyber-card--chamfer, .cyber-card--chamfer::before { clip-path: polygon(0 14px, 14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px)); }
+    .cyber-card--chamfer, .cyber-card--chamfer:hover { box-shadow: none; }
+    .gatekeep-banner { margin-bottom: 48px; }
+    .gatekeep-badge { margin-bottom: 20px; }
+    .gatekeep-banner::after { content: ''; position: absolute; pointer-events: none; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,138,31,.1), transparent 65%); transform: translateX(100%); opacity: 0; }
+    .gatekeep-banner.revealed::after { animation: heat-pass 1s ease .3s both; }
+    @keyframes heat-pass { 0% { opacity: 0; transform: translateX(-100%); } 40% { opacity: 1; } 100% { opacity: 0; transform: translateX(100%); } }
+    .launch-checklist { margin-bottom: 64px; }
+    .blueprint-flow-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+    .blueprint-flow-item:last-child { grid-column: 1 / -1; }
+    .step-list .blueprint-flow-title { font-size: 15px; }
+    .step-list .blueprint-flow-desc { font-size: 13px; }
+    .launch-stepper { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 20px; }
+    .launch-stepper a { display: flex; gap: 8px; align-items: baseline; padding: 12px 8px; border-bottom: 1px solid var(--border-highlight); font-size: 13px; color: var(--text-secondary); text-decoration: none; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .field label { font: 500 13px var(--font-mono); color: var(--text-muted); }
+    .field input, .field textarea, .share-row input { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; background: var(--bg-input); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font: 400 15px var(--font-sans, sans-serif); }
+    .field textarea { min-height: 5em; resize: vertical; }
+    .field input[type=file] { font-size: 13px; }
+    :focus-visible { outline: 2px solid var(--ember-bright) !important; outline-offset: 2px; }
+    [aria-invalid=true] { border-color: var(--fail) !important; }
+    button:disabled { opacity: .5; cursor: default; }
+    .btn-plain, .share-row .rm { background: rgba(255,255,255,.05); border: 1px solid var(--border-glass); color: var(--text-secondary); font: 600 13px var(--font-sans, sans-serif); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; min-height: 44px; text-decoration: none; text-align: center; }
+    .btn-plain:hover, .share-row .rm:hover { border-color: var(--border-highlight); color: var(--text-primary); }
+    .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 20px 0; }
+    .btn-conic-glow { max-width: 100%; background: var(--neon-charlie); }
+    .btn-conic-glow .btn-submit { font-family: var(--font-sans, sans-serif); font-weight: 700; white-space: normal; line-height: 1.45; min-height: 44px; }
+    .sign-wrap { background: conic-gradient(from 40deg, #ff4d26, #ffb052, #ff4d26); box-shadow: 0 0 20px rgba(255,77,38,.15); }
+    .sign-wrap > .btn-submit, .sign-wrap > .btn-submit:hover { background: #ff8a1f; color: #160e06; }
+    .share-row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; padding: 12px; border-left: 2px solid var(--border-glass); }
+    .share-row .share-addr { flex: 1 1 100%; font: 400 13px var(--font-mono); }
+    .share-row .share-bps { flex: 0 1 90px; width: 90px; }
+    .share-unit, .total-line, .burn-badge { font-size: 13px; color: var(--text-muted); }
+    .share-row.locked { background: rgba(143,225,63,.04); }
+    .share-row.locked code { flex: 1 1 100%; overflow-wrap: anywhere; color: var(--text-muted); font-size: 13px; }
+    .share-fixed { font-size: 13px; color: var(--neon-charlie); }
+    .share-row[data-burn=true][data-lit=true] { border-left-color: var(--flame-warm); }
+    .burn-badge { color: var(--flame-warm); }
+    .row-embers { pointer-events: none; position: absolute; bottom: 14px; left: 0; }
+    .row-embers i { display: block; width: 3px; height: 3px; border-radius: 50%; background: var(--flame-warm); opacity: 0; }
+    [data-burn=true][data-lit=true] .row-embers i { animation: row-ignite .8s ease both; }
+    .row-embers i:nth-child(2) { animation-delay: .1s; }
+    .row-embers i:nth-child(3) { animation-delay: .2s; }
+    @keyframes row-ignite { 0% { opacity: 0; transform: translate(0,0); } 35% { opacity: 1; } 100% { opacity: 0; transform: translate(12px,-35px); } }
+    #total.ok { color: var(--pass); } #total.bad { color: var(--fail); }
+    .note { font: 400 13px/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+    .note:empty { display: none; }
+    .note.bad { color: var(--fail); } .note.good { color: var(--pass); } .note.caution { color: var(--unchecked); }
+    pre.note { background: rgba(0,0,0,.35); padding: 16px; border: 1px solid var(--border-glass); border-radius: var(--radius-sm); margin: 20px 0; }
+    .warn { border-left: 2px solid var(--flame-warm); padding: 12px 16px; margin: 20px 0; font-size: 15px; line-height: 1.6; color: var(--text-secondary); }
+    .tx-timeline { list-style: none; padding: 0; display: grid; gap: 12px; }
+    .tx-timeline li { border-left: 2px solid var(--border-glass); padding-left: 12px; font-size: 13px; color: var(--text-muted); }
+    .tx-timeline a { display: block; margin-top: 4px; }
+    .tx-timeline [data-state=active] { color: var(--text-primary); border-color: var(--flame-warm); }
+    .tx-timeline [data-state=done] { color: var(--pass); border-color: var(--pass); }
+    .tx-timeline [data-state=bad] { color: var(--fail); border-color: var(--fail); }
+    .approval-ring { width: 24px; height: 24px; position: relative; display: inline-block; flex: 0 0 24px; }
+    .approval-ring i, .approval-ring b { position: absolute; inset: 1px; border: 2px solid currentColor; border-radius: 50%; }
+    .approval-ring i:first-child { clip-path: inset(0 50% 0 0); }
+    .approval-ring i:nth-child(2) { clip-path: inset(0 0 0 50%); opacity: .25; transition: opacity .2s; }
+    .approval-ring[data-step="2"] i:nth-child(2) { opacity: 1; }
+    .approval-ring b { opacity: 0; border-color: transparent; border-top-color: currentColor; }
+    .approval-ring[data-waiting=true] b { opacity: 1; animation: approval-wait 1s linear infinite; }
+    @keyframes approval-wait { to { transform: rotate(360deg); } }
+    .launch-chain { margin-bottom: 64px; }
+    .chain-columns { display: grid; gap: 28px; }
+    .chain-columns code { overflow-wrap: anywhere; font-size: 13px; }
+    @media (min-width: 900px) { .chain-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1100px) { .blueprint-flow-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } .blueprint-flow-item:last-child { grid-column: auto; } }
+    @media (max-width: 600px) {
+      .launch-stepper { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .row-actions { flex-direction: column; align-items: stretch; }
+      .row-actions > *, .btn-conic-glow { width: 100%; box-sizing: border-box; }
+      .share-row { padding: 10px; }
+      .blueprint-flow-grid { grid-template-columns: 1fr; }
+      .launch-card, .gatekeep-banner { padding: 20px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #launchEmbers { display: none; }
+      .gatekeep-banner::after, .row-embers i, .approval-ring b { animation: none !important; opacity: 0 !important; }
+      .approval-ring i { transition: none; }
+    }
+    </style>
+    <script>
+ window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+ window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+ </script>
+    <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
+    <script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
+  </head>
+<body>
+
+  <aside class="facility-telemetry-strip" aria-label="Solana Network & Facility Telemetry">
+    <div class="facility-telemetry-inner">
+      <div class="telemetry-pill">
+        <span class="telemetry-led"></span>
+        <span class="telemetry-label">NETWORK:</span>
+        <span class="telemetry-value">SOLANA MAINNET-BETA</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">LAUNCH STATUS:</span>
+        <span id="launchStatus" class="telemetry-value telemetry-value--ember font-mono">CHECKING</span>
+      </div>
+    </div>
+  </aside>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="./index.html" class="brand-lockup">
+      <span class="flame-box"><svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
+      <span>Charlie Protocol</span>
+    </a>
+    <nav class="site-nav">
+      <a href="./index.html" class="nav-link">Home</a>
+      <a href="./verify.html" class="nav-link">Verify CA</a>
+      <a href="./launch.html" class="nav-link active">Launch Coin</a>
+      <a href="./enroll.html" class="nav-link">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
+      <a href="./coins.html" class="nav-link">Directory</a>
+    </nav>
+    <div class="header-actions">
+      <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
+        <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+        <span>Sound Off</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="launch-hero">
+    <canvas id="launchEmbers" aria-hidden="true"></canvas>
+    <div class="eyebrow"><span class="telemetry-led"></span><span>THE LAUNCH DOOR</span></div>
+    <h1>Create a pump coin. Set its fee split.</h1>
+    <p>Two wallet approvals. The first creates the coin; the second sets the split for good. Your key stays in your wallet.</p>
+  </div>
+
+  <nav class="launch-stepper" aria-label="Launch steps">
+    <a href="#detailsBox">1 <span>Details</span></a><a href="#splitBox">2 <span>Split</span></a>
+    <a href="#walletBox">3 <span>Wallet</span></a><a href="#reviewBox">4 <span>Sign</span></a>
+  </nav>
+  <p class="launch-prereqs">About 0.02 SOL in rent, plus two network fees. Buying at launch is optional. Already have a coin? <a href="./enroll.html">Enroll it at /enroll</a>.</p>
+
+  <section class="cyber-card cyber-card--chamfer launch-card" id="detailsBox" data-edit aria-labelledby="detailsTitle">
+    <div class="eyebrow">STEP 1 // DETAILS</div><h2 id="detailsTitle">Describe the coin</h2>
+    <div class="field"><label for="name">Name</label><input id="name" type="text" maxlength="32" autocomplete="off" placeholder="Up to 32 bytes"></div>
+    <div class="field"><label for="symbol">Ticker</label><input id="symbol" type="text" maxlength="10" autocomplete="off" spellcheck="false" placeholder="Up to 10 bytes, no spaces"></div>
+    <div class="field"><label for="description">Description</label><textarea id="description" maxlength="1000"></textarea></div>
+    <div class="field"><label for="image">Image</label><input id="image" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></div>
+    <div class="field"><label for="twitter">X (optional)</label><input id="twitter" type="text" autocomplete="off"></div>
+    <div class="field"><label for="telegram">Telegram (optional)</label><input id="telegram" type="text" autocomplete="off"></div>
+    <div class="field"><label for="website">Website (optional)</label><input id="website" type="text" autocomplete="off"></div>
+    <div class="row-actions"><button type="button" id="pin" class="btn-plain">Upload details</button></div>
+    <p id="metaNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p>
+    <p id="uriBox" class="note" role="status" aria-live="polite" aria-atomic="true" hidden>Metadata URI: <code id="uriShown"></code></p>
+  </section>
+
+  <section class="cyber-card cyber-card--chamfer launch-card" id="splitBox" data-edit aria-labelledby="splitTitle">
+    <div class="eyebrow">STEP 2 // SPLIT</div><h2 id="splitTitle">Set the split</h2>
+    <p>pump pays a share of every trade to the coin’s creator vault. This split decides where that share goes, and it is set once.</p>
+    <div class="split-explainer">
+      <div><h3>The protocol row</h3>
+        <p>Fixed at <strong>0.25% of each transaction</strong>. It buys and burns $CHARLIE, and it is what makes this coin part of Charlie Protocol. You cannot edit it.</p></div>
+      <div><h3>Your rows</h3>
+        <p>Share the rest and must total 100%. The incinerator row is fixed: SOL sent to it is destroyed, and you choose how much, from 1% up. Every other row is a wallet that receives SOL.</p></div>
+      <div><h3>How it pays out</h3>
+        <p>pump holds the creator fees in the coin’s vault and pays the rows when its minimum is met. A keeper asks for the payout; anyone can. No signature needed.</p></div>
+    </div>
+    <div class="share-row locked" role="group" aria-label="Fixed protocol share">
+      <strong>Charlie Protocol</strong><span class="share-fixed">0.25% of each transaction</span>
+      <input id="protocolBps" type="hidden">
+    </div>
+    <div id="shares"></div>
+    <div class="row-actions">
+      <button type="button" id="addRow" class="btn-plain">Add a destination</button>
+      <button type="button" id="balance" class="btn-plain">Balance to 100%</button>
+      <span class="total-line">Total: <span id="total">100.00%</span> of the rest</span>
+    </div>
+    <p id="burnNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p>
+    <p id="splitNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p>
+  </section>
+
+  <section class="cyber-card cyber-card--chamfer launch-card" id="walletBox" aria-labelledby="walletTitle">
+    <div class="eyebrow">STEP 3 // WALLET</div><h2 id="walletTitle">Connect</h2>
+    <p>Your wallet is the creator and fills the wallet row above. Connecting signs nothing.</p>
+    <div class="row-actions"><div class="btn-conic-glow"><button type="button" id="connect" class="btn-submit">Connect wallet</button></div>
+      <p id="connected" class="note" role="status" aria-live="polite" aria-atomic="true" hidden>Connected: <code id="walletAddr"></code></p></div>
+    <p id="walletNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p>
+  </section>
+
+  <section class="cyber-card cyber-card--chamfer launch-card" id="reviewBox" aria-labelledby="reviewTitle">
+    <div class="eyebrow">STEP 4 // SIGN</div><h2 id="reviewTitle">Check and sign</h2>
+    <div class="field"><label for="buySol">Buy at launch (SOL, optional)</label><input id="buySol" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="Empty means no buy"></div>
+    <p class="note">The buy lands in approval 1, before the split is set: its creator fee goes where pump sends it by default.</p>
+    <div class="row-actions"><button type="button" id="build" class="btn-plain" disabled>Dry-run the launch (nothing signed)</button></div>
+    <pre id="buildNote" class="note" role="status" aria-live="polite" aria-atomic="true"></pre>
+    <div id="mintBox" hidden><p class="note">The coin’s address (CA): <code id="mintAddr"></code></p><p class="note">Ends in <code>1nc1n</code>: the mark of a coin made here. The mark is not proof; the split on chain is.</p>
+      <button id="copyMint" type="button" class="btn-plain">Copy coin address</button>
+      <p id="copyNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p></div>
+    <div class="warn"><span class="gatekeep-badge">ONE CHANGE, EVER</span><br>pump allows one fee split change, and approval 2 is it. After it confirms, no key can change the split, including yours. Trades that land between the two approvals pay pump’s default.</div>
+    <ol id="txTimeline" class="tx-timeline" aria-label="Transaction progress" aria-live="polite" hidden>
+      <li id="tx1" data-state="idle">1. Create the coin</li><li id="txWait" data-state="idle">Wait for confirmation</li><li id="tx2" data-state="idle">2. Set the split</li>
+    </ol>
+    <div class="row-actions"><div class="btn-conic-glow sign-wrap" hidden>
+      <button type="button" id="send" class="btn-submit" hidden>
+        <span id="approvalRing" class="approval-ring" data-step="1" aria-hidden="true"><i></i><i></i><b></b></span>
+        <span id="sendLabel">Sign 1 of 2: create the coin</span>
+      </button></div><button type="button" id="checkAgain" class="btn-plain" hidden>Check again</button></div>
+    <p id="sendNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p>
+    <div id="doneBox" hidden><p>Split confirmed on chain. pump pays the rows from the creator vault when its minimum is met; a keeper requests the payout. If your split has an incinerator row, its first payout is the first SOL burn.</p>
+      <div class="row-actions"><a id="pumpLink" class="btn-plain">Your coin on pump</a><a id="verifyLink" class="btn-plain">Read the split from the chain</a></div></div>
+  </section>
+
+  <details class="launch-chain">
+    <summary>How it works on chain</summary>
+    <div class="chain-columns">
+      <div><h3>Transaction 1: create</h3>
+        <p>pump’s own <code>create</code> instruction, your wallet as creator, co-signed by a mint key the server made ahead of time. That key signs once and holds nothing after. Trades before transaction 2 pay pump’s default.</p></div>
+      <div><h3>Transaction 2: split</h3>
+        <p><code>create_fee_sharing_config</code>, then <code>update_fee_shares_v2</code> with <code>admin_revoked</code>. Payouts come from the creator vault; anyone can request one, no signer needed.</p></div>
+      <div><h3>If transaction 2 fails</h3>
+        <p>The coin exists. Keep its address and set the split later at <a href="./enroll.html">/enroll</a>.</p></div>
+      <div><h3>Evidence</h3>
+        <p>The coin’s page reads the split and payouts from the chain. Creating a coin here publishes no listing on its own.</p>
+        <a href="./verify.html" class="btn-plain">Check any coin</a></div>
+    </div>
+  </details>
+</main>
+
+
+<footer>
+  <div class="footer-inner">
+    <p>Charlie Protocol holds no mint authority. Its 0.25% of each transaction is a row in your split, enforced by pump.</p>
+  </div>
+</footer>
+
+<script defer src="./assets/charlie-motion.js?v=fire5"></script>
+<script>
+var state = {wallet: null, toll: null, open: false, uri: null, built: null, mint: null,
+  createSig: null, splitSig: null, enroll: null, revision: 0, busy: false, locked: false, phase: 'draft'};
+var INCINERATOR = '1nc1nerator11111111111111111111111111111111';
+function $(id) { return document.getElementById(id); }
+function say(id, msg, kind) {
+  var n = $(id); n.textContent = msg; n.className = 'note ' + (kind || '');
+  n.setAttribute('role', kind === 'bad' ? 'alert' : 'status');
+}
+async function request(url, options, timeout) {
+  var controller = new AbortController();
+  var timer = setTimeout(function () { controller.abort(); }, timeout || 20000);
+  try {
+    var r = await fetch(url, Object.assign({cache: 'no-store'}, options || {}, {signal: controller.signal}));
+    var d = await r.json();
+    if (!r.ok || d.error) { throw Error(d.error || 'The server could not complete this check.'); }
+    return d;
+  } finally { clearTimeout(timer); }
+}
+function provider() {
+  var p = (window.phantom && window.phantom.solana) || window.solana;
+  if (p && p.isPhantom) { return p; }
+  if (window.solflare && window.solflare.isSolflare) { return window.solflare; }
+  return p || null;
+}
+function signButton(show, label) {
+  $('send').hidden = !show; $('send').parentElement.hidden = !show;
+  if (label) { $('sendLabel').textContent = label; }
+}
+function controls() {
+  document.querySelectorAll('[data-edit] input, [data-edit] textarea, [data-edit] button').forEach(function (el) {
+    el.disabled = state.locked || (el.closest('[data-wallet]') && !state.wallet);
+  });
+  $('pin').disabled = state.locked || state.pinning;
+  $('build').disabled = state.locked || state.building || !state.open;
+  $('connect').disabled = state.busy;
+}
+function invalidate(metadata) {
+  if (state.locked) { return; }
+  state.revision++; state.built = null; state.mint = null;
+  signButton(false); $('mintBox').hidden = true;
+  say('buildNote', '');
+  if (metadata) {
+    state.uri = null; $('uriBox').hidden = true;
+    say('metaNote', 'Details changed. Upload them again before checking the launch.');
+  }
+}
+function validAddress(s) {
+  var alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s)) { return false; }
+  var value = 0n;
+  for (var c of s) { value = value * 58n + BigInt(alphabet.indexOf(c)); }
+  var bytes = 0;
+  while (value > 0n) { bytes++; value >>= 8n; }
+  return bytes + (s.match(/^1*/) || [''])[0].length === 32;
+}
+async function describe() {
+  say('splitNote', 'Checking launch availability…');
+  try {
+    var d = await request('/api/launch');
+    state.toll = d.toll || null;
+    state.open = !!(d.open && state.toll && validAddress(state.toll.address) &&
+      Number.isInteger(state.toll.bps) && state.toll.bps > 0 && state.toll.bps < 10000);
+    // The pre-ground addresses. A pool with nothing left closes the door
+    // here, before anyone fills the form; an unknown count does not.
+    var mints = d.mints || {}, dry = !!(mints.pool && mints.left === 0);
+    if (dry) { state.open = false; }
+    $('launchStatus').textContent = state.open ? 'OPEN' : (dry ? 'PAUSED' : 'NOT OPEN YET');
+    $('protocolBps').value = state.toll ? state.toll.bps : '';
+    var note = state.open ? '' : (dry ? 'Launching is paused right now. You can plan the split but not build.' : 'Not open yet. You can plan the split but not build.');
+    say('splitNote', note, note ? 'caution' : '');
+  } catch (e) {
+    state.open = false; $('launchStatus').textContent = 'UNREACHABLE';
+    say('splitNote', 'Server unreachable. Reload.', 'bad');
+  }
+  controls();
+}
+function walletChanged(key) {
+  var address = key ? key.toString() : null;
+  if (state.locked) {
+    if (address !== state.wallet) { say('walletNote', 'Reconnect the original creator wallet to continue: ' + state.wallet, 'bad'); }
+    return;
+  }
+  invalidate(false); state.wallet = address;
+  $('walletAddr').textContent = address || '';
+  $('connected').hidden = !address; $('connect').hidden = !!address;
+  $('connect').parentElement.hidden = !!address;
+  document.querySelector('[data-wallet] .share-addr').value = address || '';
+  controls(); total();
+}
+async function connect() {
+  if (state.busy) { return; }
+  var p = provider();
+  if (!p) { say('walletNote', 'No Solana wallet found. Install Phantom or Solflare, then reload.', 'bad'); return; }
+  state.busy = true; controls();
+  try {
+    var r = await p.connect();
+    var key = (r && r.publicKey) || p.publicKey;
+    if (!key || !validAddress(key.toString())) { throw Error('No usable wallet address.'); }
+    walletChanged(key); say('walletNote', '');
+    if (p.on && state.provider !== p) {
+      p.on('accountChanged', walletChanged); p.on('disconnect', function () { walletChanged(null); });
+    }
+    state.provider = p;
+  } catch (e) { say('walletNote', 'Connection refused. Nothing signed.', 'bad'); }
+  finally { state.busy = false; controls(); }
+}
+function metadataProblem() {
+  var name = $('name').value.trim(), symbol = $('symbol').value.trim();
+  if (!name || new TextEncoder().encode(name).length > 32) { return 'Give the coin a name of 1–32 bytes.'; }
+  if (!symbol || /\s/.test(symbol) || new TextEncoder().encode(symbol).length > 10) { return 'Give the coin a ticker of 1–10 bytes, with no spaces.'; }
+  return '';
+}
+function validUri(uri) { return typeof uri === 'string' && /^(https:\/\/|ipfs:\/\/)/.test(uri) && new TextEncoder().encode(uri).length <= 200; }
+function fromQuery() {
+  var q = new URLSearchParams(window.location.search);
+  if (q.get('name')) { $('name').value = q.get('name'); }
+  if (q.get('symbol')) { $('symbol').value = q.get('symbol'); }
+  if (q.get('uri') && validUri(q.get('uri'))) {
+    state.uri = q.get('uri'); $('uriBox').hidden = false; $('uriShown').textContent = state.uri;
+    say('metaNote', 'Metadata came from the link. Check it, then set the split. Nothing created.', 'good');
+  }
+}
+async function pin() {
+  if (state.locked || state.pinning) { return; }
+  invalidate(false);
+  var problem = metadataProblem(), file = $('image').files && $('image').files[0];
+  if (problem) { say('metaNote', problem, 'bad'); return; }
+  if (!file || file.size > 4000000 || !['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(file.type)) {
+    say('metaNote', 'Attach a PNG, JPEG, GIF or WebP image up to 4 MB.', 'bad'); return;
+  }
+  var revision = state.revision, form = new FormData();
+  form.append('file', file);
+  ['name', 'symbol', 'description', 'twitter', 'telegram', 'website'].forEach(function (k) { form.append(k, $(k).value.trim()); });
+  state.pinning = true; controls(); say('metaNote', 'Uploading…');
+  try {
+    var d = await request('/api/launch', {method: 'POST', body: form}, 60000);
+    if (revision !== state.revision) { return; }
+    if (!validUri(d.metadataUri)) { throw Error('pump returned an unusable metadata URI.'); }
+    state.uri = d.metadataUri; $('uriBox').hidden = false; $('uriShown').textContent = state.uri;
+    say('metaNote', 'Uploaded. Nothing created yet.', 'good');
+  } catch (e) { if (revision === state.revision) { say('metaNote', e.message + ' Nothing was created.', 'bad'); } }
+  finally { state.pinning = false; controls(); }
+}
+function editableRows() { return Array.from(document.querySelectorAll('.share-row:not(.locked)')); }
+function percent(value) { return /^(?:\d{1,3})(?:\.\d{1,2})?$/.test(value) ? Math.round(Number(value) * 100) : NaN; }
+function total() {
+  var t = 0, burn = false;
+  editableRows().forEach(function (row) {
+    t += percent(row.querySelector('.share-bps').value);
+    if (row.querySelector('.share-addr').value.trim() === INCINERATOR) { burn = true; }
+  });
+  $('total').textContent = Number.isFinite(t) ? (t / 100).toFixed(2) + '%' : '—';
+  $('total').className = t === 10000 ? 'ok' : 'bad';
+  editableRows().forEach(function (row) {
+    if (row.dataset.burn === 'true' && t === 10000) { row.dataset.lit = 'true'; }
+  });
+  return t;
+}
+function addRow(addr, pct, wallet, fixedBurn) {
+  if (state.locked) { return; }
+  var row = document.createElement('div'); row.className = 'share-row'; row.setAttribute('role', 'group');
+  row.setAttribute('aria-label', fixedBurn ? 'Incinerator share; the address is fixed' : (wallet ? 'Creator wallet share' : 'Fee destination'));
+  if (wallet) { row.dataset.wallet = 'true'; }
+  var a = document.createElement('input'); a.className = 'share-addr'; a.value = addr || '';
+  a.placeholder = wallet ? 'Connect your wallet in step 3' : 'Destination address';
+  a.spellcheck = false; a.autocomplete = 'off'; a.setAttribute('aria-label', 'Destination address');
+  var b = document.createElement('input'); b.className = 'share-bps'; b.type = 'number'; b.step = '0.01'; b.min = '0.01'; b.max = '100';
+  b.inputMode = 'decimal'; b.value = pct === undefined ? '' : pct; b.setAttribute('aria-label', 'Percent of the rest');
+  var unit = document.createElement('span'); unit.className = 'share-unit'; unit.textContent = '% of the rest';
+  var badge = document.createElement('span'); badge.className = 'burn-badge'; badge.textContent = 'Sol-Incinerator';
+  // The incinerator row is part of every coin made here: its address is
+  // fixed and it cannot be removed. Only its share is the dev's to set. The
+  // server refuses a split without it, so this is not the only guard.
+  if (fixedBurn) { b.min = '1'; }
+  function identify() {
+    row.dataset.burn = String(!!fixedBurn);
+    badge.hidden = !fixedBurn; a.readOnly = !!fixedBurn || !!wallet;
+  }
+  a.oninput = function () { invalidate(false); identify(); total(); };
+  a.onblur = identify;
+  b.oninput = function () { invalidate(false); total(); };
+  [a, b, unit, badge].forEach(function (el) { row.appendChild(el); });
+  if (!wallet && !fixedBurn) {
+    var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = 'Remove';
+    rm.onclick = function () { invalidate(false); row.remove(); total(); $('addRow').focus(); };
+    row.appendChild(rm);
+  }
+  var embers = document.createElement('span'); embers.className = 'row-embers'; embers.setAttribute('aria-hidden', 'true');
+  for (var i = 0; i < 3; i++) { embers.appendChild(document.createElement('i')); }
+  row.appendChild(embers); $('shares').appendChild(row); identify(); controls(); total();
+  return row;
+}
+function balance() {
+  if (state.locked) { return; }
+  var rows = editableRows(), wallet = rows.find(function (r) { return r.dataset.wallet; }), used = 0;
+  rows.forEach(function (r) { if (r !== wallet) { used += percent(r.querySelector('.share-bps').value); } });
+  if (!Number.isFinite(used) || used >= 10000) { say('splitNote', 'Other rows must total less than 100% to leave a positive wallet share.', 'bad'); return; }
+  invalidate(false); wallet.querySelector('.share-bps').value = ((10000 - used) / 100).toFixed(2); total();
+  if (state.open) { say('splitNote', 'Balanced to 100%.', 'good'); }
+}
+function shareRows() {
+  var out = [], problems = [], seen = new Set(), rest = state.toll ? 10000 - state.toll.bps : 0;
+  var walletIndex = -1, allocated = 0;
+  if (!state.open) { problems.push('Launch availability must be confirmed before building.'); }
+  if (state.toll && state.toll.address) { seen.add(state.toll.address); }
+  editableRows().forEach(function (row) {
+    var input = row.querySelector('.share-addr'), a = input.value.trim(), b = row.querySelector('.share-bps');
+    var pct = percent(b.value), invalid = !validAddress(a) || seen.has(a);
+    input.setAttribute('aria-invalid', String(invalid));
+    b.setAttribute('aria-invalid', String(!Number.isFinite(pct) || pct <= 0 || pct > 10000));
+    if (!validAddress(a)) { problems.push('Every destination must be a valid Solana address (32 decoded bytes).'); }
+    if (seen.has(a)) { problems.push('Duplicate destination: ' + a); } seen.add(a);
+    if (!Number.isFinite(pct) || pct <= 0 || pct > 10000) { problems.push('Every share must be positive, at most 100%, with up to two decimal places.'); }
+    if (row.dataset.burn === 'true' && Number.isFinite(pct) && pct < 100) { problems.push('The incinerator share must be at least 1% of the rest.'); b.setAttribute('aria-invalid', 'true'); }
+    var bps = Math.round(pct * rest / 10000);
+    if (row.dataset.wallet) { walletIndex = out.length; }
+    out.push({address: a, pct: pct / 100, bps: bps}); allocated += bps;
+  });
+  if (out.length > 7) { problems.push('Use at most seven destinations in addition to the protocol row.'); }
+  if (total() !== 10000) { problems.push('The shares of the rest must total exactly 100%.'); }
+  if (walletIndex >= 0) { out[walletIndex].bps += rest - allocated; }
+  if (out.some(function (r) { return !Number.isInteger(r.bps) || r.bps <= 0; })) { problems.push('A share is too small after on-chain rounding. Increase it or remove that destination.'); }
+  var shares = state.toll ? [state.toll.address + ':' + state.toll.bps] : [];
+  out.forEach(function (r) { shares.push(r.address + ':' + r.bps); });
+  return {shares: shares, rows: out, problems: problems};
+}
+async function build() {
+  if (state.locked || state.building) { return; }
+  invalidate(false);
+  var rows = shareRows(), problem = metadataProblem();
+  if (!state.uri) { problem = 'Upload the details first (step 1).'; }
+  if (!state.wallet) { problem = 'Connect a wallet first (step 3).'; }
+  if (problem || rows.problems.length) { say('buildNote', [problem].concat(rows.problems).filter(Boolean).join('\n'), 'bad'); return; }
+  var revision = state.revision;
+  state.building = true; controls(); say('buildNote', 'Simulating…');
+  try {
+    var q = new URLSearchParams({authority: state.wallet, name: $('name').value.trim(), symbol: $('symbol').value.trim(), uri: state.uri, shares: rows.shares.join(',')});
+    var buySol = $('buySol').value.trim();
+    if (buySol) { q.set('buy', buySol); }
+    var d = await request('/api/launch?' + q.toString());
+    if (revision !== state.revision) { return; }
+    if (!d.simulated || !d.signable || !d.split_checked) { throw Error('The server did not confirm both the create simulation and split validation.'); }
+    state.built = d; state.builtAt = Date.now(); state.shares = rows.shares; state.mint = d.mint;
+    $('mintAddr').textContent = d.mint; $('mintBox').hidden = false;
+    var lines = ['0.25% of each transaction   Charlie Protocol, buys and burns $CHARLIE'];
+    rows.rows.forEach(function (r) { lines.push(r.pct + '% of the rest   ' + r.address + '   (' + r.bps + ' on-chain bps)'); });
+    var buyLine = d.buy ? '\n\nBuy at launch: up to ' + d.buy.sol + ' SOL for about ' + Math.round(d.buy.tokens).toLocaleString('en-US') + ' tokens (' + d.buy.percent_of_supply + '% of supply), in approval 1, before the split is set.' : '';
+    state.summaryLines = lines;
+    say('buildNote', 'Create simulated: no error. Split valid; its full simulation runs after the coin confirms.\n\nCoin: ' + d.name + ' (' + d.symbol + ')\nRent: about ' + (d.rent_lamports / 1e9).toFixed(4) + ' SOL now, then about 0.0059 SOL for the split record, plus network fees.\n\nThe permanent split:\n' + lines.join('\n') + '\n\nRounding goes to your wallet row.' + buyLine, 'good');
+    signButton(true, 'Sign 1 of 2: create the coin');
+  } catch (e) { if (revision === state.revision) { say('buildNote', e.message + ' Nothing was sent.', 'bad'); } }
+  finally { state.building = false; controls(); }
+}
+function timeline(id, status, label, signature) {
+  var el = $(id); el.dataset.state = status; el.textContent = label;
+  if (signature) {
+    var a = document.createElement('a'); a.href = 'https://solscan.io/tx/' + encodeURIComponent(signature);
+    a.textContent = 'View transaction'; a.target = '_blank'; a.rel = 'noopener noreferrer'; el.appendChild(a);
+  }
+}
+function recovery() { return 'The split can still be set later. Keep this mint address: ' + state.mint + '. Enrollment for existing coins is at /enroll.'; }
+function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+async function waitForConfirmation(second) {
+  var end = Date.now() + 120000, signature = second ? state.splitSig : state.createSig, seen = null;
+  $('approvalRing').dataset.waiting = 'true';
+  try {
+    while (Date.now() < end) {
+      try {
+        var d = await request('/api/launch?status=' + encodeURIComponent(signature) + '&mint=' + encodeURIComponent(state.mint), null, Math.min(10000, end - Date.now()));
+        if (d.failed) { return 'failed'; }
+        seen = !!d.seen;
+        // A pre-existing curve is never evidence that approval two landed.
+        if (second ? d.landed : d.ready) { return 'confirmed'; }
+      } catch (e) { /* A failed status read is unknown, not a failed transaction. */ }
+      if (Date.now() < end) { await sleep(Math.min(3000, end - Date.now())); }
+    }
+    // The chain answered and has never heard of this signature, two minutes
+    // after a blockhash that lives about one: it was dropped and cannot land.
+    return seen === false ? 'dropped' : 'unknown';
+  } finally { $('approvalRing').dataset.waiting = 'false'; }
+}
+function signingProvider() {
+  var p = provider();
+  if (!p || !p.request) { throw Error('This wallet cannot sign from this page. Phantom or Solflare can.'); }
+  if (!p.publicKey || p.publicKey.toString() !== state.wallet) { throw Error('Reconnect the original creator wallet: ' + state.wallet); }
+  return p;
+}
+function signatureOf(res) {
+  var sig = res && (res.signature || res);
+  if (typeof sig !== 'string' || !/^[1-9A-HJ-NP-Za-km-z]{64,90}$/.test(sig)) { throw Error('The wallet returned no usable transaction signature.'); }
+  return sig;
+}
+async function prepareSplit() {
+  state.phase = 'review2'; state.enroll = null; signButton(false);
+  timeline('txWait', 'done', 'Coin confirmed');
+  timeline('tx2', 'active', '2. Checking the split');
+  try {
+    signingProvider();
+    var d = await request('/api/enroll?' + new URLSearchParams({mint: state.mint, authority: state.wallet, shares: state.shares.join(',')}));
+    if (!d.simulated || !d.signable) { throw Error('The split simulation was not confirmed by the server.'); }
+    // Refuse a response for a different split, even if the endpoint reports success.
+    var summary = (d.summary || []).map(function (r) { return r.address + ':' + r.bps; });
+    if (summary.join(',') !== state.shares.join(',')) { throw Error('The checked split does not match the split you reviewed.'); }
+    state.enroll = d; state.enrollAt = Date.now();
+    $('approvalRing').dataset.step = '2';
+    say('sendNote', 'Coin confirmed. Split simulation passed. This is pump’s one split change and it is permanent.\n\n' + (state.summaryLines || []).join('\n') + '\n\nCheck every row, then sign.', 'caution');
+    signButton(true, 'Sign 2 of 2: set the split, permanently');
+  } catch (e) {
+    say('sendNote', 'The coin exists. ' + e.message + '\n\n' + recovery(), 'bad');
+    $('checkAgain').hidden = false;
+  }
+}
+function done() {
+  state.phase = 'done'; state.busy = false;
+  timeline('tx2', 'done', '2. Split confirmed', state.splitSig);
+  say('sendNote', 'Done. The coin exists and its split is set, permanently.', 'good');
+  $('doneBox').hidden = false;
+  $('pumpLink').href = 'https://pump.fun/coin/' + encodeURIComponent(state.mint);
+  $('verifyLink').href = '/verify/' + encodeURIComponent(state.mint);
+  $('checkAgain').hidden = true; signButton(false); controls();
+}
+async function confirmPending() {
+  var second = state.phase === 'wait2';
+  var outcome = await waitForConfirmation(second);
+  if (outcome === 'confirmed') {
+    if (second) { done(); } else { timeline('tx1', 'done', '1. Coin created', state.createSig); await prepareSplit(); }
+  } else if (outcome === 'failed') {
+    timeline(second ? 'tx2' : 'tx1', 'bad', second ? '2. Split transaction failed' : '1. Create transaction failed', second ? state.splitSig : state.createSig);
+    if (second) {
+      state.phase = 'review2'; state.splitSig = null; $('checkAgain').hidden = false;
+      say('sendNote', 'The split transaction failed on chain. ' + recovery(), 'bad');
+    } else {
+      state.locked = false; state.phase = 'draft'; state.createSig = null; invalidate(false);
+      say('sendNote', 'Create failed on chain. No coin was created; the network fee may still be charged. Dry-run again.', 'bad');
+    }
+  } else if (outcome === 'dropped' && second) {
+    // Nothing was set and the one change is unspent. Build it again; the
+    // server simulates first, so a split that did land can never be re-signed.
+    timeline('tx2', 'bad', '2. Split never reached the chain', state.splitSig);
+    state.splitSig = null;
+    await prepareSplit();
+    if (state.enroll) { say('sendNote', 'The first split transaction never reached the chain, so nothing was set. A fresh one is checked and ready.\n\n' + (state.summaryLines || []).join('\n') + '\n\nCheck every row, then sign.', 'caution'); }
+  } else if (outcome === 'dropped') {
+    state.locked = false; state.phase = 'draft'; state.createSig = null; invalidate(false);
+    say('sendNote', 'The create transaction never reached the chain. No coin was created. Dry-run again.', 'caution');
+  } else {
+    $('checkAgain').hidden = false;
+    timeline(second ? 'tx2' : 'txWait', 'active', second ? '2. Split confirmation unknown' : 'Coin confirmation unknown', signatureForPhase());
+    say('sendNote', 'Still unconfirmed after two minutes. Check again; do not relaunch. Keep this coin address: ' + state.mint, 'caution');
+  }
+}
+function signatureForPhase() { return state.phase === 'wait2' ? state.splitSig : state.createSig; }
+async function checkAgain() {
+  if (state.busy) { return; }
+  state.busy = true; $('checkAgain').hidden = true; controls();
+  try {
+    if (state.phase === 'review2') { await prepareSplit(); }
+    else if (state.phase === 'wait1' || state.phase === 'wait2') { await confirmPending(); }
+  } finally { state.busy = false; controls(); }
+}
+async function send() {
+  if (state.busy || (!state.built && state.phase === 'draft')) { return; }
+  var second = state.phase === 'review2', p;
+  if (state.phase !== 'draft' && !second) { return; }
+  try { p = signingProvider(); } catch (e) { say('sendNote', e.message, 'bad'); return; }
+  if (Date.now() - (second ? state.enrollAt : state.builtAt) > 45000) {
+    if (second) { state.enroll = null; signButton(false); $('checkAgain').hidden = false; }
+    else { invalidate(false); }
+    say('sendNote', 'Check expired. ' + (second ? 'Check again.' : 'Dry-run again.'), 'caution'); return;
+  }
+  if (second && !state.enroll) { return; }
+  state.busy = true; state.locked = true; controls(); signButton(false); $('txTimeline').hidden = false;
+  state.phase = second ? 'approving2' : 'approving1';
+  timeline(second ? 'tx2' : 'tx1', 'active', second ? '2. Awaiting approval' : '1. Awaiting approval');
+  say('sendNote', second ? 'Approve 2 of 2 in your wallet: set the split. Permanent once it confirms.' : 'Approve 1 of 2 in your wallet: create the coin. The split is not set yet.');
+  try {
+    var res = await p.request({method: 'signAndSendTransaction', params: {message: (second ? state.enroll : state.built).signable}});
+    var sig = signatureOf(res);
+    if (second) { state.splitSig = sig; } else { state.createSig = sig; }
+    state.phase = second ? 'wait2' : 'wait1';
+    timeline(second ? 'tx2' : 'tx1', 'active', second ? '2. Split sent; awaiting confirmation' : '1. Coin sent', sig);
+    if (!second) { timeline('txWait', 'active', 'Waiting for the coin to confirm'); }
+    say('sendNote', second ? 'Split sent. Waiting for confirmation…' : 'Coin sent. Waiting for confirmation…');
+    await confirmPending();
+  } catch (e) {
+    var rejected = e && e.code === 4001;
+    if (rejected) {
+      state.phase = second ? 'review2' : 'draft';
+      if (second) { state.enroll = null; $('checkAgain').hidden = false; }
+      else { state.locked = false; invalidate(false); }
+      say('sendNote', second ? 'Split approval cancelled. ' + recovery() : 'Cancelled. Nothing signed. Dry-run again when ready.', 'caution');
+    } else {
+      state.phase = 'unknown';
+      say('sendNote', 'Wallet result unknown: ' + e.message + '\nCheck your wallet activity before doing anything else. A transaction may have been sent. Keep this coin address: ' + state.mint, 'bad');
+    }
+    timeline(second ? 'tx2' : 'tx1', 'bad', rejected ? 'Approval cancelled' : 'Wallet result unknown');
+  } finally { state.busy = false; controls(); }
+}
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.note').forEach(function (el) { el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); el.setAttribute('aria-atomic', 'true'); });
+  $('connect').onclick = connect; $('pin').onclick = pin;
+  $('addRow').onclick = function () {
+    if (editableRows().length >= 7) { say('splitNote', 'At most seven destinations can be added alongside the protocol.', 'bad'); return; }
+    invalidate(false); var row = addRow('', ''); row.querySelector('.share-addr').focus();
+  };
+  $('balance').onclick = balance; $('build').onclick = build; $('send').onclick = send; $('checkAgain').onclick = checkAgain;
+  $('copyMint').onclick = async function () {
+    try { await navigator.clipboard.writeText(state.mint); say('copyNote', 'Coin address copied.', 'good'); }
+    catch (e) { say('copyNote', 'Copy the coin address shown above.', 'caution'); }
+  };
+  ['name', 'symbol', 'description', 'image', 'twitter', 'telegram', 'website'].forEach(function (id) {
+    $(id).addEventListener('input', function () { invalidate(true); });
+  });
+  addRow(INCINERATOR, 30, false, true); addRow(null, 70, true);
+  $('buySol').addEventListener('input', function () { invalidate(false); });
+  fromQuery(); signButton(false); describe();
+  var active = document.querySelector('.site-nav .active');
+  if (active) { active.scrollIntoView({block: 'nearest', inline: 'nearest'}); }
+});
+window.addEventListener('beforeunload', function (e) {
+  if (state.locked && state.phase !== 'done') { e.preventDefault(); e.returnValue = ''; }
+});
+</script>
+<script src="./assets/signature-motion.js" defer></script>
+<script defer src="./assets/launch-motion.js"></script>
+</body>
+</html>

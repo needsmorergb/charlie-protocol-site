@@ -65,9 +65,9 @@
 <nav class="site-nav">
   <a href="./index.html" class="nav-link active">Home</a>
   <a href="./verify.html" class="nav-link">Verify CA</a>
+  <a href="./launch.html" class="nav-link">Launch Coin</a>
   <a href="./enroll.html" class="nav-link">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
   <a href="./coins.html" class="nav-link">Directory</a>
-  <a href="./coin.html" class="nav-link">Audit View</a>
 </nav>
 
 <div class="header-actions">
@@ -378,7 +378,7 @@ VERIFIED. Those coins do not exist in the record. -->
 </div>
 </section>
 
-<section id="counters"><div class="eyebrow">$CHARLIE recorded observation</div><h2>What the record shows</h2><p>Read on 2026-09-07 21:31 UTC. These are saved figures, not a live counter.</p><div class="counters-grid"><div class="counter-card cyber-card"><h3>Supply remaining</h3><p class="counter-value font-mono">956,338,570.365904</p><p class="counter-source">mint_state.supply</p></div><div class="counter-card cyber-card"><h3>Initial supply</h3><p class="counter-value font-mono">1,000,000,000.000000</p><p class="counter-source">evidence.initial_supply.raw_supply</p></div><div class="counter-card cyber-card"><h3>SOL at the burn address</h3><p class="counter-value font-mono">179.668087718 SOL</p><p class="counter-source">sol_burn_balances</p></div></div><p><a href="/coin/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json">Read the source record</a></p></section>
+<section id="counters"><div class="eyebrow">$CHARLIE recorded observation</div><h2>What the record shows</h2><p>Read on 2026-09-07 21:31 UTC. These are saved figures, not a live counter.</p><div class="counters-grid"><div class="counter-card cyber-card"><h3>Supply remaining</h3><p class="counter-value font-mono">956,338,570.365904</p><p class="counter-source">mint_state.supply</p></div><div class="counter-card cyber-card"><h3>Initial supply</h3><p class="counter-value font-mono">1,000,000,000.000000</p><p class="counter-source">evidence.initial_supply.raw_supply</p></div><div class="counter-card cyber-card"><h3>SOL at the burn address</h3><p class="counter-value font-mono">179.668087718 SOL</p><p class="counter-source">sol_burn_balances</p></div><div class="counter-card cyber-card"><h3>$CHARLIE bought and burned by the protocol</h3><p class="counter-value font-mono" id="protocolBurnTotal">28,569.506012</p><p class="counter-source"><a href="/protocol-burns.json">protocol-burns.json</a>: <span id="protocolBurnCount">1</span> buy-and-burn transaction(s) by the protocol&rsquo;s collection wallet, first on 2026-09-17.</p></div><script>fetch("/protocol-burns.json",{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(d&&d.total&&d.burns){document.getElementById("protocolBurnTotal").textContent=d.total;document.getElementById("protocolBurnCount").textContent=d.burns.length;}}).catch(function(){});</script></div><p><a href="/coin/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json">Read the source record</a></p></section>
 <section class="editorial-card"><h2>Burns stay burned</h2><p>The recorded SOL burn address check passed, and the token's mint authority is revoked. Burned tokens cannot be issued again.</p><p>The recorded token burn total is withheld because its checks do not fully support it. This page does not claim that every burn has been reconciled.</p><a class="btn-submit" href="/verify/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump">Read the full report</a></section>
 <!-- =========================================================================
 Phases: the roadmap, graded by its own checks rather than by hand.
@@ -501,7 +501,7 @@ would freeze on the day it was written and then quietly lie.
 
 <div style="display: flex; gap: var(--sp-md); flex-wrap: wrap; margin-top: var(--sp-lg);">
   <div class="btn-conic-glow">
-    <a href="./coin.html" class="btn-submit" style="display: inline-block; text-decoration: none;">
+    <a href="/verify/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump" class="btn-submit" style="display: inline-block; text-decoration: none;">
       <span>See $CHARLIE's full report</span>
       <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="9 18 15 12 9 6"></polyline>
