@@ -3,13 +3,6 @@
   "framework": null,
   "buildCommand": null,
   "outputDirectory": "web",
-  "redirects": [
-    {
-      "source": "/((?!gate\\.html|assets/).*)",
-      "destination": "/gate.html",
-      "permanent": false
-    }
-  ],
   "functions": {
     "api/verify.py": {
       "includeFiles": "{indexer/**,web/**}",
