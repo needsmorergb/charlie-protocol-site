@@ -3,6 +3,114 @@
   "framework": null,
   "buildCommand": null,
   "outputDirectory": "web",
+  "redirects": [
+    {
+      "source": "/((?!gate\\.html|assets/).*)",
+      "destination": "/gate.html",
+      "permanent": false
+    }
+  ],
+  "functions": {
+    "api/verify.py": {
+      "includeFiles": "{indexer/**,web/**}",
+      "maxDuration": 20
+    },
+    "api/enroll.py": {
+      "includeFiles": "{indexer/**,web/**}",
+      "maxDuration": 20
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/_vercel/insights/script.js",
+      "destination": "https://va.vercel-scripts.com/v1/script.js"
+    },
+    {
+      "source": "/_vercel/speed-insights/script.js",
+      "destination": "https://va.vercel-scripts.com/v1/speed-insights/script.js"
+    },
+    {
+      "source": "/preview",
+      "destination": "/preview/index.html"
+    },
+    {
+      "source": "/preview/verify",
+      "destination": "/preview/verify.html"
+    },
+    {
+      "source": "/preview/enroll",
+      "destination": "/preview/enroll.html"
+    },
+    {
+      "source": "/preview/coins",
+      "destination": "/preview/coins.html"
+    },
+    {
+      "source": "/preview/coin/:mint([1-9A-HJ-NP-Za-km-z]+)",
+      "destination": "/preview/coin.html"
+    },
+    {
+      "source": "/verify",
+      "has": [
+        {
+          "type": "query",
+          "key": "mint",
+          "value": "(?<mint>[1-9A-HJ-NP-Za-km-z]+)"
+        }
+      ],
+      "destination": "/api/verify?mint=:mint"
+    },
+    {
+      "source": "/coins",
+      "destination": "/coins.html"
+    },
+    {
+      "source": "/enroll",
+      "destination": "/enroll.html"
+    },
+    {
+      "source": "/dilution",
+      "destination": "/dilution.html"
+    },
+    {
+      "source": "/buildlog",
+      "destination": "/buildlog.html"
+    },
+    {
+      "source": "/phases",
+      "destination": "/phases.html"
+    },
+    {
+      "source": "/flywheel",
+      "destination": "/flywheel.html"
+    },
+    {
+      "source": "/charlie-flywheel",
+      "destination": "/charlie-flywheel.html"
+    },
+    {
+      "source": "/verify",
+      "destination": "/verify.html"
+    },
+    {
+      "source": "/coin/:mint([1-9A-HJ-NP-Za-km-z]+).json",
+      "destination": "/api/verify?mint=:mint&format=json"
+    },
+    {
+      "source": "/coin/:mint([1-9A-HJ-NP-Za-km-z]+)",
+      "destination": "/api/verify?mint=:mint"
+    },
+    {
+      "source": "/verify/:mint([1-9A-HJ-NP-Za-km-z]+)",
+      "destination": "/api/verify?mint=:mint"
+    }
+  ]
+}
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": null,
+  "outputDirectory": "web",
   "functions": {
     "api/verify.py": {
       "includeFiles": "{indexer/**,web/**}",
