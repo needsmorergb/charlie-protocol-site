@@ -1,25 +1,25 @@
 {
   "attribution": [
     {
-      "address": "FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu",
-      "bps": 5000,
+      "address": "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8",
+      "bps": 2500,
       "keyless": false,
       "leg": "paid",
-      "reason": "an ordinary account, not program-derived"
+      "reason": "the protocol's collection wallet: the share every enrolled coin pays. A spendable wallet, so an OPS destination; what it is spent on is not something the chain shows and not something this page claims"
     },
     {
-      "address": "5YRgrP3mjGzrzirYYN5HAQH19cTYREYwGxW6XRJQUzij",
-      "bps": 2000,
-      "keyless": false,
-      "leg": "paid",
-      "reason": "an ordinary account, not program-derived"
-    },
-    {
-      "address": "3GcqSyYA3Bcik8o1fh78FnyADL4j4kxyyU3DvH9au26F",
-      "bps": 3000,
+      "address": "1nc1nerator11111111111111111111111111111111",
+      "bps": 2250,
       "keyless": true,
+      "leg": "sol_burn",
+      "reason": "Solana's incinerator: the runtime removes lamports credited here from the total supply at the end of the block. Not merely unspendable -- destroyed."
+    },
+    {
+      "address": "9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9",
+      "bps": 5250,
+      "keyless": false,
       "leg": "paid",
-      "reason": "program-derived -- but it is some other program's PDA, and that program may be able to move it. Not provably burned."
+      "reason": "an ordinary account, not program-derived"
     }
   ],
   "backed_by": {
@@ -44,19 +44,14 @@
     "ops_total": [
       {
         "check": "OPS_ROUTED",
-        "detail": "the walk of FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu is incomplete -- reached no signature yet; the walk of 5YRgrP3mjGzrzirYYN5HAQH19cTYREYwGxW6XRJQUzij is incomplete -- reached no signature yet; the walk of 3GcqSyYA3Bcik8o1fh78FnyADL4j4kxyyU3DvH9au26F is incomplete -- reached no signature yet",
+        "detail": "the walk of 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 is incomplete -- reached no signature yet; the walk of 9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9 is incomplete -- reached no signature yet",
         "status": "UNCHECKED"
       }
     ],
     "sol_burn_total": [
       {
-        "check": "SOL_BURN_UNSPENDABLE",
-        "detail": "no SOL burn destination in this split -- nothing to check",
-        "status": "UNCHECKED"
-      },
-      {
         "check": "SOL_BURN_BALANCE",
-        "detail": "no SOL burn destination in this split -- nothing to check",
+        "detail": "the walk of 1nc1nerator11111111111111111111111111111111 is incomplete -- reached no signature yet",
         "status": "UNCHECKED"
       }
     ],
@@ -75,7 +70,7 @@
   },
   "checks": [
     {
-      "actual": "8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump",
+      "actual": "4dHdbxPANfuuvzXCTjngsqpjsUytE6KfBtQuGrT1nc1n",
       "backs": [
         "split",
         "sol_burn_total",
@@ -85,7 +80,7 @@
       ],
       "detail": "the sharing config names this coin",
       "equation": "sharing_config.mint == mint",
-      "expected": "8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump",
+      "expected": "4dHdbxPANfuuvzXCTjngsqpjsUytE6KfBtQuGrT1nc1n",
       "name": "CONFIG_MINT",
       "status": "PASS"
     },
@@ -101,32 +96,32 @@
       "status": "PASS"
     },
     {
-      "actual": "0",
+      "actual": "2500",
       "backs": [],
-      "detail": "the split does not pay the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 at all",
+      "detail": "the split pays the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 2500 bps, at or above the 2500 bps every enrolled coin carries",
       "equation": "bps(TOLL_DESTINATION) >= 2500",
       "expected": ">= 2500",
       "name": "PROTOCOL_SHARE",
-      "status": "FAIL"
+      "status": "PASS"
     },
     {
-      "actual": null,
+      "actual": "a burn destination",
       "backs": [
         "sol_burn_total"
       ],
-      "detail": "no SOL burn destination in this split -- nothing to check",
+      "detail": "every SOL burn destination is a burn address: what reaches it is out of circulation",
       "equation": "every SOL burn destination is one SOL does not come back from",
-      "expected": null,
+      "expected": "a burn destination",
       "name": "SOL_BURN_UNSPENDABLE",
-      "status": "UNCHECKED"
+      "status": "PASS"
     },
     {
       "actual": null,
       "backs": [
         "sol_burn_total"
       ],
-      "detail": "no SOL burn destination in this split -- nothing to check",
-      "equation": "sum(recorded_inflows) == getBalance(vault)",
+      "detail": "the walk of 1nc1nerator11111111111111111111111111111111 is incomplete -- reached no signature yet",
+      "equation": "per-destination: sum(recorded_inflows) == getBalance(vault) for a derived vault, <= for the grandfathered address",
       "expected": null,
       "name": "SOL_BURN_BALANCE",
       "status": "UNCHECKED"
@@ -182,7 +177,7 @@
       "backs": [
         "ops_total"
       ],
-      "detail": "the walk of FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu is incomplete -- reached no signature yet; the walk of 5YRgrP3mjGzrzirYYN5HAQH19cTYREYwGxW6XRJQUzij is incomplete -- reached no signature yet; the walk of 3GcqSyYA3Bcik8o1fh78FnyADL4j4kxyyU3DvH9au26F is incomplete -- reached no signature yet",
+      "detail": "the walk of 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 is incomplete -- reached no signature yet; the walk of 9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9 is incomplete -- reached no signature yet",
       "equation": "sum(routed_to_OPS) == sum(protocol_inflows(ops_wallet))",
       "expected": null,
       "name": "OPS_ROUTED",
@@ -190,22 +185,22 @@
     }
   ],
   "config": {
-    "address": "1iBA2hAxHXamaz1UYenZvEyoeEu8MLPLqWXdN4ZRnEL",
-    "admin": "FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu",
+    "address": "FCJUMm8HTq6hw5Pp2epccp6LYWyp7xBXcKdJPE695NUs",
+    "admin": "9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9",
     "admin_revoked": true,
-    "mint": "8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump",
+    "mint": "4dHdbxPANfuuvzXCTjngsqpjsUytE6KfBtQuGrT1nc1n",
     "shareholders": [
       {
-        "address": "FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu",
-        "bps": 5000
+        "address": "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8",
+        "bps": 2500
       },
       {
-        "address": "5YRgrP3mjGzrzirYYN5HAQH19cTYREYwGxW6XRJQUzij",
-        "bps": 2000
+        "address": "1nc1nerator11111111111111111111111111111111",
+        "bps": 2250
       },
       {
-        "address": "3GcqSyYA3Bcik8o1fh78FnyADL4j4kxyyU3DvH9au26F",
-        "bps": 3000
+        "address": "9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9",
+        "bps": 5250
       }
     ],
     "status": 1,
@@ -217,27 +212,30 @@
     "initial_supply": null
   },
   "evidence_coverage": {
-    "3GcqSyYA3Bcik8o1fh78FnyADL4j4kxyyU3DvH9au26F": 0,
-    "5YRgrP3mjGzrzirYYN5HAQH19cTYREYwGxW6XRJQUzij": 0,
-    "FHbCHYei88HWhZ4waBg42SLYPRzrPhjE2KVGBsxhzZnu": 0
+    "1nc1nerator11111111111111111111111111111111": 0,
+    "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8": 0,
+    "9XBUCHH9ZDot9UvkBH9zCsvXSHYvUogf12zrNVsZdga9": 0
   },
   "graduated": false,
-  "mint": "8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump",
+  "mint": "4dHdbxPANfuuvzXCTjngsqpjsUytE6KfBtQuGrT1nc1n",
   "mint_state": {
     "decimals": 6,
     "freeze_authority": null,
     "mint_authority": null,
     "supply": 1000000000000000,
-    "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+    "token_program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
   },
-  "observed_at": 1789764866.3414025,
+  "observed_at": 1789764864.0112052,
   "publishable": [
     "split"
   ],
   "schema": 3,
+  "sol_burn_balances": {
+    "1nc1nerator11111111111111111111111111111111": 0
+  },
   "split": {
     "burn": 0,
-    "paid": 10000,
-    "sol_burn": 0
+    "paid": 7750,
+    "sol_burn": 2250
   }
 }
