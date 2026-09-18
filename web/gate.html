@@ -1,0 +1,327 @@
+<!doctype html>
+<!-- charlie:authored-page -->
+<!-- charlie:gate  (the page polls for this marker; remove the gate and open tabs navigate on their own) -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Charlie Protocol 2.0 | 21:00 UTC</title>
+<meta name="description" content="Charlie Protocol 2.0 goes live today at 21:00 UTC.">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Charlie Protocol 2.0, 21:00 UTC">
+<meta property="og:description" content="Goes live today at 21:00 UTC.">
+<meta property="og:image" content="https://charlieprotocol.fun/assets/meta-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#030403">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#030403; --base:#060806; --surface:#101610;
+  --ember:#8FE13F; --ember-dim:#64A32B; --ember-halo:rgba(143,225,63,.09);
+  --flame-core:#FFD84A; --flame-warm:#FF8A1F; --flame-hot:#FF3B1F;
+  --text:#F5F9F4; --text-2:#9BA89A; --line:rgba(143,225,63,.16);
+  --sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{
+  background:var(--void); color:var(--text); font-family:var(--sans);
+  font-size:1.0625rem; line-height:1.55; -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column; min-height:100svh; overflow-x:hidden;
+}
+/* furnace: the image is optional; the glow carries the page if it fails to load */
+.furnace{position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(60% 45% at 50% 108%, rgba(255,77,46,.30), transparent 70%),
+    radial-gradient(40% 30% at 50% 100%, rgba(255,138,31,.22), transparent 70%),
+    var(--void);}
+.furnace img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  opacity:.16; mix-blend-mode:screen; filter:saturate(.7);}
+.furnace::after{content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, var(--void) 0%, rgba(3,4,3,.55) 45%, rgba(3,4,3,.2) 100%);}
+
+header{display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  padding:1.25rem clamp(1.25rem,4vw,3rem);}
+.brand{display:flex; align-items:center; gap:.6rem; color:var(--text); text-decoration:none; font-weight:700; letter-spacing:-.01em}
+.brand svg{color:var(--ember)}
+.clock-src{font-family:var(--mono); font-size:.78rem; color:var(--text-2); display:flex; align-items:center; gap:.5rem}
+.led{width:7px; height:7px; border-radius:50%; background:var(--text-2)}
+.led.ok{background:var(--ember); box-shadow:0 0 8px var(--ember)}
+
+main{flex:1; display:flex; flex-direction:column; justify-content:center;
+  padding:2rem clamp(1.25rem,4vw,3rem) 3rem; max-width:72rem; width:100%; margin:0 auto;}
+
+h1{font-weight:700; font-size:clamp(2rem,5.2vw,3.75rem); line-height:1.04; letter-spacing:-.035em; max-width:20ch;}
+.lede{margin-top:.9rem; color:var(--text); max-width:54ch; font-size:clamp(1.15rem,2vw,1.4rem)}
+
+/* the one bold thing */
+.count{margin-top:clamp(2rem,5vw,3.5rem); display:flex; align-items:flex-end; gap:clamp(.5rem,2vw,1.5rem); flex-wrap:nowrap}
+.unit{display:flex; flex-direction:column; gap:.4rem}
+.digits{font-family:var(--mono); font-weight:700; font-variant-numeric:tabular-nums;
+  font-size:clamp(3.6rem,17vw,10rem); line-height:.9; letter-spacing:-.04em; color:var(--ember);
+  text-shadow:0 0 38px rgba(143,225,63,.28);}
+.digits span{display:inline-block; transition:color .9s ease-out, text-shadow .9s ease-out}
+.digits span.hot{color:var(--flame-core); text-shadow:0 0 30px var(--flame-warm), 0 0 60px rgba(255,59,31,.5); transition:none}
+.sep{font-family:var(--mono); font-weight:500; font-size:clamp(2.4rem,9vw,6.5rem); line-height:.95; color:var(--ember-dim); padding-bottom:1.4rem}
+.label{font-size:.85rem; color:var(--text-2); padding-left:.2rem}
+.unit.days[hidden]+.sep.days{display:none}
+
+.when{margin-top:1.25rem; font-family:var(--mono); font-size:.9rem; color:var(--text-2)}
+.when strong{color:var(--text); font-weight:500}
+
+.promise{margin-top:1.75rem; font-size:1rem; color:var(--text)}
+
+
+.actions{margin-top:2rem; display:flex; flex-wrap:wrap; gap:.75rem 1.25rem; align-items:center}
+.btn{display:inline-flex; align-items:center; gap:.5rem; padding:.8rem 1.15rem; font:inherit; font-weight:500; font-size:.95rem;
+  color:var(--void); background:var(--ember); border:0; border-radius:3px; text-decoration:none; cursor:pointer}
+.btn:hover{background:#A6FF4D}
+.link{color:var(--text); text-decoration:underline; text-decoration-color:var(--ember-dim); text-underline-offset:4px; font-size:.95rem}
+.link:hover{text-decoration-color:var(--ember)}
+:focus-visible{outline:2px solid var(--flame-core); outline-offset:3px}
+
+.cal{position:relative}
+.cal-menu{position:absolute; top:calc(100% + .4rem); left:0; min-width:13rem; background:var(--surface); border:1px solid var(--line); padding:.35rem; z-index:5}
+.cal-menu a{display:block; padding:.55rem .7rem; color:var(--text); text-decoration:none; font-size:.92rem}
+.cal-menu a:hover,.cal-menu a:focus-visible{background:var(--ember-halo)}
+
+footer{padding:1.25rem clamp(1.25rem,4vw,3rem) 1.75rem; color:var(--text-2); font-size:.85rem; display:flex; flex-wrap:wrap; gap:.5rem 1.5rem}
+footer a{color:var(--text-2)}
+
+/* opening state */
+body.opening .digits{color:var(--flame-core); text-shadow:0 0 40px var(--flame-warm)}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+@media (max-width:640px){
+  .sep{padding-bottom:1.1rem; font-size:2.2rem}
+  .count{gap:.35rem}
+  .clock-src span.txt{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .digits span,.digits span.hot{transition:none; color:inherit; text-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="furnace" aria-hidden="true">
+  <img src="./assets/incinerator-3d.webp" alt="" decoding="async" onerror="this.remove()">
+</div>
+
+<header>
+  <a class="brand" href="./">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+    Charlie Protocol
+  </a>
+  <div class="clock-src" title="How this countdown keeps time">
+    <span class="led" id="led"></span><span class="txt" id="clockSrc">Syncing clock</span>
+  </div>
+</header>
+
+<main>
+  <h1 id="headline">Charlie Protocol 2.0</h1>
+  <p class="lede" id="lede">Goes live today at 21:00&nbsp;UTC.</p>
+
+  <div class="count" id="count" aria-hidden="true">
+    <div class="unit days" id="uDays" hidden><div class="digits" id="d"></div><div class="label">days</div></div>
+    <div class="sep days" hidden id="sDays">:</div>
+    <div class="unit"><div class="digits" id="h">--</div><div class="label">hours</div></div>
+    <div class="sep">:</div>
+    <div class="unit"><div class="digits" id="m">--</div><div class="label">minutes</div></div>
+    <div class="sep">:</div>
+    <div class="unit"><div class="digits" id="s">--</div><div class="label">seconds</div></div>
+  </div>
+  <p class="sr" aria-live="polite" id="live"></p>
+
+  <p class="when" id="when"></p>
+  <p class="promise">We don't promise a price. We promise the supply goes down.</p>
+
+
+  <div class="actions">
+    <div class="cal">
+      <button class="btn" id="calBtn" aria-expanded="false" aria-controls="calMenu">Add to calendar</button>
+      <div class="cal-menu" id="calMenu" hidden>
+        <a id="gcal" target="_blank" rel="noopener">Google Calendar</a>
+        <a id="ics" download="charlie-protocol-opens.ics">Apple, Outlook or other (.ics)</a>
+      </div>
+    </div>
+    <a class="link" id="share" target="_blank" rel="noopener">Share on X</a>
+  </div>
+</main>
+
+<footer>
+  <span>This page updates itself at 21:00 UTC. No need to refresh.</span>
+  <a href="https://github.com/needsmorergb/charlie-protocol-v1" target="_blank" rel="noopener">Source</a>
+</footer>
+
+<script>
+(() => {
+  // ---- configuration --------------------------------------------------------
+  // 21:00 UTC on 18 Sep 2026 (2:00 pm PDT).
+  // Override for testing: ?opens=2026-09-18T19:30:00Z
+  const DEFAULT_OPENS = "2026-09-18T21:00:00Z";
+  const params = new URLSearchParams(location.search);
+  const OPENS = new Date(params.get("opens") || DEFAULT_OPENS).getTime();
+  const GATE_MARKER = "charlie:gate";
+  const SITE = "https://charlieprotocol.fun";
+
+  const $ = id => document.getElementById(id);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let offset = 0;          // serverTime - clientTime, ms
+  let opened = false;
+
+  // ---- server clock sync ----------------------------------------------------
+  // The HTTP Date header has 1 s resolution. Sample a few times, keep the
+  // lowest-latency read, and correct by half the round trip. Good to ~0.5 s,
+  // and immune to a wrong device clock, which is the thing that makes most
+  // countdowns disagree with each other in screenshots.
+  async function sample() {
+    const t0 = Date.now();
+    const r = await fetch(location.pathname + "?_clock=" + t0, { method: "HEAD", cache: "no-store" });
+    const t1 = Date.now();
+    const d = r.headers.get("date");
+    if (!d) throw new Error("no date header");
+    return { rtt: t1 - t0, off: new Date(d).getTime() + 500 - (t0 + t1) / 2 };
+  }
+  async function sync() {
+    try {
+      const reads = [];
+      for (let i = 0; i < 3; i++) { reads.push(await sample()); }
+      reads.sort((a, b) => a.rtt - b.rtt);
+      // Only trust a correction larger than the header's own resolution.
+      offset = Math.abs(reads[0].off) > 1000 ? reads[0].off : 0;
+      $("clockSrc").textContent = "Clock synced to server";
+      $("led").classList.add("ok");
+    } catch {
+      $("clockSrc").textContent = "Using your device clock";
+    }
+  }
+  const now = () => Date.now() + offset;
+
+  // ---- local-time line ------------------------------------------------------
+  function describeWhen() {
+    const opens = new Date(OPENS);
+    const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    const local = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit", timeZoneName: "short" }).format(opens);
+    // Visitors already on UTC don't need the line repeated back to them.
+    if (opens.getTimezoneOffset() === 0) { $("when").hidden = true; return; }
+    $("when").innerHTML = `That's <strong>${local}</strong> where you are.`;
+  }
+
+  // ---- rendering ------------------------------------------------------------
+  const pad = n => String(n).padStart(2, "0");
+  function setDigits(el, str) {
+    if (el.dataset.v === str) return;
+    const prev = el.dataset.v || "";
+    el.dataset.v = str;
+    el.innerHTML = "";
+    [...str].forEach((ch, i) => {
+      const s = document.createElement("span");
+      s.textContent = ch;
+      el.appendChild(s);
+      if (!reduce && prev && prev[i] !== ch) {
+        s.classList.add("hot");
+        requestAnimationFrame(() => requestAnimationFrame(() => s.classList.remove("hot")));
+      }
+    });
+  }
+
+  let lastMinute = null;
+  function render() {
+    const left = Math.max(0, OPENS - now());
+    const total = Math.ceil(left / 1000);   // ceil: never show 00:00:00 while time remains
+    const days = Math.floor(total / 86400);
+    const h = Math.floor((total % 86400) / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+
+    $("uDays").hidden = days === 0; $("sDays").hidden = days === 0;
+    if (days) setDigits($("d"), String(days));
+    setDigits($("h"), pad(h)); setDigits($("m"), pad(m)); setDigits($("s"), pad(s));
+
+    const clock = (days ? days + "d " : "") + `${pad(h)}:${pad(m)}:${pad(s)}`;
+    document.title = total > 0 ? `${clock} until Charlie Protocol 2.0` : "Charlie Protocol 2.0 is going live";
+
+    // Screen readers get one update a minute, not sixty.
+    const minuteKey = days * 1440 + h * 60 + m;
+    if (minuteKey !== lastMinute) {
+      lastMinute = minuteKey;
+      $("live").textContent = total > 0
+        ? `${days ? days + " days, " : ""}${h} hours and ${m} minutes until Charlie Protocol 2.0.`
+        : "Charlie Protocol 2.0 is going live now.";
+    }
+
+    if (total === 0 && !opened) open();
+    return left;
+  }
+
+  // Tick exactly on the second boundary of the synced clock.
+  function loop() {
+    const left = render();
+    if (opened) return;
+    const msToNext = (left % 1000) || 1000;
+    setTimeout(loop, msToNext + 5);
+  }
+
+  // ---- T-0 ------------------------------------------------------------------
+  // The gate cannot know when the build is live, so it asks. When the page at
+  // "/" no longer carries the gate marker, the doors are open and we go.
+  function open() {
+    opened = true;
+    document.body.classList.add("opening");
+    $("lede").textContent = "Going live now.";
+    poll();
+  }
+  let polls = 0;
+  async function poll() {
+    try {
+      const r = await fetch("/?_open=" + Date.now(), { cache: "no-store" });
+      const html = await r.text();
+      if (r.ok && !html.includes(GATE_MARKER)) { location.replace("/"); return; }
+    } catch {}
+    polls++;
+    if (polls === 6) $("lede").textContent = "Final checks. This page updates on its own.";
+    // 10 s with jitter so every open tab doesn't hit the edge at once.
+    setTimeout(poll, 8000 + Math.random() * 4000);
+  }
+
+  // ---- calendar + share -----------------------------------------------------
+  function toIcsDate(ms) { return new Date(ms).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
+  const start = toIcsDate(OPENS), end = toIcsDate(OPENS + 30 * 60000);
+  const title = "Charlie Protocol 2.0 goes live";
+  const detail = SITE;
+  $("gcal").href = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+    + "&text=" + encodeURIComponent(title) + "&dates=" + start + "/" + end
+    + "&details=" + encodeURIComponent(detail) + "&location=" + encodeURIComponent(SITE);
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Charlie Protocol//Gate//EN","BEGIN:VEVENT",
+    "UID:opens-" + start + "@charlieprotocol.fun","DTSTAMP:" + toIcsDate(Date.now()),
+    "DTSTART:" + start,"DTEND:" + end,"SUMMARY:" + title,"DESCRIPTION:" + detail,"URL:" + SITE,
+    "BEGIN:VALARM","TRIGGER:-PT10M","ACTION:DISPLAY","DESCRIPTION:" + title,"END:VALARM",
+    "END:VEVENT","END:VCALENDAR"].join("\r\n");
+  $("ics").href = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
+  $("share").href = "https://x.com/intent/post?text=" + encodeURIComponent(
+    "Charlie Protocol 2.0. 21:00 UTC today.\n\n" + SITE);
+
+  const calBtn = $("calBtn"), calMenu = $("calMenu");
+  calBtn.addEventListener("click", () => {
+    const openNow = calMenu.hidden;
+    calMenu.hidden = !openNow; calBtn.setAttribute("aria-expanded", String(openNow));
+    if (openNow) calMenu.querySelector("a").focus();
+  });
+  document.addEventListener("click", e => { if (!e.target.closest(".cal")) { calMenu.hidden = true; calBtn.setAttribute("aria-expanded","false"); } });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !calMenu.hidden) { calMenu.hidden = true; calBtn.setAttribute("aria-expanded","false"); calBtn.focus(); } });
+
+  // Background tabs throttle timers; resync and redraw when the tab returns.
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !opened) sync().then(render); });
+
+  describeWhen();
+  render();            // paint immediately from the device clock
+  sync().then(loop);   // then correct to the server and start ticking
+})();
+</script>
+</body>
+</html>
