@@ -108,7 +108,7 @@
       "status": "UNCHECKED"
     },
     {
-      "actual": "956300161205968",
+      "actual": "956271591699956",
       "backs": [
         "burn_total",
         "supply_destroyed"
@@ -198,10 +198,10 @@
     "decimals": 6,
     "freeze_authority": null,
     "mint_authority": null,
-    "supply": 956300161205968,
+    "supply": 956271591699956,
     "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
   },
-  "observed_at": 1789680162.6319768,
+  "observed_at": 1789706622.5119858,
   "publishable": [
     "split"
   ],
