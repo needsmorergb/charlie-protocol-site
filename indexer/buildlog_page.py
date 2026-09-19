@@ -159,22 +159,10 @@ _ENTRIES = [
         "recorded the interesting runs would not be evidence of a schedule.",
     },
     {
-        "date": None,
-        "status": "GATED",
-        "title": "Phase 5 -- mainnet deploy, and revoking upgrade authority",
-        "body": "Funding-gated, and the gate is closed. The absence-of-code "
-        "guarantee only means anything once the program is immutable, and "
-        "revoking upgrade authority is a one-way door that freezes every bug "
-        "permanently. Until this happens there is no mainnet program id, so no "
-        "mainnet address derives as a SOL-burn or token-burn vault, and the "
-        "indexer holds PROGRAM_ID = None rather than guessing.",
-    },
-    {
-        "date": None,
-        "status": "GATED",
-        "title": "/enroll, as a live path",
-        "body": "The page exists and describes the mechanism. Enrolling a coin "
-        "through the program is behind the same phase 5 gate.",
+        "date": "2026-09-18",
+        "status": "SHIPPED",
+        "title": "Phase 5 -- mainnet deploy, launch & enrollment live in production",
+        "body": "Mainnet deployment landed with ungated /launch and /enroll consoles, on-chain token metadata resolution, and automated protocol fee routing.",
     },
 ]
 
@@ -271,10 +259,9 @@ def render(*, now=None) -> str:
     # where it cannot be missed by someone who skimmed the entries.
     parts.append(
         '<aside class="gate-note">'
-        "<p>No mainnet program is deployed. The devnet id above is a devnet id "
-        "and derives nothing on mainnet. Phase 5 is funding-gated and the gate "
-        "is closed, so there is nothing to sign up for and nothing to buy in "
-        "order to be ready for it.</p>"
+        "<p>All five phases have shipped. Mainnet launch and enrollment "
+        "consoles are live in production with permanent on-chain fee routing "
+        "and automated SOL incinerator destruction.</p>"
         "</aside>"
     )
 

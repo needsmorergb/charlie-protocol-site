@@ -177,24 +177,59 @@ code, pre, .mono {
   font-feature-settings: "tnum" 1, "zero" 1;
 }
 
-h1, h2, h3, h4 {
+h1 {
   font-family: var(--font-display);
+  font-size: clamp(28px, 3.5vw, 42px);
   color: var(--text-primary);
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.03em;
   margin-top: 0;
 }
 
+h2 {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.2vw, 26px);
+  color: var(--text-primary);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+h3 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--text-primary);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+h4 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  margin-top: 0;
+}
+
 p {
   color: var(--text-secondary);
+  font-size: 14.5px;
+  line-height: 1.6;
   margin-top: 0;
 }
 
 main {
   max-width: var(--shell);
   margin: 0 auto;
-  padding: var(--sp-2xl) var(--sp-lg) var(--sp-3xl);
+  padding: var(--sp-xl) var(--sp-lg) var(--sp-2xl);
   position: relative;
 }
 
@@ -326,17 +361,17 @@ main {
   position: relative;
   background: radial-gradient(circle at 50% 0%, rgba(143, 225, 63, 0.07) 0%, transparent 65%), var(--bg-void);
   border-bottom: 1px solid var(--border-glass);
-  padding: clamp(var(--sp-2xl), 8vw, 96px) var(--sp-lg) clamp(var(--sp-xl), 5vw, 64px);
+  padding: clamp(36px, 4.5vw, 60px) var(--sp-lg) clamp(24px, 3.5vw, 44px);
   overflow: hidden;
 }
 
 .eyebrow {
   font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.16em;
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ember);
-  margin-bottom: var(--sp-md);
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: var(--sp-sm);
@@ -348,19 +383,21 @@ main {
 }
 
 .hero h1 {
-  font-size: clamp(38px, 6.5vw, 76px);
+  font-size: clamp(28px, 3.8vw, 46px);
   font-weight: 800;
-  letter-spacing: -0.035em;
-  margin-bottom: var(--sp-md);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 14px;
   color: var(--text-primary);
+  max-width: 24ch;
 }
 
 .hero .tagline {
-  font-size: clamp(17px, 2.2vw, 22px);
+  font-size: clamp(14px, 1.2vw, 16px);
   color: var(--text-secondary);
-  max-width: 65ch;
-  margin-bottom: var(--sp-xl);
-  line-height: 1.45;
+  max-width: 62ch;
+  margin-bottom: 24px;
+  line-height: 1.6;
 }
 
 /* ==========================================================================

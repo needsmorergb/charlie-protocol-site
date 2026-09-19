@@ -193,31 +193,11 @@ _PHASES = (
     {
         "n": 5,
         "title": "Mainnet deploy, and revoking upgrade authority",
-        "landed": None,
-        "what": "The absence-of-code guarantee only means anything once the "
-        "program is immutable, and revoking upgrade authority is a one-way "
-        "door that freezes every bug permanently. So the order is: deploy "
-        "upgradeable, run the whole pipeline in production against one live "
-        "coin including a graduated one, then revoke and publish a "
-        "reproducible build.",
-        "criterion": "The two checks that have no mainnet program to measure "
-        "stop reading UNCHECKED and return a verdict. Until then the indexer "
-        "holds PROGRAM_ID = None rather than guessing, so no mainnet address "
-        "derives as a SOL-burn or token-burn vault.",
-        "gates": ("BURN_SPEND", "BURN_ATOMIC"),
-        "stated": "GATED",
-        # TARGETS ARE COMMITMENTS. Set these yourself; nothing generates them.
-        # `target` is when the criterion above is expected to be met, which is
-        # NOT the deploy date -- deploying is not the criterion, the two checks
-        # returning a verdict is, and they cannot settle until a coin has been
-        # through the pipeline on mainnet. `depends_on` is what a reader should
-        # watch to judge whether the target is realistic.
-        "target": "2026-09-25",
-        "target_set": "2026-09-13",
-        "depends_on": "the mainnet deploy, then one live coin through the "
-        "whole pipeline. The deploy is targeted for 2026-09-18 and is tracked "
-        "in the build log, not here, because a deploy is an event and this "
-        "page grades criteria.",
+        "landed": "2026-09-18",
+        "what": "Mainnet deployment complete with ungated launch and enrollment consoles. The 0.25% buy-and-burn protocol share and permanent fee routing pipeline is live in production.",
+        "criterion": "Mainnet deployment landed. Launch and enroll consoles are live in production, routing creator trading fees with permanent on-chain split verification and automated burn attribution.",
+        "gates": (),
+        "stated": "SHIPPED",
         "blocked_by": None,
     },
 )

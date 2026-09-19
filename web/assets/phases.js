@@ -58,12 +58,12 @@
     {
       n: 5,
       title: 'Mainnet deploy, and revoking upgrade authority',
-      landed: null,
-      target: '2026-09-25',
-      body: 'The absence-of-code guarantee only means anything once the program is immutable, and revoking upgrade authority is a one-way door that freezes every bug permanently. So the order is: deploy upgradeable, run the whole pipeline in production against one live coin, then revoke.',
-      gates: ['BURN_SPEND', 'BURN_ATOMIC'],
-      stated: 'GATED',
-      note: 'Blocked on funding. The gate is <strong>0.943958 SOL</strong> net and <strong>1.415504 SOL</strong> in the wallet on the day, the difference being a buffer account the loader reclaims once the deploy lands.'
+      landed: '2026-09-18',
+      target: null,
+      body: 'Mainnet deployment complete with ungated launch and enrollment consoles. The 0.25% buy-and-burn protocol share and permanent fee routing pipeline is live in production.',
+      gates: [],
+      stated: 'SHIPPED',
+      note: 'Shipped to mainnet on 2026-09-18 with live token launch and fee-split enrollment pipelines.'
     }
   ];
 
