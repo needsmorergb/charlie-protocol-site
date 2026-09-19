@@ -175,8 +175,8 @@
 
       <div class="hero">
         <figure class="sigil" id="coinSigil">
-          <img id="coinImg" src="./assets/charlie.png" alt="Token Photo" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; document.getElementById('sigilGlyph').style.display='flex';">
-          <span id="sigilGlyph" style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center;">◈</span>
+          <img id="coinImg" src="" alt="Token Photo" style="width: 100%; height: 100%; object-fit: cover; display: none;" onerror="this.style.display='none'; document.getElementById('sigilGlyph').style.display='flex';">
+          <span id="sigilGlyph" style="display: flex; width: 100%; height: 100%; align-items: center; justify-content: center;">◈</span>
         </figure>
         <div>
           <div class="eyebrow" id="coinStatusEyebrow">Launched coin // fee split on chain</div>
@@ -394,38 +394,55 @@
         document.getElementById('coinDesc').textContent = d.description;
       }
 
-      // Render Token Image Photo
+      // Render Token Image Photo & Visuals
       var imgEl = document.getElementById('coinImg');
       var glyphEl = document.getElementById('sigilGlyph');
-      var imgSrc = d.image || (d.metadata && d.metadata.image) || d.icon;
 
-      if (imgSrc) {
-        imgSrc = imgSrc.replace('ipfs://', 'https://ipfs.io/ipfs/');
-        imgEl.src = imgSrc;
+      function setTokenImage(src) {
+        if (!src) return;
+        var resolved = src.replace(/^ipfs:\/\//, 'https://ipfs.io/ipfs/');
+        imgEl.src = resolved;
         imgEl.style.display = 'block';
         glyphEl.style.display = 'none';
-      } else if (currentMint === '8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump') {
-        imgEl.src = './assets/charlie.png';
-        imgEl.style.display = 'block';
-        glyphEl.style.display = 'none';
-      } else if (currentMint.startsWith('8KC4')) {
-        imgEl.src = './assets/charlie-3d.jpg';
-        imgEl.style.display = 'block';
-        glyphEl.style.display = 'none';
-      } else {
-        imgEl.style.display = 'none';
-        glyphEl.style.display = 'flex';
       }
 
-      // Fetch metadata URI in background if metadata not already present
+      var directImg = d.image || d.imageUrl || d.logoURI || d.icon || (d.metadata && d.metadata.image);
+      if (directImg) {
+        setTokenImage(directImg);
+      }
+
+      // Fetch live token profile and real image from DexScreener
+      if (currentMint) {
+        fetch('https://api.dexscreener.com/latest/dex/tokens/' + encodeURIComponent(currentMint))
+          .then(function (r) { return r.json(); })
+          .then(function (dex) {
+            if (dex && dex.pairs && dex.pairs.length > 0) {
+              var pair = dex.pairs[0];
+              var dexImage = (pair.info && (pair.info.imageUrl || pair.info.openGraph)) || null;
+              if (dexImage) {
+                setTokenImage(dexImage);
+              }
+              if (pair.baseToken) {
+                if (pair.baseToken.name && (!d.name || d.name === 'Charlie')) {
+                  document.getElementById('coinName').textContent = pair.baseToken.name;
+                }
+                if (pair.baseToken.symbol) {
+                  var sym = pair.baseToken.symbol;
+                  document.getElementById('coinSym').textContent = sym.startsWith('$') ? sym : ('$' + sym);
+                }
+              }
+            }
+          })
+          .catch(function () {});
+      }
+
+      // Fetch metadata URI in background if metadata URI is present
       var metaUri = d.uri || d.metadata_uri || (d.metadata && d.metadata.uri);
-      if (!imgSrc && metaUri) {
-        var resolvedUri = metaUri.replace('ipfs://', 'https://ipfs.io/ipfs/');
+      if (metaUri) {
+        var resolvedUri = metaUri.replace(/^ipfs:\/\//, 'https://ipfs.io/ipfs/');
         fetch(resolvedUri, { cache: 'force-cache' }).then(function(r) { return r.json(); }).then(function(meta) {
           if (meta && meta.image) {
-            imgEl.src = meta.image.replace('ipfs://', 'https://ipfs.io/ipfs/');
-            imgEl.style.display = 'block';
-            glyphEl.style.display = 'none';
+            setTokenImage(meta.image);
           }
           if (meta && meta.name && !d.name) {
             document.getElementById('coinName').textContent = meta.name;
