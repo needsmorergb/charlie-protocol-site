@@ -407,40 +407,48 @@ main {
   flex-shrink: 0;
 }
 
-/* Pure CSS Tooltips */
-[data-tooltip] {
-  position: relative;
+/* Pure CSS Tooltips - Desktop only so touch taps never stick */
+@media (hover: hover) and (pointer: fine) {
+  [data-tooltip] {
+    position: relative;
+  }
+
+  [data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    padding: 4px 8px;
+    background: #030403;
+    border: 1px solid var(--border-vitrified);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    border-radius: var(--radius-sm);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    z-index: 1010;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+  }
+
+  [data-tooltip]:hover::before,
+  [data-tooltip]:focus-visible::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
-[data-tooltip]::before {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  padding: 4px 8px;
-  background: #030403;
-  border: 1px solid var(--border-vitrified);
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  border-radius: var(--radius-sm);
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  z-index: 1010;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
-}
-
-[data-tooltip]:hover::before,
-[data-tooltip]:focus-visible::before {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0);
+@media (hover: none), (pointer: coarse) {
+  [data-tooltip]::before {
+    display: none !important;
+  }
 }
 
 /* ==========================================================================
@@ -4963,8 +4971,16 @@ body::before {
     justify-content: center;
     flex-shrink: 0;
   }
-  .header-actions #audioToggle span {
-    display: none;
+  .header-actions #audioToggle .audio-text {
+    display: none !important;
+  }
+  .header-actions #audioToggle svg,
+  .header-actions #audioToggle .audio-icon {
+    display: inline-flex !important;
+    width: 15px;
+    height: 15px;
+    align-items: center;
+    justify-content: center;
   }
   .header-actions .btn-icon {
     width: 34px;
