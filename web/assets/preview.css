@@ -325,9 +325,11 @@ main {
   display: flex;
   align-items: center;
   gap: var(--sp-sm);
+  flex-shrink: 0;
 }
 
 .btn-icon {
+  position: relative;
   background: var(--bg-surface);
   border: 1px solid var(--border-glass);
   color: var(--text-secondary);
@@ -338,19 +340,107 @@ main {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  transition: all 0.2s ease;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.btn-icon--social {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: var(--radius-sm);
 }
 
 .btn-icon:hover {
   border-color: var(--border-highlight);
   color: var(--text-primary);
+  background: rgba(143, 225, 63, 0.06);
+}
+
+.btn-icon:active {
+  transform: scale(0.96);
 }
 
 .btn-icon.active {
   color: var(--ember);
   border-color: var(--ember);
   background: var(--pass-bg);
+}
+
+/* Sister DApp Pill in Header */
+.btn-sister-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 138, 31, 0.08);
+  border: 1px solid rgba(255, 138, 31, 0.3);
+  color: var(--flame-warm);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-sister-pill:hover {
+  background: rgba(255, 138, 31, 0.16);
+  border-color: var(--flame-warm);
+  color: #FFF;
+  box-shadow: 0 0 12px rgba(255, 138, 31, 0.25);
+  text-decoration: none;
+}
+
+.sister-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--flame-warm);
+  box-shadow: 0 0 6px var(--flame-warm);
+  flex-shrink: 0;
+}
+
+/* Pure CSS Tooltips */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 4px 8px;
+  background: #030403;
+  border: 1px solid var(--border-vitrified);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 1010;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* ==========================================================================
@@ -3429,20 +3519,364 @@ tbody tr {
 }
 
 /* ==========================================================================
-   Footer
+   Footer (Multi-Pillar Architecture)
    ========================================================================== */
 
-footer {
+footer, .site-footer {
   border-top: 1px solid var(--border-glass);
-  padding: var(--sp-2xl) var(--sp-lg);
+  padding: clamp(40px, 5vw, 64px) var(--sp-lg) clamp(24px, 3.5vw, 40px);
   color: var(--text-muted);
   font-size: 13px;
   background: var(--bg-void);
+  position: relative;
+  z-index: 10;
 }
 
-footer .footer-inner {
+footer .footer-inner, .footer-container {
   max-width: var(--shell);
   margin: 0 auto;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.1fr 1fr;
+  gap: clamp(24px, 3.5vw, 44px);
+  margin-bottom: clamp(32px, 4vw, 48px);
+}
+
+.footer-brand-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 34ch;
+  margin: 0;
+}
+
+.footer-heading {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-heading-icon {
+  font-size: 12px;
+  color: var(--ember);
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.footer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease, transform 0.15s ease;
+  line-height: 1.35;
+}
+
+.footer-links a:hover {
+  color: var(--text-primary);
+  transform: translateX(2px);
+  text-decoration: none;
+}
+
+.footer-links a:hover .sys-icon {
+  color: var(--ember);
+}
+
+/* Category Tags & Highlighters */
+.link-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: rgba(143, 225, 63, 0.12);
+  color: var(--ember);
+  border: 1px solid rgba(143, 225, 63, 0.3);
+  letter-spacing: 0.05em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.link-tag--community {
+  background: rgba(0, 229, 255, 0.1);
+  color: var(--sol-blue);
+  border-color: rgba(0, 229, 255, 0.25);
+}
+
+.link-tag--flame {
+  background: rgba(255, 138, 31, 0.12);
+  color: var(--flame-warm);
+  border-color: rgba(255, 138, 31, 0.3);
+}
+
+.facility-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.facility-dot--flame { background: var(--flame-warm); box-shadow: 0 0 5px var(--flame-warm); }
+.facility-dot--pump  { background: var(--ember); box-shadow: 0 0 5px var(--ember); }
+.facility-dot--sol   { background: var(--sol-blue); box-shadow: 0 0 5px var(--sol-blue); }
+
+.link-highlight-ember:hover { color: var(--ember) !important; }
+.link-highlight-flame:hover { color: var(--flame-warm) !important; }
+
+/* Bottom Bar */
+.footer-bottom {
+  border-top: 1px solid var(--border-glass);
+  padding-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-disclaimer p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0;
+  max-width: 68ch;
+}
+
+.footer-disclaimer a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-disclaimer a:hover {
+  color: var(--ember);
+}
+
+.footer-copyright {
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+@media (max-width: 920px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+/* ==========================================================================
+   Transmission Matrix (Official Channels & Network Nodes)
+   ========================================================================== */
+.transmission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--sp-md);
+  margin-top: var(--sp-md);
+}
+
+.transmission-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: var(--sp-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.transmission-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.transmission-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-highlight);
+  background: var(--bg-card-hover);
+  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.8), 0 0 16px rgba(143, 225, 63, 0.08);
+  text-decoration: none;
+}
+
+.transmission-card:hover::before {
+  background: var(--ember);
+}
+
+.transmission-card--thermal:hover::before {
+  background: var(--flame-warm);
+}
+
+.transmission-card--community:hover::before {
+  background: var(--sol-blue);
+}
+
+.transmission-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-md);
+}
+
+.transmission-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.transmission-badge {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+}
+
+.transmission-badge--live {
+  color: var(--neon-charlie);
+  border-color: rgba(143, 225, 63, 0.3);
+  background: rgba(143, 225, 63, 0.06);
+}
+
+.transmission-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.transmission-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0 0 var(--sp-md) 0;
+}
+
+.transmission-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ember);
+  padding-top: var(--sp-sm);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* --- Coin Community Bar (Coin Details Page) --- */
+.coin-community-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  flex-wrap: wrap;
+  margin-top: var(--sp-md);
+  padding-top: var(--sp-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.coin-community-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.coin-community-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.coin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  padding: 4px 9px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.coin-chip:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-highlight);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.coin-chip--flame:hover {
+  border-color: rgba(255, 138, 31, 0.5);
+  color: var(--flame-warm);
+}
+
+.coin-chip--sol:hover {
+  border-color: rgba(0, 229, 255, 0.5);
+  color: var(--sol-blue);
 }
 
 /* ==========================================================================
