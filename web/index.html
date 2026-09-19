@@ -131,72 +131,82 @@
     <br><br>
     The planned protocol split uses 0.25% of creator fees to buy and burn $CHARLIE. The recorded $CHARLIE split currently routes 100% to the SOL burn address; it does not include that protocol share.</p>
 
-  <!-- Hero Mode Switcher -->
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-xs);">
-    <div class="hero-mode-switch">
-      <button id="btnMode3d" type="button" class="btn-mode active" onclick="setHeroMode('3d')">Animated</button>
-      <button id="btnModeClassic" type="button" class="btn-mode" onclick="setHeroMode('classic')">Pixel art</button>
+  <!-- Hero Mode Switcher & Upgrade Banner -->
+  <div class="hero-control-deck">
+    <div class="hero-mode-switch" role="tablist" aria-label="Hero visual simulation mode">
+      <button id="btnModeClassic" type="button" role="tab" aria-selected="true" class="btn-mode active" onclick="setHeroMode('classic')">
+        <span class="mode-icon">👾</span>
+        <span>Pixel Art</span>
+      </button>
+      <button id="btnMode3d" type="button" role="tab" aria-selected="false" class="btn-mode" onclick="setHeroMode('3d')">
+        <span class="mode-icon">🔥</span>
+        <span>Modern 3D</span>
+      </button>
     </div>
-</div>
-
-<!-- 3D Cinematic Scene Container with Master Cinemagraph -->
-<div id="heroScene3d" class="scene-3d-box">
-
-  <!-- Stage Top HUD & Interactive Controls -->
-  <div class="stage-hud">
-    <div class="stage-badge">
-      <span class="stage-pulse-dot"></span>
-      <span>SOL-INCINERATOR // CATWALK FACILITY // FURNACE ILLUSTRATION</span>
+    <div id="heroUpgradeNote" class="hero-upgrade-note" aria-live="polite">
+      <span class="upgrade-led"></span>
+      <span id="heroUpgradeText"><strong>Genesis Baseline:</strong> Charlie on the catwalk to the furnace. <button type="button" class="upgrade-link-btn" onclick="setHeroMode('3d')">View v5 Facility Upgrades →</button></span>
     </div>
+  </div>
 
-  <div class="stage-controls" role="toolbar" aria-label="Atmospheric sound controls">
-    <button type="button" id="btnStageAudio" class="btn-stage-ctrl" onclick="toggleAudio()" title="Toggle fire rustling sound">
-      🔥 Fire Ambience
-    </button>
-</div>
-</div>
-
-<!-- Master Scene: Charlie on the Platform with Flowing Fire & Billowing Smoke -->
-<picture class="scene-3d-picture">
-  <!-- An animated GIF/WebP does not honour prefers-reduced-motion by itself,
-       so the still frame is offered first under that query and the animated
-       sources are never fetched for a visitor who asked for less motion. -->
-  <source srcset="./assets/hero-still.webp" type="image/webp" media="(prefers-reduced-motion: reduce)">
-  <source srcset="./assets/hero-animated.webp" type="image/webp">
-  <img class="scene-3d-img" src="./assets/hero-animated.gif" alt="Sol-Incinerator catwalk surveillance: Charlie on the catwalk platform overlooking the roaring combustion furnace with billowing smoke" width="800" height="446" fetchpriority="high" decoding="async">
-</picture>
-
-<!-- Roaring Hearth Light / Thermal Fire Pulse Layer -->
-<div class="stage-hearth-glow" aria-hidden="true"></div>
-
-<!-- Catwalk Reflected Heat Glow Layer -->
-<div class="stage-catwalk-glow" aria-hidden="true"></div>
-
-<!-- Interactive Canvas: Chimney smoke & drifting sparks -->
-<canvas id="furnaceCanvas" class="stage-fx-canvas" aria-hidden="true"></canvas>
-
-<!-- Atmospheric Vignette & Void Gradient -->
-<div class="scene-3d-overlay"></div>
-</div>
-
-<!-- Classic Pixel Crawling Scene (Toggled) -->
-<div id="heroSceneClassic" class="scene-wrapper" style="display: none;">
-  <div class="scene" aria-hidden="true">
-    <div class="scene-track">
-      <div class="walker">
-        <div class="facing">
-          <img class="charlie-img" src="./assets/charlie.png" width="383" height="484" alt="Charlie the slug" decoding="async">
+  <!-- Classic Pixel Crawling Scene (Default View) -->
+  <div id="heroSceneClassic" class="scene-wrapper" role="region" aria-label="Pixel art animation of Charlie on the catwalk">
+    <div class="scene" aria-hidden="true">
+      <div class="scene-track">
+        <div class="walker">
+          <div class="facing">
+            <img class="charlie-img" src="./assets/charlie.png" width="383" height="484" alt="Charlie the slug" decoding="async">
+          </div>
         </div>
+      </div>
+      <div class="furnace">
+        <span class="smoke-drift">
+          <img class="smoke" src="./assets/incinerator-smoke.png" alt="Incinerator smoke plume" decoding="async">
+        </span>
+        <img class="stack" src="./assets/incinerator-stack.png" alt="Incinerator furnace stack" decoding="async">
+      </div>
     </div>
-</div>
-<div class="furnace">
-  <span class="smoke-drift">
-    <img class="smoke" src="./assets/incinerator-smoke.png" alt="Incinerator smoke plume" decoding="async">
-  </span>
-<img class="stack" src="./assets/incinerator-stack.png" alt="Incinerator furnace stack" decoding="async">
-</div>
-</div>
-</div>
+  </div>
+
+  <!-- 3D Cinematic Scene Container (Upgrade View - Toggled) -->
+  <div id="heroScene3d" class="scene-3d-box" style="display: none;" role="region" aria-label="Modernized 3D Sol-Incinerator catwalk platform">
+
+    <!-- Stage Top HUD & Interactive Controls -->
+    <div class="stage-hud">
+      <div class="stage-badge">
+        <span class="stage-pulse-dot"></span>
+        <span>SOL-INCINERATOR // CATWALK FACILITY // v5 VOLUMETRIC TELEMETRY</span>
+      </div>
+
+      <div class="stage-controls" role="toolbar" aria-label="Atmospheric sound controls">
+        <button type="button" id="btnStageAudio" class="btn-stage-ctrl" onclick="toggleAudio()" title="Toggle fire rustling sound">
+          🔥 Fire Ambience
+        </button>
+      </div>
+    </div>
+
+    <!-- Master Scene: Charlie on the Platform with Flowing Fire & Billowing Smoke -->
+    <picture class="scene-3d-picture">
+      <!-- An animated GIF/WebP does not honour prefers-reduced-motion by itself,
+           so the still frame is offered first under that query and the animated
+           sources are never fetched for a visitor who asked for less motion. -->
+      <source srcset="./assets/hero-still.webp" type="image/webp" media="(prefers-reduced-motion: reduce)">
+      <source srcset="./assets/hero-animated.webp" type="image/webp">
+      <img class="scene-3d-img" src="./assets/hero-animated.gif" alt="Sol-Incinerator catwalk surveillance: Charlie on the catwalk platform overlooking the roaring combustion furnace with billowing smoke" width="800" height="446" fetchpriority="high" decoding="async">
+    </picture>
+
+    <!-- Roaring Hearth Light / Thermal Fire Pulse Layer -->
+    <div class="stage-hearth-glow" aria-hidden="true"></div>
+
+    <!-- Catwalk Reflected Heat Glow Layer -->
+    <div class="stage-catwalk-glow" aria-hidden="true"></div>
+
+    <!-- Interactive Canvas: Chimney smoke & drifting sparks -->
+    <canvas id="furnaceCanvas" class="stage-fx-canvas" aria-hidden="true"></canvas>
+
+    <!-- Atmospheric Vignette & Void Gradient -->
+    <div class="scene-3d-overlay"></div>
+  </div>
 
 <!-- =========================================================================
 3. Live Protocol Actions: Launch & Enroll Doors

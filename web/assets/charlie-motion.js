@@ -479,27 +479,58 @@
   // =========================================================================
   // 6. 3D Parallax & Hero Mode Switcher
   // =========================================================================
-  window.setHeroMode = function(mode) {
+  window.setHeroMode = function(mode, skipSound) {
     const box3d = document.getElementById('heroScene3d');
     const boxClassic = document.getElementById('heroSceneClassic');
     const btn3d = document.getElementById('btnMode3d');
     const btnClassic = document.getElementById('btnModeClassic');
+    const upgradeNote = document.getElementById('heroUpgradeNote');
 
     if (!box3d || !boxClassic) return;
 
     if (mode === '3d') {
       box3d.style.display = 'block';
       boxClassic.style.display = 'none';
-      if (btn3d) btn3d.classList.add('active');
-      if (btnClassic) btnClassic.classList.remove('active');
+      if (btn3d) {
+        btn3d.classList.add('active');
+        btn3d.setAttribute('aria-selected', 'true');
+      }
+      if (btnClassic) {
+        btnClassic.classList.remove('active');
+        btnClassic.setAttribute('aria-selected', 'false');
+      }
+      if (upgradeNote) {
+        upgradeNote.innerHTML = `
+          <span class="upgrade-led upgrade-led--3d"></span>
+          <span id="heroUpgradeText"><strong>Facility Upgrade (Protocol v5):</strong> Modernized high-temp Sol-Incinerator platform feed. <button type="button" class="upgrade-link-btn" onclick="setHeroMode('classic')">Return to Pixel Art Baseline →</button></span>
+        `;
+      }
     } else {
       box3d.style.display = 'none';
       boxClassic.style.display = 'block';
-      if (btn3d) btn3d.classList.remove('active');
-      if (btnClassic) btnClassic.classList.add('active');
+      if (btn3d) {
+        btn3d.classList.remove('active');
+        btn3d.setAttribute('aria-selected', 'false');
+      }
+      if (btnClassic) {
+        btnClassic.classList.add('active');
+        btnClassic.setAttribute('aria-selected', 'true');
+      }
+      if (upgradeNote) {
+        upgradeNote.innerHTML = `
+          <span class="upgrade-led"></span>
+          <span id="heroUpgradeText"><strong>Genesis Baseline:</strong> Charlie on the catwalk to the furnace. <button type="button" class="upgrade-link-btn" onclick="setHeroMode('3d')">View v5 Facility Upgrades →</button></span>
+        `;
+      }
     }
 
-    AudioEngine.playRatchet(1.0);
+    if (!skipSound && typeof AudioEngine !== 'undefined' && AudioEngine.playRatchet) {
+      AudioEngine.playRatchet(1.0);
+    }
+
+    try {
+      localStorage.setItem('charlie_hero_mode', mode);
+    } catch (e) {}
   };
 
 
@@ -554,6 +585,10 @@
 
     // Initialize Audio Engine & preload buffer
     AudioEngine.init();
+
+    // Initialize Hero Mode (Default to 'classic' pixel art)
+    const savedHeroMode = localStorage.getItem('charlie_hero_mode') || 'classic';
+    window.setHeroMode(savedHeroMode, true);
   });
 
 })();
