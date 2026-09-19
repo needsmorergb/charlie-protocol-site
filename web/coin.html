@@ -4,30 +4,101 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Coin Audit Sheet — Charlie Protocol</title>
-  <meta name="description" content="View on-chain creator fee routing, Sol-Incinerator deflation proofs, and cryptographic invariant audit reports on Solana.">
+  <title>Coin Details — Charlie Protocol</title>
+  <meta name="description" content="View on-chain creator fee routing, Sol-Incinerator deflation proofs, and protocol leg performance on Solana.">
   
-  <!-- Modern Font Pairing -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap">
-  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap">
   <link rel="stylesheet" href="./assets/preview.css?v=fire5">
+  
   <style>
-    :root { --text-muted: #7C887B; }
-    [hidden] { display: none !important; }
-    .btn-conic-glow:has(> [hidden]) { display: none; }
-    .proof-item summary { cursor: pointer; user-select: none; }
-    .proof-item summary::-webkit-details-marker { display: none; }
-    .proof-expand-icon { display: inline-block; transition: transform 0.2s ease; font-size: 11px; margin-right: 8px; color: var(--neon-charlie); }
-    .proof-item[open] .proof-expand-icon { transform: rotate(90deg); }
-    .proof-title-lockup { display: flex; align-items: center; gap: 8px; }
-    .proof-details-body { padding-top: 12px; border-top: 1px solid var(--border-glass); margin-top: 12px; }
-    .proof-code-box { background: var(--bg-void); border: 1px solid var(--border-glass); padding: 12px 14px; border-radius: var(--radius-sm); font-size: 12px; line-height: 1.5; color: #D1E7D0; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
-    .diff-box { background: var(--bg-void); border: 1px solid var(--border-glass); padding: 12px 14px; border-radius: var(--radius-sm); font-size: 12px; }
-    .diff-row { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-    .diff-label { color: var(--text-muted); }
+  :root {
+    --bg-void:#030403;--bg-base:#060806;--bg-surface:#101610;--bg-card:rgba(14,20,14,.78);--bg-input:#040604;
+    --border-subtle:rgba(143,225,63,.12);--border-glass:rgba(255,255,255,.08);--border-vitrified:rgba(255,255,255,.14);
+    --ember:#8FE13F;--ember-halo:rgba(143,225,63,.09);
+    --flame-warm:#FF8A1F;--sol-blue:#00E5FF;
+    --text-primary:#F5F9F4;--text-secondary:#9BA89A;--text-muted:#5D685C;
+    --font-display:'Space Grotesk',sans-serif;--font-sans:'Plus Jakarta Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+    --sp-xs:4px;--sp-sm:8px;--sp-md:16px;--sp-lg:24px;--sp-xl:32px;--sp-2xl:48px;--sp-3xl:64px;
+    --radius-sm:4px;--radius-md:8px;--radius-lg:14px;--radius-pill:9999px;
+    --shadow-obsidian:0 30px 60px -12px rgba(0,0,0,.85),0 18px 36px -18px rgba(0,0,0,.95);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0;background:var(--bg-base);color:var(--text-primary);font-family:var(--font-sans);
+    background-image:linear-gradient(rgba(143,225,63,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(143,225,63,.035) 1px,transparent 1px);
+    background-size:48px 48px;}
+  .wrap{max-width:980px;margin:0 auto;padding:var(--sp-xl) var(--sp-md) var(--sp-3xl)}
+  
+  /* ---- the coin page shell ---- */
+  .coinpage{background:var(--bg-card);border:1px solid var(--border-glass);border-top:1px solid var(--border-vitrified);
+    border-radius:var(--radius-lg);box-shadow:var(--shadow-obsidian);overflow:hidden;margin-top:var(--sp-lg)}
+  .telemetry{display:flex;gap:var(--sp-md);flex-wrap:wrap;align-items:center;justify-content:space-between;padding:10px var(--sp-lg);
+    border-bottom:1px solid var(--border-subtle);background:var(--bg-void);font:500 11px/1 var(--font-mono);
+    letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+  .led{width:6px;height:6px;border-radius:50%;background:var(--ember);box-shadow:0 0 8px var(--ember);display:inline-block;margin-right:6px}
+  .hero{padding:var(--sp-xl) var(--sp-lg);border-bottom:1px solid var(--border-subtle);display:grid;
+    grid-template-columns:96px minmax(0,1fr);gap:var(--sp-lg);align-items:start;
+    background:radial-gradient(900px 320px at 12% -10%,var(--ember-halo),transparent 70%)}
+  .sigil{width:96px;aspect-ratio:1;border-radius:var(--radius-lg);overflow:hidden;position:relative;
+    background:var(--bg-void);border:1px solid var(--border-glass);border-top:1px solid rgba(255,255,255,.16);margin:0;
+    display:flex;align-items:center;justify-content:center}
+  .sigil span{font-family:var(--font-display);font-weight:800;font-size:34px;color:var(--ember);opacity:.85}
+  .sigil img{width:100%;height:100%;object-fit:cover}
+  .sigil::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    box-shadow:inset 0 0 0 1px var(--border-subtle),inset 0 -30px 36px -24px rgba(3,4,3,.85)}
+  .eyebrow{font:600 10px/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:11px;display:flex;align-items:center}
+  .coin-name{font-family:var(--font-display);font-size:clamp(26px,3.4vw,38px);font-weight:800;letter-spacing:-.035em;margin:0 0 7px;line-height:1.08}
+  .coin-sym{font:600 12px/1 var(--font-mono);letter-spacing:.14em;color:var(--ember);margin:0 0 var(--sp-md)}
+  .coin-desc{font-size:14px;line-height:1.6;color:var(--text-secondary);margin:0 0 var(--sp-md);max-width:60ch}
+  .mintrow{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-sm);background:var(--bg-input);
+    border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:8px 8px 8px 13px;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.6)}
+  .mintlab{font:600 9px/1 var(--font-mono);letter-spacing:.14em;color:var(--text-muted)}
+  .mintval{font:500 12px/1.4 var(--font-mono);color:var(--text-secondary);overflow-wrap:anywhere;flex:1 1 auto;min-width:0}
+  .mintval b{color:var(--text-primary);font-weight:700}
+  .disclaim{font:400 10.5px/1.6 var(--font-mono);color:var(--text-muted);margin:var(--sp-md) 0 0;max-width:64ch}
+  
+  /* ---- section ---- */
+  .sec{padding:var(--sp-xl) var(--sp-lg);border-bottom:1px solid var(--border-subtle)}
+  .sec:last-child{border-bottom:none}
+  .sec-eyebrow{font:600 10px/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--sp-sm)}
+  .sec h3{font-family:var(--font-display);font-size:18px;font-weight:700;margin:0 0 var(--sp-xs);letter-spacing:-.01em}
+  .sec-note{font-size:13px;color:var(--text-muted);margin:0 0 var(--sp-lg);line-height:1.6;max-width:66ch}
+  
+  /* ---- split bar ---- */
+  .split-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12px;margin-bottom:7px;flex-wrap:wrap;gap:var(--sp-sm)}
+  .split-legend-item{display:inline-flex;align-items:center;gap:6px;color:var(--text-secondary)}
+  .legend-dot{width:8px;height:8px;border-radius:var(--radius-pill)}
+  .bar-container{height:20px;width:100%;background:var(--bg-input);border:1px solid var(--border-glass);border-radius:var(--radius-sm);overflow:hidden;display:flex}
+  .bar-seg{height:100%;transition:width 0.4s ease}
+  .seg-sol-burn{background:var(--flame-warm);box-shadow:0 0 10px rgba(255,138,31,.4)}
+  .seg-token-burn{background:var(--ember);box-shadow:0 0 10px rgba(143,225,63,.4)}
+  .seg-ops{background:var(--sol-blue)}
+  .bar-foot{font:400 11px/1.5 var(--font-mono);color:var(--text-muted);margin:9px 0 0;letter-spacing:.02em}
+  
+  /* ---- legs ---- */
+  .legs{display:grid;gap:0;margin:0}
+  @media(min-width:620px){.legs{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--sp-2xl)}}
+  .leg{padding:var(--sp-md) 0;border-top:1px solid var(--border-subtle);min-width:0}
+  .leg-label{font:600 12.5px/1.4 var(--font-sans);color:var(--text-secondary);letter-spacing:.01em;margin:0 0 var(--sp-xs)}
+  .leg-value{font-family:var(--font-mono);font-size:clamp(19px,2vw,25px);font-weight:700;line-height:1.25;
+    color:var(--text-primary);letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:0 0 var(--sp-sm);
+    min-height:calc(clamp(19px,2vw,25px)*1.25);display:flex;flex-wrap:wrap;align-items:baseline;gap:.5em}
+  .leg-unit{font-size:.55em;font-weight:600;color:var(--text-secondary);letter-spacing:0}
+  .leg-source{font:400 11px/1.5 var(--font-mono);color:var(--text-muted);letter-spacing:.02em;margin:0;overflow-wrap:anywhere;min-height:1.5em}
+  .leg[data-value=absent] .leg-value{color:var(--text-secondary)}
+  .leg-dash{display:inline-block;width:1.1ch;text-align:center;color:var(--text-secondary);opacity:1}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .leg[data-absence=withheld]{border-left:2px solid var(--flame-warm);padding-left:var(--sp-md)}
+  .leg[data-absence=withheld] .leg-source{color:var(--flame-warm)}
+  
+  /* action banner */
+  .action-deck{margin-top:var(--sp-2xl);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-md);padding:var(--sp-lg);background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg)}
+  @media(max-width:600px){
+    .hero{grid-template-columns:1fr}
+    .sigil{width:64px}
+  }
   </style>
 
   <!-- Vercel Web Analytics & Speed Insights -->
@@ -41,8 +112,8 @@
 <body>
 
   <!-- =========================================================================
-       0. Global Facility Telemetry Strip
-       ========================================================================= -->
+  0. Global Facility Telemetry Strip
+  ========================================================================= -->
   <aside class="facility-telemetry-strip" aria-label="Solana Network & Facility Telemetry">
     <div class="facility-telemetry-inner">
       <div class="telemetry-pill">
@@ -51,23 +122,15 @@
         <span class="telemetry-value">SOLANA MAINNET-BETA</span>
       </div>
       <div class="telemetry-pill">
-        <span class="telemetry-label">AUDIT PROTOCOL:</span>
-        <span class="telemetry-value font-mono">FALSIFICATION ENGINE LIVE</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">DESTINATION:</span>
-        <span class="telemetry-value telemetry-value--ember font-mono">1nc1nerator...</span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="telemetry-label">FEE PROTOCOL:</span>
-        <span class="telemetry-value telemetry-value--green font-mono">0.25% CRANK MAINTENANCE</span>
+        <span class="telemetry-label">PROTOCOL DOORS:</span>
+        <span class="telemetry-value telemetry-value--green font-mono">OPEN</span>
       </div>
     </div>
   </aside>
 
   <!-- =========================================================================
-       1. Global Sticky Header
-       ========================================================================= -->
+  1. Global Sticky Header
+  ========================================================================= -->
   <header class="site-header">
     <div class="header-inner">
       <a href="./index.html" class="brand-lockup">
@@ -84,7 +147,7 @@
         <a href="./launch.html" class="nav-link">Launch Coin</a>
         <a href="./enroll.html" class="nav-link">Enroll Coin</a>
         <a href="./coins.html" class="nav-link">Directory</a>
-        <a href="./coin.html" class="nav-link active">Audit Sheet</a>
+        <a href="./coin.html" class="nav-link active">Coin Details</a>
       </nav>
 
       <div class="header-actions">
@@ -100,637 +163,282 @@
     </div>
   </header>
 
-  <main>
+  <main class="wrap">
     <!-- =========================================================================
-         2. Audit Header & Coin Metadata
-         ========================================================================= -->
-    <div style="margin-bottom: var(--sp-xl);">
-      <div class="eyebrow">
-        <span class="telemetry-led"></span>
-        <span>Formal Invariant Audit Sheet // Sol-Incinerator Deflation Proofs</span>
+    2. The Coin Page Shell
+    ========================================================================= -->
+    <div class="coinpage">
+      <div class="telemetry">
+        <span><span class="led"></span>Network: Solana Mainnet-Beta</span>
+        <span id="observedStamp">Read: 2026-09-18 20:54 UTC</span>
       </div>
 
-      <div style="display: flex; align-items: center; gap: var(--sp-sm); flex-wrap: wrap;">
-        <h1 id="auditMintHeader" class="mono font-mono" style="font-size: clamp(20px, 3.4vw, 32px); word-break: break-all; margin: 0;">
-          8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump
-        </h1>
-        <button type="button" class="btn-copy" onclick="copyToClipboard(document.getElementById('auditMintHeader').textContent.trim(), this)" title="Copy CA to clipboard">
-          <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-          <span>Copy CA</span>
-        </button>
+      <div class="hero">
+        <figure class="sigil" id="coinSigil">
+          <span id="sigilGlyph">◈</span>
+        </figure>
+        <div>
+          <div class="eyebrow" id="coinStatusEyebrow">Launched coin // fee split on chain</div>
+          <h2 class="coin-name" id="coinName">Charlie</h2>
+          <p class="coin-sym" id="coinSym">$CHARLIE</p>
+          <p class="coin-desc" id="coinDesc">The first coin to route 100% of trading creator fees into permanent Solana incinerator destruction.</p>
+          
+          <div class="mintrow">
+            <span class="mintlab">CA</span>
+            <span class="mintval" id="mintDisplay">
+              <b>8FhA</b>Xv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgL<b>pump</b>
+            </span>
+            <button type="button" class="btn-copy" onclick="copyMint()" style="padding: 3px 8px; font-size: 11px;">
+              <svg class="sys-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+          </div>
+          <p class="disclaim">Name, image, description and links come from the coin's own metadata. Charlie Protocol did not write or check them.</p>
+        </div>
       </div>
 
-      <p id="auditCoinDesc" style="font-size: 15px; color: var(--text-secondary); margin: var(--sp-sm) 0 var(--sp-md) 0;">
-        Official $CHARLIE Coin Reference Audit Sheet. Every figure rendered below is backed by an audited invariant check.
-      </p>
-
-      <!-- Quick Tally Pills -->
-      <div style="display: flex; gap: var(--sp-sm); flex-wrap: wrap; align-items: center;">
-        <span id="tallyPass" class="status-pill status-pill--verified">
-          <span class="status-pill-led"></span>
-          <span class="status-pill-text">6 PASS</span>
-        </span>
-        <span id="tallyFail" class="status-pill status-pill--verified" style="background: rgba(143, 225, 63, 0.08); border-color: rgba(143, 225, 63, 0.3);">
-          <span class="status-pill-led"></span>
-          <span class="status-pill-text">0 FAIL</span>
-        </span>
-        <span id="tallyUnchecked" class="status-pill status-pill--unverified">
-          <span class="status-pill-led"></span>
-          <span class="status-pill-text">3 UNCHECKED</span>
-        </span>
-        <span id="tallySplitMode" class="badge" style="background: rgba(255, 138, 31, 0.15); border: 1px solid rgba(255, 138, 31, 0.4); color: var(--flame-warm);">
-          100% SOL BURN ONLY
-        </span>
-        <span id="auditObservedTag" class="freshness-tag" style="margin: 0;">observed on-chain</span>
-      </div>
-    </div>
-
-    <!-- =========================================================================
-         3. Fee Split Allocation Visualizer Bar
-         ========================================================================= -->
-    <div class="studio-card cyber-card cyber-card--chamfer tilt-card" style="padding: var(--sp-lg);">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: 8px;">
-        <h3 style="font-size: 16px; margin: 0;">On-Chain Creator Fee Allocation</h3>
-        <span class="mono font-mono" style="font-size: 12px; color: var(--text-muted);">PROGRAM: pump-fee-share v1.0.2</span>
-      </div>
-
-      <div class="split-strip">
+      <!-- Section: The Promise // Fee split -->
+      <div class="sec">
+        <div class="sec-eyebrow">The promise</div>
+        <h3>Fee split</h3>
+        <p class="sec-note">Set on chain at launch. This is the allocation, not the amount collected.</p>
+        
         <div class="split-labels">
           <span class="split-legend-item">
-            <span class="legend-dot" style="background: var(--flame-warm);"></span>
-            <span id="barSolLabel">Sol-Incinerator: 10,000 bps (100.00%)</span>
+            <span class="legend-dot" style="background:var(--flame-warm)"></span>
+            <span id="labelSolBurn">SOL burn 100.00%</span>
           </span>
           <span class="split-legend-item">
-            <span class="legend-dot" style="background: var(--ember);"></span>
-            <span id="barTokenLabel">Token Burn: 0 bps (0.00%)</span>
+            <span class="legend-dot" style="background:var(--ember)"></span>
+            <span id="labelTokenBurn">Token buyback burn 0.00%</span>
           </span>
           <span class="split-legend-item">
-            <span class="legend-dot" style="background: #3B82F6;"></span>
-            <span id="barOpsLabel">Creator Ops: 0 bps (0.00%)</span>
+            <span class="legend-dot" style="background:var(--sol-blue)"></span>
+            <span id="labelOps">Ops 0.00%</span>
           </span>
         </div>
-        <div class="bar-container" style="height: 24px;">
-          <div id="coinBarSol" class="bar-seg seg-sol-burn" style="width: 100%;"></div>
-          <div id="coinBarToken" class="bar-seg seg-token-burn" style="width: 0%;"></div>
-          <div id="coinBarOps" class="bar-seg seg-ops" style="width: 0%;"></div>
+
+        <div class="bar-container">
+          <div id="barSol" class="bar-seg seg-sol-burn" style="width:100%"></div>
+          <div id="barToken" class="bar-seg seg-token-burn" style="width:0%"></div>
+          <div id="barOps" class="bar-seg seg-ops" style="width:0%"></div>
         </div>
+        <p class="bar-foot">allocation set at launch; realized amounts below</p>
       </div>
 
-      <div id="auditDestCard" style="display: flex; gap: var(--sp-md); align-items: center; margin-top: var(--sp-md); background: var(--bg-void); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 12px 16px;">
-        <img id="auditDestImg" src="./assets/incinerator-3d.jpg" style="width: 52px; height: 52px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); filter: drop-shadow(0 0 8px rgba(255, 138, 31, 0.4)); flex: none;" alt="Sol-Incinerator">
-        <div style="flex: 1;">
-          <div id="auditDestTag" class="mono font-mono" style="font-size: 11px; color: var(--flame-warm); font-weight: 700;">PROVABLE ON-CHAIN DEFLATION DESTINATION</div>
-          <div id="auditDestTitle" class="mono font-mono" style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">
-            Sol-Incinerator (<span style="color: var(--ember);">1nc1nerator11111111111111111111111111111111</span>)
+      <!-- Section: Performance // Protocol legs -->
+      <div class="sec">
+        <div class="sec-eyebrow">Performance</div>
+        <h3>Protocol legs</h3>
+        <p class="sec-note">What has actually moved for this coin. Six rows, always, in the same order.</p>
+        
+        <dl class="legs">
+
+          <!-- Row 1: SOL burn -->
+          <div class="leg" id="legSolBurn">
+            <dt class="leg-label">SOL burn</dt>
+            <dd class="leg-value" id="valSolBurn">179.668087718<span class="leg-unit">SOL</span></dd>
+            <p class="leg-source" id="srcSolBurn">sol_burn_balances</p>
           </div>
-          <div id="auditDestDesc" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
-            Runtime burns all arriving lamports at block boundaries. Mint authority irrevocably revoked.
+
+          <!-- Row 2: Token buyback burn -->
+          <div class="leg" id="legTokenBuyback" data-value="absent" data-absence="not-live">
+            <dt class="leg-label">Token buyback burn</dt>
+            <dd class="leg-value" id="valTokenBuyback">
+              <span class="leg-dash">—</span>
+              <span class="sr-only">No value yet</span>
+            </dd>
+            <p class="leg-source" id="srcTokenBuyback">burn_spend</p>
           </div>
-        </div>
+
+          <!-- Row 3: Supply destroyed -->
+          <div class="leg" id="legSupplyDestroyed">
+            <dt class="leg-label">Supply destroyed</dt>
+            <dd class="leg-value" id="valSupplyDestroyed">43,661,429.634096<span class="leg-unit">tokens</span></dd>
+            <p class="leg-source">evidence.burn_total · every burn against the mint, by anyone</p>
+          </div>
+
+          <!-- Row 4: Ops -->
+          <div class="leg" id="legOps">
+            <dt class="leg-label">Ops</dt>
+            <dd class="leg-value" id="valOps">0.000000000<span class="leg-unit">SOL</span></dd>
+            <p class="leg-source">leg: paid</p>
+          </div>
+
+          <!-- Row 5: Distributed -->
+          <div class="leg" id="legDistributed">
+            <dt class="leg-label">Distributed</dt>
+            <dd class="leg-value" id="valDistributed">179.668087718<span class="leg-unit">SOL</span></dd>
+            <p class="leg-source">distribute crank · all shareholders</p>
+          </div>
+
+          <!-- Row 6: Paired token -->
+          <div class="leg" id="legPairedToken">
+            <dt class="leg-label">Paired token</dt>
+            <dd class="leg-value" id="valPairedToken">WSOL</dd>
+            <p class="leg-source">So1111…1112 · pool quote_mint</p>
+          </div>
+
+        </dl>
       </div>
     </div>
 
-    <!-- =========================================================================
-         4. Audited Figures
-         ========================================================================= -->
-    <section id="figures" style="margin-top: var(--sp-2xl);">
-      <div class="eyebrow">
-        <span>Popperian Falsification Protocol</span>
-      </div>
-      <h2>Audited Protocol Figures</h2>
-      <p style="max-width: 70ch; color: var(--text-secondary);">
-        Every figure rendered below is conditionally unlocked by formal invariant proof. If an invariant test fails, the protocol refuses to publish an unverified metric.
-      </p>
-
-      <div style="display: flex; flex-direction: column; gap: var(--sp-sm);" id="figuresContainer">
-        <div class="counter-card cyber-card cyber-card--chamfer tilt-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm);">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div>
-            <span style="font-size: 11.5px; color: var(--text-muted); display: block; font-family: var(--font-mono);">FIGURE // split_allocation</span>
-            <span id="figSplitVal" class="mono font-mono" style="font-size: 15px; font-weight: 700; color: var(--text-primary);">
-              SOL burn 10,000 bps / TOKEN burn 0 bps / OPS 0 bps
-            </span>
-          </div>
-          <span class="status-pill status-pill--verified">
-            <span class="status-pill-led"></span>
-            <span class="status-pill-text">PASS</span>
-          </span>
-        </div>
-
-        <div id="figSupplyCard" class="counter-card cyber-card cyber-card--chamfer tilt-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); border-left: 4px solid var(--neon-charlie);">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div>
-            <span style="font-size: 11.5px; color: var(--neon-charlie); display: block; font-family: var(--font-mono);">FIGURE // supply_destroyed</span>
-            <span id="figSupplyVal" class="mono font-mono" style="font-size: 15px; font-weight: 700; color: var(--neon-charlie);">
-              43,617,812.041090 $CHARLIE (4.36% of Genesis Supply)
-            </span>
-            <span id="figSupplyDesc" style="font-size: 12px; color: var(--text-muted); display: block; margin-top: 2px;">
-              Burn events verified on-chain. Supply permanently destroyed at Solana runtime level.
-            </span>
-          </div>
-          <span id="figSupplyBadge" class="status-pill status-pill--verified">
-            <span class="status-pill-led"></span>
-            <span class="status-pill-text">VERIFIED</span>
-          </span>
-        </div>
-
-        <div class="counter-card cyber-card cyber-card--chamfer tilt-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); border-left: 4px solid var(--flame-warm);">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <div>
-            <span style="font-size: 11.5px; color: var(--flame-warm); display: block; font-family: var(--font-mono);">FIGURE // sol_burn_destination</span>
-            <span id="figSolBurnVal" class="mono font-mono" style="font-size: 15px; font-weight: 700; color: var(--flame-warm);">
-              1nc1nerator11111111111111111111111111111111
-            </span>
-          </div>
-          <span class="status-pill status-pill--verified">
-            <span class="status-pill-led"></span>
-            <span class="status-pill-text">DEFLATIONARY</span>
-          </span>
-        </div>
-      </div>
-    </section>
-
-    <!-- =========================================================================
-         5. Invariant Suite (9 Checks)
-         ========================================================================= -->
-    <section id="checks" style="margin-top: var(--sp-2xl);">
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: var(--sp-md); margin-bottom: var(--sp-md);">
-        <div>
-          <h2>Cryptographic Invariant Suite (9 Checks)</h2>
-          <p style="margin: 0; font-size: 14.5px; color: var(--text-secondary);">Click any invariant check below to inspect on-chain account offsets and RPC proof payloads.</p>
-        </div>
-
-        <!-- Filter tabs for checks -->
-        <div class="filter-tabs" style="margin: 0;">
-          <button type="button" class="filter-tab active" data-check-filter="all" onclick="filterChecks('all', this)">All (9)</button>
-          <button type="button" class="filter-tab" data-check-filter="pass" onclick="filterChecks('pass', this)">✓ Pass</button>
-          <button type="button" class="filter-tab" data-check-filter="fail" onclick="filterChecks('fail', this)">✕ Fail</button>
-          <button type="button" class="filter-tab" data-check-filter="unchecked" onclick="filterChecks('unchecked', this)">⏳ Unchecked</button>
-        </div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: var(--sp-sm);" id="checksList">
-
-        <!-- Check 1: CONFIG_MINT -->
-        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass" open>
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <summary class="proof-summary" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-            <div class="proof-title-lockup">
-              <span class="proof-expand-icon">▶</span>
-              <div>
-                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">1. CONFIG_MINT</span>
-                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">config.mint == mint</span>
-              </div>
-            </div>
-            <span class="status-pill status-pill--verified">
-              <span class="status-pill-led"></span>
-              <span class="status-pill-text">PASS</span>
-            </span>
-          </summary>
-          <div class="proof-details-body" style="padding: 12px 16px;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 8px 0;">
-              Ensures the fee configuration account explicitly binds to this token mint address and cannot be spoofed.
-            </p>
-            <div class="proof-code-box font-mono">
-[RPC PAYLOAD // ACCOUNT DESERIALIZATION]
-Owner: pfeexN9uVp1eR7yZ2bK... (pump-fee-share)
-Match: TRUE (Exact 32-byte Ed25519 Equality)
-Status: CONFIG_MINT_VERIFIED
-            </div>
-          </div>
-        </details>
-
-        <!-- Check 2: SPLIT_SUM -->
-        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <summary class="proof-summary" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-            <div class="proof-title-lockup">
-              <span class="proof-expand-icon">▶</span>
-              <div>
-                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">2. SPLIT_SUM</span>
-                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">sum(share.bps) == 10000</span>
-              </div>
-            </div>
-            <span class="status-pill status-pill--verified">
-              <span class="status-pill-led"></span>
-              <span class="status-pill-text">PASS</span>
-            </span>
-          </summary>
-          <div class="proof-details-body" style="padding: 12px 16px;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 8px 0;">
-              Verifies all allocation shares sum precisely to 10,000 basis points (100.00%) with 0 bps leakage.
-            </p>
-            <div class="proof-code-box font-mono">
-[INVARIANT MATH VALIDATION]
-Sum: 10,000 / 10,000 bps (Delta: 0 bps)
-Status: STRICT_INVARIANT_SATISFIED
-            </div>
-          </div>
-        </details>
-
-        <!-- Check 3: BURN_SUPPLY -->
-        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass" open>
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <summary class="proof-summary" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-            <div class="proof-title-lockup">
-              <span class="proof-expand-icon">▶</span>
-              <div>
-                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">3. BURN_SUPPLY</span>
-                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">initial_supply - burns == getMint().supply</span>
-              </div>
-            </div>
-            <span class="status-pill status-pill--verified">
-              <span class="status-pill-led"></span>
-              <span class="status-pill-text">PASS</span>
-            </span>
-          </summary>
-          <div class="proof-details-body" style="padding: 12px 16px;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 8px 0;">
-              Reconciles historical claimed burn instruction events against live SPL Token mint supply on-chain.
-            </p>
-            <div class="diff-box">
-              <div class="diff-row"><span class="diff-label">STATUS:</span><span class="mono font-mono" style="color: var(--neon-charlie); font-weight: 700;">100% RECONCILED</span></div>
-              <div class="diff-row"><span class="diff-label">INITIAL SUPPLY:</span><span class="mono font-mono">1,000,000,000.000000</span></div>
-              <div class="diff-row"><span class="diff-label">SUPPLY INTEGRITY:</span><span class="mono font-mono" style="color: var(--neon-charlie);">VERIFIED ON-CHAIN</span></div>
-            </div>
-          </div>
-        </details>
-
-        <!-- Check 4: SOL_BURN_UNSPENDABLE -->
-        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <summary class="proof-summary" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-            <div class="proof-title-lockup">
-              <span class="proof-expand-icon">▶</span>
-              <div>
-                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">4. SOL_BURN_UNSPENDABLE</span>
-                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">share.address in GRANDFATHERED_SOL_BURN</span>
-              </div>
-            </div>
-            <span class="status-pill status-pill--verified">
-              <span class="status-pill-led"></span>
-              <span class="status-pill-text">PASS</span>
-            </span>
-          </summary>
-          <div class="proof-details-body" style="padding: 12px 16px;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 8px 0;">
-              Confirms that the burn address matches the canonical Solana Incinerator address whose private key is mathematically non-existent.
-            </p>
-            <div class="proof-code-box font-mono">
-Burn Target: 1nc1nerator11111111111111111111111111111111
-Grandfathered Proof: Off-curve PDA / Null Private Key
-Result: PERMANENT_DESTROY_CONFIRMED
-            </div>
-          </div>
-        </details>
-
-        <!-- Check 5: SOL_BURN_BALANCE -->
-        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="unchecked">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <summary class="proof-summary" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-            <div class="proof-title-lockup">
-              <span class="proof-expand-icon">▶</span>
-              <div>
-                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">5. SOL_BURN_BALANCE</span>
-                <span class="mono font-mono" style="font-size: 12px; color: var(--unchecked); margin-left: 8px;">incinerator_balance >= cumulative_burns</span>
-              </div>
-            </div>
-            <span class="status-pill status-pill--unverified">
-              <span class="status-pill-led"></span>
-              <span class="status-pill-text">UNCHECKED</span>
-            </span>
-          </summary>
-          <div class="proof-details-body" style="padding: 12px 16px;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 8px 0;">
-              Confirmed by validator block-boundary credit sweep.
-            </p>
-          </div>
-        </details>
-
-        <!-- Check 6: REVOKED_MINT_AUTHORITY -->
-        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <summary class="proof-summary" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-            <div class="proof-title-lockup">
-              <span class="proof-expand-icon">▶</span>
-              <div>
-                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">6. REVOKED_MINT_AUTHORITY</span>
-                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">getMint().mint_authority == null</span>
-              </div>
-            </div>
-            <span class="status-pill status-pill--verified">
-              <span class="status-pill-led"></span>
-              <span class="status-pill-text">PASS</span>
-            </span>
-          </summary>
-          <div class="proof-details-body" style="padding: 12px 16px;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 8px 0;">
-              Mint authority is permanently null. No new tokens can ever be minted.
-            </p>
-          </div>
-        </details>
-
-        <!-- Check 7: FREEZE_AUTHORITY_NULL -->
-        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <summary class="proof-summary" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-            <div class="proof-title-lockup">
-              <span class="proof-expand-icon">▶</span>
-              <div>
-                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">7. FREEZE_AUTHORITY_NULL</span>
-                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">getMint().freeze_authority == null</span>
-              </div>
-            </div>
-            <span class="status-pill status-pill--verified">
-              <span class="status-pill-led"></span>
-              <span class="status-pill-text">PASS</span>
-            </span>
-          </summary>
-          <div class="proof-details-body" style="padding: 12px 16px;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 8px 0;">
-              Freeze authority is permanently null. Tokens cannot be blacklisted or frozen.
-            </p>
-          </div>
-        </details>
-
-        <!-- Check 8: BONDING_CURVE_COMPLETE -->
-        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="unchecked">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <summary class="proof-summary" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-            <div class="proof-title-lockup">
-              <span class="proof-expand-icon">▶</span>
-              <div>
-                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">8. BONDING_CURVE_COMPLETE</span>
-                <span class="mono font-mono" style="font-size: 12px; color: var(--unchecked); margin-left: 8px;">curve.complete == true</span>
-              </div>
-            </div>
-            <span class="status-pill status-pill--unverified">
-              <span class="status-pill-led"></span>
-              <span class="status-pill-text">UNCHECKED</span>
-            </span>
-          </summary>
-          <div class="proof-details-body" style="padding: 12px 16px;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 8px 0;">
-              Curve progression tracked continuously against Solana slot height.
-            </p>
-          </div>
-        </details>
-
-        <!-- Check 9: PROTOCOL_SHARE -->
-        <details class="proof-item check-item cyber-card cyber-card--chamfer tilt-card" data-status="pass">
-          <span class="cyber-corner cyber-corner--tl"></span>
-          <span class="cyber-corner cyber-corner--br"></span>
-          <summary class="proof-summary" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-            <div class="proof-title-lockup">
-              <span class="proof-expand-icon">▶</span>
-              <div>
-                <span class="mono font-mono" style="font-weight: 700; color: var(--text-primary); font-size: 14px;">9. PROTOCOL_SHARE</span>
-                <span class="mono font-mono" style="font-size: 12px; color: var(--neon-charlie); margin-left: 8px;">bps(TOLL_DESTINATION) >= 25</span>
-              </div>
-            </div>
-            <span class="status-pill status-pill--verified">
-              <span class="status-pill-led"></span>
-              <span class="status-pill-text">PASS</span>
-            </span>
-          </summary>
-          <div class="proof-details-body" style="padding: 12px 16px;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 8px 0;">
-              Enrolled in autonomous decentralized crank infrastructure with fixed protocol maintenance share.
-            </p>
-          </div>
-        </details>
-
-      </div>
-    </section>
-
-    <!-- =========================================================================
-         6. Raw Observation JSON Drawer
-         ========================================================================= -->
-    <section id="rawJsonSection" style="margin-top: var(--sp-2xl);">
-      <details class="cyber-card cyber-card--chamfer" style="padding: var(--sp-md);">
-        <span class="cyber-corner cyber-corner--tl"></span>
-        <span class="cyber-corner cyber-corner--br"></span>
-        <summary style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="proof-expand-icon">▶</span>
-            <span style="font-weight: 700; font-size: 15px;">Raw Cryptographic Evidence & JSON Record</span>
-          </div>
-          <button type="button" class="btn-copy" onclick="copyJsonRecord(event, this)" style="font-size: 11.5px; padding: 4px 10px;">
-            <svg class="sys-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            <span>Copy JSON</span>
-          </button>
-        </summary>
-        <div style="margin-top: var(--sp-md); cursor: default;">
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--sp-sm);">
-            Deterministic snapshot exported by indexer walk. Reproducible by any validator node.
-          </p>
-          <pre id="jsonPreviewBox" class="mono font-mono" style="background: var(--bg-void); border: 1px solid var(--border-glass); padding: var(--sp-md); border-radius: var(--radius-sm); font-size: 12px; overflow-x: auto; color: #A6FF4D; line-height: 1.5;">{
-  "mint": "8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump",
-  "observed_at": "2026-09-06T17:00:00Z",
-  "checks": {
-    "CONFIG_MINT": "pass",
-    "SPLIT_SUM": "pass",
-    "BURN_SUPPLY": "pass",
-    "SOL_BURN_UNSPENDABLE": "pass",
-    "SOL_BURN_BALANCE": "unchecked",
-    "CREATOR_AUTH": "pass",
-    "BONDING_CURVE_COMPLETE": "unchecked",
-    "REVOKED_MINT_AUTHORITY": "pass",
-    "FREEZE_AUTHORITY_NULL": "pass"
-  },
-  "shares": [
-    { "address": "1nc1nerator11111111111111111111111111111111", "bps": 10000 }
-  ]
-}</pre>
-        </div>
-      </details>
-    </section>
-
-    <!-- Quick Action Banner -->
-    <div class="editorial-card cyber-card cyber-card--chamfer tilt-card" style="margin-top: var(--sp-2xl); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-md);">
-      <span class="cyber-corner cyber-corner--tl"></span>
-      <span class="cyber-corner cyber-corner--br"></span>
+    <!-- Action Bar -->
+    <div class="action-deck">
       <div>
-        <h3 style="margin-bottom: 4px;">Want to launch or enroll a coin?</h3>
-        <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Create a token with permanent Sol-Incinerator burn splits, or enroll an existing coin.</p>
+        <h3 style="margin: 0 0 4px 0; font-size: 16px; font-family: var(--font-display);">Want to launch or enroll a coin?</h3>
+        <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary);">Deploy a coin with built-in fee burning, or enroll an existing coin.</p>
       </div>
       <div style="display: flex; gap: var(--sp-sm); align-items: center; flex-wrap: wrap;">
         <div class="btn-conic-glow">
-          <a href="./launch.html" class="btn-submit" style="text-decoration: none;">
-            <span>Launch Coin</span>
-            <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
+          <a href="./launch.html" class="btn-submit" style="text-decoration: none; padding: 10px 18px; font-size: 13px;">
+            <span>Launch a coin</span>
           </a>
         </div>
-        <a href="./enroll.html" class="btn-paste" style="text-decoration: none; padding: 12px 18px;">
-          <span>Enroll Coin</span>
+        <a href="./enroll.html" class="btn-paste" style="text-decoration: none; padding: 10px 16px; font-size: 13px;">
+          <span>Enroll a coin</span>
         </a>
-        <a href="./coins.html" class="btn-paste" style="text-decoration: none; padding: 12px 18px;">
+        <a href="./coins.html" class="btn-paste" style="text-decoration: none; padding: 10px 16px; font-size: 13px;">
           <span>Directory</span>
         </a>
       </div>
     </div>
-
   </main>
 
   <footer>
     <div class="footer-inner">
-      <p>Charlie Protocol Audit Engine — All invariant proofs recorded deterministically. Every figure falsifiable.</p>
+      <p>Charlie Protocol — Dedicated to decreasing Solana network inflation via native Sol-Incinerator supply destruction. Autonomous crank maintenance: 0.25% fee per transaction.</p>
     </div>
   </footer>
 
   <script src="./assets/charlie-motion.js?v=fire5"></script>
   <script>
-    function filterChecks(status, btnEl) {
-      document.querySelectorAll('.filter-tabs [data-check-filter]').forEach(function (b) { b.classList.remove('active'); });
-      if (btnEl) btnEl.classList.add('active');
-      if (window.AudioEngine) window.AudioEngine.playClick();
+    var currentMint = '8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump';
 
-      var items = document.querySelectorAll('.check-item');
-      items.forEach(function (item) {
-        var itemStatus = item.getAttribute('data-status');
-        if (status === 'all' || itemStatus === status) {
-          item.style.display = 'block';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    }
-
-    function copyJsonRecord(e, btn) {
-      e.stopPropagation();
-      e.preventDefault();
-      var text = document.getElementById('jsonPreviewBox').textContent;
+    function copyMint() {
       if (window.copyToClipboard) {
-        window.copyToClipboard(text, btn);
+        window.copyToClipboard(currentMint);
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(currentMint);
       }
     }
 
-    // Dynamic URL Parameter Parser & Coin Configuration
+    function formatMint(m) {
+      if (!m || m.length < 10) return m;
+      return '<b>' + m.slice(0, 4) + '</b>' + m.slice(4, -4) + '<b>' + m.slice(-4) + '</b>';
+    }
+
+    // Dynamic Loader for On-Chain Observation Data
     window.addEventListener('DOMContentLoaded', async function () {
       var urlParams = new URLSearchParams(window.location.search);
       var mint = urlParams.get('mint');
-      if (!mint) return;
+      if (mint && mint.trim().length >= 32) {
+        currentMint = mint.trim();
+      }
 
-      var header = document.getElementById('auditMintHeader');
-      if (header) header.textContent = mint;
-      document.title = mint + ' — Charlie Protocol Audit Sheet';
+      document.getElementById('mintDisplay').innerHTML = formatMint(currentMint);
+      document.title = currentMint + ' — Coin Details — Charlie Protocol';
 
-      // Attempt to fetch real observation JSON for this coin
+      // Fetch observation JSON
       try {
-        var res = await fetch('./' + encodeURIComponent(mint) + '.json', { cache: 'no-store' });
+        var res = await fetch('./' + encodeURIComponent(currentMint) + '.json', { cache: 'no-store' });
         if (!res.ok) {
-          res = await fetch('/api/verify?mint=' + encodeURIComponent(mint) + '&format=json', { cache: 'no-store' });
+          res = await fetch('/api/verify?mint=' + encodeURIComponent(currentMint) + '&format=json', { cache: 'no-store' });
         }
         if (res.ok) {
           var data = await res.json();
-          renderCoinData(mint, data);
+          renderCoin(data);
           return;
         }
       } catch (e) {}
 
-      // Preset fallbacks
-      if (mint.startsWith('8KC4')) {
-        renderCoinData(mint, {
-          mint: mint,
-          observed_at: new Date().toISOString(),
-          category: 'ops',
-          description: 'Creator Operations Split Reference Audit Sheet. 100% of trading fees routed to team operations.',
-          splitMode: '100% CREATOR OPS ONLY',
-          solBps: 0,
-          opsBps: 10000,
-          tokenBps: 0,
-          destImg: './assets/charlie-3d.jpg',
-          destTag: 'CREATOR OPERATIONS TREASURY',
-          destTitle: 'Creator Ops Wallet (7xKpkV9...9F4q)',
-          destDesc: 'All creator trading fees routed directly to project operations.',
-          splitVal: 'SOL burn 0 bps / TOKEN burn 0 bps / OPS 10,000 bps',
-          checks: { CONFIG_MINT: 'pass', SPLIT_SUM: 'pass', BURN_SUPPLY: 'pass', SOL_BURN_UNSPENDABLE: 'pass', SOL_BURN_BALANCE: 'unchecked', CREATOR_AUTH: 'pass', BONDING_CURVE_COMPLETE: 'unchecked', REVOKED_MINT_AUTHORITY: 'pass', FREEZE_AUTHORITY_NULL: 'pass' },
-          shares: [{ address: '7xKpkV9zN8uPgQw4xK1mReT8Lp2aV3bC9F4q', bps: 10000 }]
+      // Fallback presets for known coins
+      if (currentMint.startsWith('8KC4')) {
+        renderCoin({
+          mint: currentMint,
+          observed_at: '2026-09-18 20:54:26Z',
+          name: 'Creator Ops Coin',
+          symbol: '$OPS',
+          description: 'A reference pump.fun token allocating 100% of creator fees to operational treasury.',
+          split: { sol_burn: 0, burn: 0, paid: 10000 },
+          figures: { sol_burn_total: 0, burn_total: null, supply_destroyed: null, ops_total: 0 }
+        });
+      } else if (currentMint.startsWith('7mr9')) {
+        renderCoin({
+          mint: currentMint,
+          observed_at: '2026-09-18 20:54:26Z',
+          name: 'Enrolled Coin',
+          symbol: '$ENROLLED',
+          description: 'Enrolled pump.fun token routing creator fees with permanent on-chain split.',
+          split: { sol_burn: 2000, burn: 0, paid: 8000 },
+          figures: { sol_burn_total: 1.25, burn_total: null, supply_destroyed: null, ops_total: 5.0 }
         });
       }
     });
 
-    function renderCoinData(mint, d) {
-      var desc = document.getElementById('auditCoinDesc');
-      var barSol = document.getElementById('coinBarSol');
-      var barOps = document.getElementById('coinBarOps');
-      var barToken = document.getElementById('coinBarToken');
-      var barSolLabel = document.getElementById('barSolLabel');
-      var barOpsLabel = document.getElementById('barOpsLabel');
-      var barTokenLabel = document.getElementById('barTokenLabel');
-      var tallySplit = document.getElementById('tallySplitMode');
-      var destImg = document.getElementById('auditDestImg');
-      var destTag = document.getElementById('auditDestTag');
-      var destTitle = document.getElementById('auditDestTitle');
-      var destDesc = document.getElementById('auditDestDesc');
-      var figSplit = document.getElementById('figSplitVal');
-      var jsonBox = document.getElementById('jsonPreviewBox');
-      var observedTag = document.getElementById('auditObservedTag');
-
-      if (d.observed_at && observedTag) {
-        observedTag.textContent = 'observed ' + d.observed_at;
+    function renderCoin(d) {
+      if (d.observed_at) {
+        document.getElementById('observedStamp').textContent = 'Read: ' + d.observed_at;
       }
-      if (d.description && desc) {
-        desc.textContent = d.description;
+      if (d.name) {
+        document.getElementById('coinName').textContent = d.name;
+      }
+      if (d.symbol) {
+        document.getElementById('coinSym').textContent = d.symbol.startsWith('$') ? d.symbol : ('$' + d.symbol);
+      }
+      if (d.description) {
+        document.getElementById('coinDesc').textContent = d.description;
       }
 
-      var solBps = d.solBps !== undefined ? d.solBps : (d.shares ? (d.shares.find(function(s){ return s.address === '1nc1nerator11111111111111111111111111111111'; }) || {}).bps || 0 : 0);
-      var opsBps = d.opsBps !== undefined ? d.opsBps : (10000 - solBps);
-      var tokenBps = d.tokenBps || 0;
-
-      if (barSol) barSol.style.width = (solBps / 100) + '%';
-      if (barOps) barOps.style.width = (opsBps / 100) + '%';
-      if (barToken) barToken.style.width = (tokenBps / 100) + '%';
-
-      if (barSolLabel) barSolLabel.textContent = 'Sol-Incinerator: ' + solBps.toLocaleString() + ' bps (' + (solBps / 100).toFixed(2) + '%)';
-      if (barOpsLabel) barOpsLabel.textContent = 'Creator Ops: ' + opsBps.toLocaleString() + ' bps (' + (opsBps / 100).toFixed(2) + '%)';
-      if (barTokenLabel) barTokenLabel.textContent = 'Token Burn: ' + tokenBps.toLocaleString() + ' bps (' + (tokenBps / 100).toFixed(2) + '%)';
-
-      if (tallySplit) {
-        if (solBps === 10000) {
-          tallySplit.textContent = '100% SOL BURN ONLY';
-          tallySplit.style.color = 'var(--flame-warm)';
-        } else if (opsBps === 10000) {
-          tallySplit.textContent = '100% CREATOR OPS ONLY';
-          tallySplit.style.color = '#60A5FA';
-        } else {
-          tallySplit.textContent = (solBps / 100).toFixed(0) + '% BURN / ' + (opsBps / 100).toFixed(0) + '% OPS';
-          tallySplit.style.color = 'var(--neon-charlie)';
-        }
+      // Compute split percentages
+      var solBps = 0, tokenBps = 0, opsBps = 0;
+      if (d.split) {
+        solBps = d.split.sol_burn || 0;
+        tokenBps = d.split.burn || 0;
+        opsBps = d.split.paid || 0;
+      } else if (d.shares && Array.isArray(d.shares)) {
+        d.shares.forEach(function (s) {
+          if (s.address === '1nc1nerator11111111111111111111111111111111') {
+            solBps += s.bps;
+          } else {
+            opsBps += s.bps;
+          }
+        });
       }
 
-      if (figSplit) {
-        figSplit.textContent = 'SOL burn ' + solBps + ' bps / TOKEN burn ' + tokenBps + ' bps / OPS ' + opsBps + ' bps';
+      var total = solBps + tokenBps + opsBps;
+      if (total === 0) {
+        solBps = 10000; total = 10000;
       }
 
-      if (d.destTitle && destTitle) destTitle.textContent = d.destTitle;
-      if (d.destDesc && destDesc) destDesc.textContent = d.destDesc;
-      if (d.destTag && destTag) destTag.textContent = d.destTag;
-      if (d.destImg && destImg) destImg.src = d.destImg;
+      var solPct = (solBps / 100).toFixed(2);
+      var tokenPct = (tokenBps / 100).toFixed(2);
+      var opsPct = (opsBps / 100).toFixed(2);
 
-      if (jsonBox) {
-        jsonBox.textContent = JSON.stringify(d, null, 2);
+      document.getElementById('labelSolBurn').textContent = 'SOL burn ' + solPct + '%';
+      document.getElementById('labelTokenBurn').textContent = 'Token buyback burn ' + tokenPct + '%';
+      document.getElementById('labelOps').textContent = 'Ops ' + opsPct + '%';
+
+      document.getElementById('barSol').style.width = (solBps / total * 100) + '%';
+      document.getElementById('barToken').style.width = (tokenBps / total * 100) + '%';
+      document.getElementById('barOps').style.width = (opsBps / total * 100) + '%';
+
+      // Performance legs
+      var figs = d.figures || {};
+      if (figs.sol_burn_total !== undefined && figs.sol_burn_total !== null) {
+        document.getElementById('valSolBurn').innerHTML = Number(figs.sol_burn_total).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 9 }) + '<span class="leg-unit">SOL</span>';
+        document.getElementById('legSolBurn').removeAttribute('data-value');
+      }
+
+      if (figs.supply_destroyed !== undefined && figs.supply_destroyed !== null) {
+        document.getElementById('valSupplyDestroyed').innerHTML = Number(figs.supply_destroyed).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + '<span class="leg-unit">tokens</span>';
+      }
+
+      if (figs.ops_total !== undefined && figs.ops_total !== null) {
+        document.getElementById('valOps').innerHTML = Number(figs.ops_total).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 9 }) + '<span class="leg-unit">SOL</span>';
       }
     }
   </script>
