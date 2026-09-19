@@ -95,9 +95,25 @@
   
   /* action banner */
   .action-deck{margin-top:var(--sp-2xl);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-md);padding:var(--sp-lg);background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg)}
+  
+  .breadcrumb-link:hover { color: var(--text-primary) !important; text-decoration: underline !important; }
+  
   @media(max-width:600px){
-    .hero{grid-template-columns:1fr}
-    .sigil{width:64px}
+    .wrap { padding: var(--sp-md) var(--sp-sm) var(--sp-2xl); }
+    .hero{ grid-template-columns: 1fr; padding: var(--sp-lg) var(--sp-md); gap: var(--sp-md); }
+    .sigil{ width: 64px; height: 64px; }
+    .sigil span{ font-size: 24px; }
+    .coin-name{ font-size: clamp(22px, 6vw, 28px); }
+    .mintrow{ padding: 6px 8px; gap: 6px; }
+    .mintval{ font-size: 11px; overflow-wrap: anywhere; word-break: break-all; }
+    .coin-community-chips{ gap: 6px; }
+    .coin-chip{ padding: 4px 8px; font-size: 11px; }
+    .sec{ padding: var(--sp-lg) var(--sp-md); }
+    .split-labels{ flex-direction: column; gap: 6px; align-items: flex-start; }
+    .split-legend-item{ font-size: 11.5px; }
+    .legs{ grid-template-columns: 1fr; }
+    .leg-value{ font-size: clamp(18px, 5vw, 22px); word-break: break-all; }
+    .leg-source{ font-size: 10.5px; word-break: break-all; }
   }
   </style>
 
@@ -200,6 +216,12 @@
     2. The Coin Page Shell
     ========================================================================= -->
     <div class="coinpage">
+      <div class="coin-breadcrumb" style="margin-bottom: var(--sp-sm);">
+        <a href="./coins.html" class="breadcrumb-link" style="display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 12px; text-decoration: none; transition: color 0.15s ease;">
+          <span>←</span> <span>Back to Directory</span>
+        </a>
+      </div>
+
       <div class="telemetry">
         <span><span class="led"></span>Network: Solana Mainnet-Beta</span>
         <span id="observedStamp">Read: 2026-09-18 20:54 UTC</span>
@@ -594,6 +616,30 @@
                 if (pair.baseToken.symbol) {
                   var sym = pair.baseToken.symbol;
                   document.getElementById('coinSym').textContent = sym.startsWith('$') ? sym : ('$' + sym);
+                }
+              }
+              if (pair.info && pair.info.socials && Array.isArray(pair.info.socials) && pair.info.socials.length > 0) {
+                var deck = document.getElementById('coinCommunityDeck');
+                if (deck) {
+                  var chipContainer = deck.querySelector('.coin-community-chips');
+                  if (chipContainer) {
+                    var html = '';
+                    pair.info.socials.forEach(function(s) {
+                      var type = (s.type || '').toLowerCase();
+                      var url = s.url || '';
+                      if (!url) return;
+                      var label = type === 'twitter' ? 'X / Twitter' : (type === 'telegram' ? 'Telegram' : (type === 'discord' ? 'Discord' : type));
+                      html += '<a href="' + encodeURI(url) + '" target="_blank" rel="noopener noreferrer" class="coin-chip"><span>' + label + '</span></a>';
+                    });
+                    if (pair.info.websites && Array.isArray(pair.info.websites)) {
+                      pair.info.websites.forEach(function(w) {
+                        if (w && w.url) {
+                          html += '<a href="' + encodeURI(w.url) + '" target="_blank" rel="noopener noreferrer" class="coin-chip coin-chip--flame"><span>' + (w.label || 'Website') + '</span></a>';
+                        }
+                      });
+                    }
+                    if (html) chipContainer.innerHTML = html;
+                  }
                 }
               }
             }

@@ -244,10 +244,10 @@
       if (btn) {
         if (this.muted) {
           btn.classList.remove('active');
-          btn.innerHTML = '<span>🔇</span><span>Fire Off</span>';
+          btn.innerHTML = '<span class="audio-icon">🔇</span><span class="audio-text">Fire Off</span>';
         } else {
           btn.classList.add('active');
-          btn.innerHTML = '<span>🔥</span><span>Fire On</span>';
+          btn.innerHTML = '<span class="audio-icon">🔥</span><span class="audio-text">Fire On</span>';
         }
       }
       if (stageBtn) {

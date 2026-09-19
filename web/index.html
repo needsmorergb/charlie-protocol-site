@@ -134,11 +134,11 @@
   <!-- Hero Mode Switcher & Upgrade Banner -->
   <div class="hero-control-deck">
     <div class="hero-mode-switch" role="tablist" aria-label="Hero visual simulation mode">
-      <button id="btnModeClassic" type="button" role="tab" aria-selected="true" class="btn-mode active" onclick="setHeroMode('classic')">
+      <button id="btnModeClassic" type="button" role="tab" aria-selected="true" aria-controls="heroSceneClassic" class="btn-mode active" onclick="setHeroMode('classic')">
         <span class="mode-icon">👾</span>
         <span>Pixel Art</span>
       </button>
-      <button id="btnMode3d" type="button" role="tab" aria-selected="false" class="btn-mode" onclick="setHeroMode('3d')">
+      <button id="btnMode3d" type="button" role="tab" aria-selected="false" aria-controls="heroScene3d" class="btn-mode" onclick="setHeroMode('3d')">
         <span class="mode-icon">🔥</span>
         <span>Modern 3D</span>
       </button>
@@ -150,7 +150,7 @@
   </div>
 
   <!-- Classic Pixel Crawling Scene (Default View) -->
-  <div id="heroSceneClassic" class="scene-wrapper" role="region" aria-label="Pixel art animation of Charlie on the catwalk">
+  <div id="heroSceneClassic" class="scene-wrapper" role="tabpanel" aria-labelledby="btnModeClassic" aria-label="Pixel art animation of Charlie on the catwalk">
     <div class="scene" aria-hidden="true">
       <div class="scene-track">
         <div class="walker">
@@ -169,7 +169,7 @@
   </div>
 
   <!-- 3D Cinematic Scene Container (Upgrade View - Toggled) -->
-  <div id="heroScene3d" class="scene-3d-box" style="display: none;" role="region" aria-label="Modernized 3D Sol-Incinerator catwalk platform">
+  <div id="heroScene3d" class="scene-3d-box" style="display: none;" role="tabpanel" aria-labelledby="btnMode3d" aria-label="Modernized 3D Sol-Incinerator catwalk platform">
 
     <!-- Stage Top HUD & Interactive Controls -->
     <div class="stage-hud">
@@ -425,7 +425,7 @@ would freeze on the day it was written and then quietly lie.
     back; OPEN means they have not been run yet -- not that the work is broken
     or late. The status on each card is computed from the published
     observation record, never typed in by hand. The full detail is on
-    <a href="/phases">the phases page</a>.
+    <a href="./phases.html">the phases page</a>.
   </p>
 
   <div id="phases-mount" aria-describedby="phases-intro">
@@ -434,7 +434,7 @@ would freeze on the day it was written and then quietly lie.
         The phase states are read from a committed observation record in the
         browser, so they cannot be shown without JavaScript. The same record
         is published at
-        <a href="/coin/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json">its raw JSON</a>,
+        <a href="./8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json">its raw JSON</a>,
         and every check it carries is listed there.
       </p>
     </noscript>
