@@ -4,8 +4,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Charlie Protocol — Fee Verification & Deflation Standard</title>
-    <meta name="description" content="Paste a pump.fun contract address and see where its creator fees go, read directly from the Solana ledger, with every check that passed, failed, or was never run.">
+    <title>Charlie Protocol — Solana Launch & Deflation Standard</title>
+    <meta name="description" content="Launch new pump.fun coins with permanent fee burn splits or enroll existing tokens into the Sol-Incinerator deflationary flywheel.">
 
     <!-- Modern Font Pairing: Space Grotesk (Headings), Plus Jakarta Sans (UI), JetBrains Mono (tabular numbers) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,9 +64,8 @@
 
 <nav class="site-nav">
   <a href="./index.html" class="nav-link active">Home</a>
-  <a href="./verify.html" class="nav-link">Verify CA</a>
   <a href="./launch.html" class="nav-link">Launch Coin</a>
-  <a href="./enroll.html" class="nav-link">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
+  <a href="./enroll.html" class="nav-link">Enroll Coin</a>
   <a href="./coins.html" class="nav-link">Directory</a>
 </nav>
 
@@ -173,69 +172,55 @@
 </div>
 </div>
 
-<!-- High-Impact Hero Command Bar Box -->
-<div class="command-hero-box tilt-card">
-  <div class="command-header">
-    <div class="command-label-row">
-      <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-    <label for="mintInput" class="command-title">Paste a coin's address (CA)</label>
+<!-- =========================================================================
+3. Live Protocol Actions: Launch & Enroll Doors
+========================================================================= -->
+<div class="protocol-live-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--sp-md); margin-top: var(--sp-lg); margin-bottom: var(--sp-md);">
+  
+  <!-- Launch Card -->
+  <div class="cyber-card cyber-card--chamfer tilt-card" style="padding: 22px; position: relative; border-left: 3px solid var(--neon-charlie); background: linear-gradient(135deg, rgba(143, 225, 63, 0.08) 0%, rgba(10, 14, 10, 0.95) 60%);">
+    <span class="cyber-corner cyber-corner--tl"></span>
+    <span class="cyber-corner cyber-corner--br"></span>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <span class="status-pill" style="border-color: rgba(143, 225, 63, 0.4); background: rgba(143, 225, 63, 0.12);">
+        <span class="status-pill-led" style="background: var(--neon-charlie); box-shadow: 0 0 8px var(--neon-charlie);"></span>
+        <span class="status-pill-text" style="color: var(--neon-charlie);">LIVE // LAUNCH DOOR</span>
+      </span>
+      <span class="mono font-mono" style="font-size: 11px; color: var(--text-muted);">2-STEP APPROVAL</span>
+    </div>
+    <h3 style="font-size: 20px; margin-bottom: 6px; color: var(--text-primary);">Launch a New Coin</h3>
+    <p style="font-size: 14px; line-height: 1.55; color: var(--text-secondary); margin-bottom: 16px;">
+      Create a fresh pump.fun coin with built-in permanent fee burning. Pre-ground <code class="mono" style="color: var(--neon-charlie);">1nc1n</code> vanity mints, IPFS metadata relay, and 0.25% buy-and-burn protocol share.
+    </p>
+    <div class="btn-conic-glow" style="width: 100%;">
+      <a href="./launch.html" class="btn-submit" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; text-decoration: none; padding: 10px 16px; font-size: 14px; font-weight: 700;">
+        <span>Launch Coin Now</span>
+        <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </a>
+    </div>
   </div>
-<div class="command-shortcut-hint">
-  <span>Press</span> <kbd class="command-kbd">/</kbd> <span>anywhere to search</span>
-</div>
-</div>
 
-<form class="verify-form" method="get" action="./verify.html">
-  <input
-  id="mintInput"
-  name="mint"
-  class="verify-input"
-  type="text"
-  inputmode="latin"
-  autocomplete="off"
-  spellcheck="false"
-  placeholder="paste contract address (e.g. 8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump)..."
-  pattern="[1-9A-HJ-NP-Za-km-z]{32,44}"
-  required
-  >
-  <button type="button" class="btn-paste" onclick="pasteCA('mintInput')">
-    <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-    </svg>
-  <span>Paste</span>
-</button>
+  <!-- Enroll Card -->
+  <div class="cyber-card cyber-card--chamfer tilt-card" style="padding: 22px; position: relative; border-left: 3px solid var(--flame-warm); background: linear-gradient(135deg, rgba(255, 138, 31, 0.08) 0%, rgba(14, 10, 6, 0.95) 60%);">
+    <span class="cyber-corner cyber-corner--tl"></span>
+    <span class="cyber-corner cyber-corner--br"></span>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <span class="status-pill" style="border-color: rgba(255, 138, 31, 0.4); background: rgba(255, 138, 31, 0.12);">
+        <span class="status-pill-led" style="background: var(--flame-warm); box-shadow: 0 0 8px var(--flame-warm);"></span>
+        <span class="status-pill-text" style="color: var(--flame-warm);">LIVE // ENROLLMENT</span>
+      </span>
+      <span class="mono font-mono" style="font-size: 11px; color: var(--text-muted);">ONE-WAY DOOR</span>
+    </div>
+    <h3 style="font-size: 20px; margin-bottom: 6px; color: var(--text-primary);">Enroll Existing Coin</h3>
+    <p style="font-size: 14px; line-height: 1.55; color: var(--text-secondary); margin-bottom: 16px;">
+      Route creator trading fees of your existing pump.fun coin directly into the Sol-Incinerator (<code class="mono" style="color: var(--flame-warm);">1nc1nerator...</code>) to permanently destroy SOL.
+    </p>
+    <a href="./enroll.html" class="btn-paste" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; text-decoration: none; padding: 10px 16px; font-size: 14px; font-weight: 700; color: var(--flame-warm); border-color: rgba(255, 138, 31, 0.4); background: rgba(255, 138, 31, 0.1);">
+      <span>Enroll Your Coin</span>
+      <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </a>
+  </div>
 
-<div class="btn-conic-glow">
-  <button type="submit" class="btn-submit">
-    <span>Check this coin</span>
-    <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</button>
-</div>
-</form>
-
-<div class="chips-row">
-  <span style="color: var(--text-muted); font-size: 12px;">Try one:</span>
-  <button type="button" class="chip" onclick="setExampleCA('8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump')">
-    🔥 $CHARLIE (Official 100% Sol Burn)
-  </button>
-<button type="button" class="chip" onclick="setExampleCA('8KC4HMFfE6BPAPV1zzLpag6Brc5vBuqojfCj7wWApump')">
-  ⚠️ 8KC4... (Ops-Only Split)
-</button>
-<button type="button" class="chip" onclick="setExampleCA('11111111111111111111111111111111')">
-  🛡️ Solana System Native
-</button>
-</div>
-
-<div class="freshness-tag">
-  <span class="status-pill-led"></span>
-  <span>Zero signup or wallet signature needed. Solana RPC queried live with deterministic cryptographic verification.</span>
-</div>
 </div>
 
 </div>
@@ -379,7 +364,7 @@ VERIFIED. Those coins do not exist in the record. -->
 </section>
 
 <section id="counters"><div class="eyebrow">$CHARLIE recorded observation</div><h2>What the record shows</h2><p>Read on 2026-09-07 21:31 UTC. These are saved figures, not a live counter.</p><div class="counters-grid"><div class="counter-card cyber-card"><h3>Supply remaining</h3><p class="counter-value font-mono">956,338,570.365904</p><p class="counter-source">mint_state.supply</p></div><div class="counter-card cyber-card"><h3>Initial supply</h3><p class="counter-value font-mono">1,000,000,000.000000</p><p class="counter-source">evidence.initial_supply.raw_supply</p></div><div class="counter-card cyber-card"><h3>SOL at the burn address</h3><p class="counter-value font-mono">179.668087718 SOL</p><p class="counter-source">sol_burn_balances</p></div><div class="counter-card cyber-card"><h3>$CHARLIE bought and burned by the protocol</h3><p class="counter-value font-mono" id="protocolBurnTotal">28,569.506012</p><p class="counter-source"><a href="/protocol-burns.json">protocol-burns.json</a>: <span id="protocolBurnCount">1</span> buy-and-burn transaction(s) by the protocol&rsquo;s collection wallet, first on 2026-09-17.</p></div><script>fetch("/protocol-burns.json",{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(d&&d.total&&d.burns){document.getElementById("protocolBurnTotal").textContent=d.total;document.getElementById("protocolBurnCount").textContent=d.burns.length;}}).catch(function(){});</script></div><p><a href="/coin/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump.json">Read the source record</a></p></section>
-<section class="editorial-card"><h2>Burns stay burned</h2><p>The recorded SOL burn address check passed, and the token's mint authority is revoked. Burned tokens cannot be issued again.</p><p>The recorded token burn total is withheld because its checks do not fully support it. This page does not claim that every burn has been reconciled.</p><a class="btn-submit" href="/verify/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump">Read the full report</a></section>
+<section class="editorial-card"><h2>Burns stay burned</h2><p>The recorded SOL burn address check passed, and the token's mint authority is revoked. Burned tokens cannot be issued again.</p><p>The recorded token burn total is withheld because its checks do not fully support it. This page does not claim that every burn has been reconciled.</p><a class="btn-submit" href="./coins.html">View coin directory</a></section>
 <!-- =========================================================================
 Phases: the roadmap, graded by its own checks rather than by hand.
 
@@ -477,44 +462,68 @@ would freeze on the day it was written and then quietly lie.
 </div>
 </section>
 
-<!-- Movement 5: The Protocol Horizon & Onboarding -->
-<section class="studio-card cyber-card cyber-card--chamfer tilt-card" style="border-left: 4px solid var(--unchecked);">
+<!-- Movement 5: The Protocol Doors (Launch & Enroll Live) -->
+<section class="studio-card cyber-card cyber-card--chamfer tilt-card" style="border-left: 4px solid var(--neon-charlie); margin-bottom: var(--sp-2xl);">
   <span class="cyber-corner cyber-corner--tl"></span>
   <span class="cyber-corner cyber-corner--br"></span>
   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-md); margin-bottom: var(--sp-md);">
-    <h2 style="margin: 0;">Launch with Charlie Protocol</h2>
-    <span class="status-pill status-pill--unverified">
+    <div>
+      <div class="eyebrow" style="margin-bottom: 4px;">
+        <span class="telemetry-led"></span>
+        <span>PROTOCOL DOORS // LIVE ON SOLANA MAINNET</span>
+      </div>
+      <h2 style="margin: 0; font-size: 26px;">Launch or Enroll with Charlie Protocol</h2>
+    </div>
+    <span class="status-pill status-pill--verified">
       <span class="status-pill-led"></span>
-      <span class="status-pill-text">COMING SOON — SPEC V1</span>
+      <span class="status-pill-text">LIVE PROTOCOL DOORS</span>
     </span>
-</div>
+  </div>
 
-<p>
-  When V1 ships, new pump.fun coins will derive deterministic fee vaults at launch:
-  <strong style="color: var(--flame-warm);">SOL_BURN</strong>, <strong style="color: var(--ember);">TOKEN_BURN</strong>, and <strong style="color: #3B82F6;">OPS</strong>. No figure will render unless passing checks back it.
-</p>
+  <p style="font-size: 16px; line-height: 1.6; color: var(--text-secondary); max-width: 72ch; margin-bottom: var(--sp-md);">
+    Charlie Protocol is live. You can create brand-new pump.fun tokens with verified fee burning, or permanently enroll existing coins into the Sol-Incinerator flywheel. Every transaction is simulated against Solana mainnet before signing; no keys are ever held by the protocol.
+  </p>
 
-<p>
-  Automated creator fee-splitting enrollment is coming soon with Phase 5 protocol deployment. Creators will be able to lock trading fees directly into the Sol-Incinerator to decrease Solana network inflation with a single non-custodial transaction (with a nominal 0.25% fee per transaction maintaining automated $CHARLIE buybacks and burns). Our upcoming
-  <a href="./enroll.html" style="font-weight: 700; color: var(--sol-blue);">Enrollment Engine</a> will construct non-custodial transactions, route fees to the Sol-Incinerator, and lock permanent deflation with one wallet signature.
-</p>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--sp-lg); margin: var(--sp-lg) 0;">
+    <div style="background: rgba(143, 225, 63, 0.04); border: 1px solid rgba(143, 225, 63, 0.2); border-radius: var(--radius-md); padding: 20px;">
+      <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--neon-charlie);">🚀 The Launch Door (/launch)</h3>
+      <p style="font-size: 14px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 12px;">
+        Create a new coin in two non-custodial wallet approvals: pump’s <code class="mono">create</code> with a pre-ground <code class="mono">1nc1n</code> vanity address, followed immediately by setting the permanent fee split. Includes optional launch-buy bundling and IPFS metadata pinning.
+      </p>
+      <a href="./launch.html" class="btn-paste" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 13px; font-weight: 700; color: var(--neon-charlie);">
+        <span>Go to Launch Door</span>
+        <svg class="sys-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </a>
+    </div>
 
-<div style="display: flex; gap: var(--sp-md); flex-wrap: wrap; margin-top: var(--sp-lg);">
-  <div class="btn-conic-glow">
-    <a href="/verify/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump" class="btn-submit" style="display: inline-block; text-decoration: none;">
-      <span>See $CHARLIE's full report</span>
-      <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="9 18 15 12 9 6"></polyline>
-      </svg>
-  </a>
-</div>
-<a href="./enroll.html" class="btn-paste" style="display: inline-block; text-decoration: none; padding: 12px 20px;">
-  <span>Phase 5 Blueprint & Gatekeep (Standby)</span>
-</a>
-<a href="./coins.html" class="btn-paste" style="display: inline-block; text-decoration: none; padding: 12px 20px;">
-  <span>See all checked coins</span>
-</a>
-</div>
+    <div style="background: rgba(255, 138, 31, 0.04); border: 1px solid rgba(255, 138, 31, 0.2); border-radius: var(--radius-md); padding: 20px;">
+      <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--flame-warm);">🔥 The Enrollment Door (/enroll)</h3>
+      <p style="font-size: 14px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 12px;">
+        For existing pump coins: lock your coin’s fee split directly to the Sol-Incinerator (<code class="mono">1nc1nerator...</code>) and protocol buyback. Irreversible one-way door with non-custodial single-signature execution.
+      </p>
+      <a href="./enroll.html" class="btn-paste" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 13px; font-weight: 700; color: var(--flame-warm);">
+        <span>Go to Enrollment Engine</span>
+        <svg class="sys-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </a>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: var(--sp-md); flex-wrap: wrap; margin-top: var(--sp-md);">
+    <div class="btn-conic-glow">
+      <a href="./launch.html" class="btn-submit" style="display: inline-block; text-decoration: none;">
+        <span>Launch a new coin</span>
+        <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+    </div>
+    <a href="./enroll.html" class="btn-paste" style="display: inline-block; text-decoration: none; padding: 12px 20px;">
+      <span>Enroll existing coin</span>
+    </a>
+    <a href="./coins.html" class="btn-paste" style="display: inline-block; text-decoration: none; padding: 12px 20px;">
+      <span>See directory</span>
+    </a>
+  </div>
 </section>
 
 </main>

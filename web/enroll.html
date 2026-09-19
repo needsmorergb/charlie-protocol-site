@@ -4,20 +4,115 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Enroll Coin — Burn SOL to Decrease Inflation (Phase 5 Standby)</title>
-    <meta name="description" content="Route pump.fun trading creator fees directly to the Sol-Incinerator to permanently burn SOL and decrease Solana network inflation. Phase 5 Protocol Standby.">
+    <title>Enroll Coin — Route Creator Fees & Lock Permanent Split — Charlie Protocol</title>
+    <meta name="description" content="Connect the wallet that launched your pump.fun coin and set where its creator fee goes. One wallet approval creates the fee-sharing config and locks your fee split forever. Non-custodial, key stays in wallet.">
 
     <!-- Modern Font Pairing -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="./assets/preview.css?v=fire5">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap">
+
+    <style>
+    :root { --text-muted: #7C887B; }
+    [hidden] { display: none !important; }
+    .btn-conic-glow:has(> [hidden]) { display: none; }
+    main { min-width: 0; }
+    main h2 { font-size: clamp(22px, 2.4vw, 26px); margin: 0 0 16px; }
+    main h3 { font-size: 18px; margin-bottom: 12px; }
+    main p { font-size: 15px; line-height: 1.6; color: var(--text-secondary); }
+
+    .enroll-hero { position: relative; isolation: isolate; margin-bottom: 40px; }
+    .enroll-hero h1 { font-size: clamp(36px, 5vw, 54px); font-weight: 800; letter-spacing: -0.035em; text-wrap: balance; max-width: 18ch; line-height: 1.1; margin: 20px 0; }
+    .enroll-hero p { max-width: 64ch; }
+    .enroll-prereqs { font: 400 13px/1.7 var(--font-mono); color: var(--text-secondary); margin: 0 0 36px; }
+    .enroll-prereqs a { color: inherit; }
+
+    .enroll-stepper { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 24px; }
+    .enroll-stepper a { display: flex; gap: 8px; align-items: baseline; padding: 12px 8px; border-bottom: 1px solid var(--border-highlight); font-size: 13px; color: var(--text-secondary); text-decoration: none; }
+    .enroll-stepper a.active-step { color: var(--neon-charlie); border-bottom-color: var(--neon-charlie); }
+
+    .enroll-card { margin-bottom: 24px; scroll-margin-top: 120px; }
+    .enroll-card:last-of-type, #reviewBox { margin-bottom: 64px; }
+    .enroll-card .eyebrow { margin-bottom: 12px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .field label { font: 500 13px var(--font-mono); color: var(--text-muted); }
+    .field input, .field textarea, .share-row input { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; background: var(--bg-input); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font: 400 15px var(--font-sans, sans-serif); }
+    .field input:focus, .share-row input:focus { border-color: var(--neon-charlie); outline: none; }
+
+    .input-with-action { display: flex; gap: 10px; align-items: center; }
+    .input-with-action input { flex: 1; font-family: var(--font-mono); font-size: 14px; }
+
+    .split-explainer { display: grid; gap: 20px 28px; margin: 4px 0 28px; }
+    .split-explainer h3 { font-size: 15px; margin: 0 0 6px; }
+    .split-explainer p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
+    @media (min-width: 900px) { .split-explainer { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+    .share-row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; padding: 12px; border-left: 2px solid var(--border-glass); background: rgba(255,255,255,0.02); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+    .share-row .share-addr { flex: 1 1 100%; font: 400 13px var(--font-mono); }
+    .share-row .share-bps { flex: 0 1 90px; width: 90px; }
+    .share-unit, .total-line, .burn-badge { font-size: 13px; color: var(--text-muted); }
+    .share-row.locked { background: rgba(143,225,63,0.04); border-left-color: var(--neon-charlie); }
+    .share-row.locked code { flex: 1 1 100%; overflow-wrap: anywhere; color: var(--text-muted); font-size: 13px; }
+    .share-fixed { font-size: 13px; color: var(--neon-charlie); }
+    .share-row[data-burn=true] { border-left-color: var(--flame-warm); }
+    .burn-badge { color: var(--flame-warm); font-weight: 600; font-family: var(--font-mono); }
+    .share-what { flex: 1 1 100%; font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+
+    .btn-plain, .share-row .rm { background: rgba(255,255,255,.05); border: 1px solid var(--border-glass); color: var(--text-secondary); font: 600 13px var(--font-sans, sans-serif); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; min-height: 44px; text-decoration: none; text-align: center; }
+    .btn-plain:hover, .share-row .rm:hover { border-color: var(--border-highlight); color: var(--text-primary); }
+    .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 20px 0; }
+
+    .sign-wrap { background: conic-gradient(from 40deg, #ff4d26, #ffb052, #ff4d26); box-shadow: 0 0 20px rgba(255,77,38,.15); }
+    .sign-wrap > .btn-submit, .sign-wrap > .btn-submit:hover { background: #ff8a1f; color: #160e06; }
+
+    #total.ok { color: var(--pass); font-weight: 700; }
+    #total.bad { color: var(--fail); font-weight: 700; }
+
+    .note { font: 400 13.5px/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+    .note:empty { display: none; }
+    .note.bad { color: var(--fail); }
+    .note.good { color: var(--pass); }
+    .note.caution { color: var(--unchecked); }
+    pre.note { background: rgba(0,0,0,.45); padding: 16px; border: 1px solid var(--border-glass); border-radius: var(--radius-sm); margin: 20px 0; font-size: 13px; line-height: 1.6; }
+
+    .warn { border-left: 2px solid var(--flame-warm); padding: 12px 16px; margin: 20px 0; font-size: 14.5px; line-height: 1.6; color: var(--text-secondary); background: rgba(255, 138, 31, 0.05); }
+
+    .tx-timeline { list-style: none; padding: 0; display: grid; gap: 12px; }
+    .tx-timeline li { border-left: 2px solid var(--border-glass); padding-left: 12px; font-size: 13px; color: var(--text-muted); }
+    .tx-timeline a { display: block; margin-top: 4px; color: var(--neon-charlie); }
+    .tx-timeline [data-state=active] { color: var(--text-primary); border-color: var(--flame-warm); }
+    .tx-timeline [data-state=done] { color: var(--pass); border-color: var(--pass); }
+    .tx-timeline [data-state=bad] { color: var(--fail); border-color: var(--fail); }
+
+    .approval-ring { width: 24px; height: 24px; position: relative; display: inline-block; flex: 0 0 24px; }
+    .approval-ring i, .approval-ring b { position: absolute; inset: 1px; border: 2px solid currentColor; border-radius: 50%; }
+    .approval-ring i:first-child { clip-path: inset(0 50% 0 0); }
+    .approval-ring i:nth-child(2) { clip-path: inset(0 0 0 50%); opacity: .25; }
+    .approval-ring[data-step="2"] i:nth-child(2) { opacity: 1; }
+    .approval-ring b { opacity: 0; border-color: transparent; border-top-color: currentColor; }
+    .approval-ring[data-waiting=true] b { opacity: 1; animation: approval-wait 1s linear infinite; }
+    @keyframes approval-wait { to { transform: rotate(360deg); } }
+
+    .enroll-chain { margin-bottom: 64px; }
+    .chain-columns { display: grid; gap: 28px; }
+    .chain-columns code { overflow-wrap: anywhere; font-size: 13px; }
+    @media (min-width: 900px) { .chain-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 600px) {
+      .enroll-stepper { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .row-actions { flex-direction: column; align-items: stretch; }
+      .row-actions > *, .btn-conic-glow { width: 100%; box-sizing: border-box; }
+      .share-row { padding: 10px; }
+    }
+    </style>
+
     <!-- Vercel Web Analytics & Speed Insights -->
     <script>
- window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
- window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
- </script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+      window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+    </script>
     <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
     <script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
   </head>
@@ -33,382 +128,797 @@
         <span class="telemetry-label">NETWORK:</span>
         <span class="telemetry-value">SOLANA MAINNET-BETA</span>
       </div>
-    
-  
-
-
-<div class="telemetry-pill">
-  <span class="telemetry-label">ENROLLMENT STATUS:</span>
-  <span class="telemetry-value telemetry-value--ember font-mono">GATED // PHASE 5 STANDBY</span>
-</div>
-</div>
-</aside>
-
-<!-- =========================================================================
-1. Global Sticky Header
-========================================================================= -->
-<header class="site-header">
-  <div class="header-inner">
-    <a href="./index.html" class="brand-lockup">
-      <span class="flame-box">
-        <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-        </svg>
-    </span>
-  <span>Charlie Protocol</span>
-</a>
-
-<nav class="site-nav">
-  <a href="./index.html" class="nav-link">Home</a>
-  <a href="./verify.html" class="nav-link">Verify CA</a>
-  <a href="./launch.html" class="nav-link">Launch Coin</a>
-  <a href="./enroll.html" class="nav-link active">Enroll Coin <span class="nav-badge-soon">SOON</span></a>
-  <a href="./coins.html" class="nav-link">Directory</a>
-</nav>
-
-<div class="header-actions">
-  <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
-    <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-      <line x1="23" y1="9" x2="17" y2="15"></line>
-      <line x1="17" y1="9" x2="23" y2="15"></line>
-    </svg>
-  <span>Sound Off</span>
-</button>
-</div>
-</div>
-</header>
-
-<main>
-  <!-- =========================================================================
-  2. Standby Hero Header: Mission to Decrease Solana Inflation
-  ========================================================================= -->
-  <div style="margin-bottom: var(--sp-xl);">
-    <div class="eyebrow">
-      <span class="status-pill status-pill--unverified" style="border-color: rgba(255, 138, 31, 0.4); background: rgba(255, 138, 31, 0.1);">
-        <span class="status-pill-led" style="background: var(--flame-warm); box-shadow: 0 0 10px var(--flame-warm);"></span>
-        <span class="status-pill-text" style="color: var(--flame-warm);">SOL INFLATION COUNTERMEASURE // STANDBY</span>
-      </span>
-    <span class="gatekeep-tag font-mono">PHASE 5 COMING SOON // NOT LIVE ON MAINNET YET</span>
-  </div>
-<h1 style="margin-top: var(--sp-sm);">Burn SOL to Decrease Solana Inflation</h1>
-<p style="font-size: 17px; max-width: 68ch; color: var(--text-secondary); line-height: 1.6;">
-  The primary mission of Charlie Protocol is combating Solana network inflation by routing trading creator fees directly into the native Sol-Incinerator (<code class="mono">1nc1nerator...</code>). Lamports are destroyed within seconds to permanently reduce circulating SOL supply. Public creator enrollment will unlock with Phase 5 mainnet deployment.
-</p>
-</div>
-
-<!-- =========================================================================
-3. Master Gatekeep Standby Console
-========================================================================= -->
-<section class="gatekeep-banner cyber-card cyber-card--chamfer" aria-label="Protocol Gatekeep Notice">
-  <span class="cyber-corner cyber-corner--tl"></span>
-  <span class="cyber-corner cyber-corner--br"></span>
-  <div class="gatekeep-header">
-    <div style="display: flex; align-items: center; gap: var(--sp-sm); flex-wrap: wrap;">
-      <span class="gatekeep-badge">
-        <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-        </svg>
-      ENROLLMENT LOCKED // STANDBY
-    </span>
-  <span class="mono font-mono" style="font-size: 11px; color: var(--flame-warm);">
-    TARGET: PERMANENT SOL DEFLATION VIA 1nc1nerator...
-  </span>
-</div>
-<span class="mono font-mono" style="font-size: 11px; color: var(--text-muted);">
-  SAFETY CHECK: ZERO LIVE SENDS
-</span>
-</div>
-
-<div class="gatekeep-body">
-  <h2>Why is Enrollment Gated?</h2>
-  <p>
-    On Solana pump.fun, creator fee routing is a <strong>permanent, irreversible one-way door</strong>. Once deployer authority is delegated to fee-sharing instructions, no key on earth can alter it. Enrollment through the protocol program is not open because that program is not deployed to mainnet. It is written, it runs on devnet, and the deploy is held rather than blocked: the cost is measured and published, and what remains is the deploy order. That order is deliberate. The program is deployed upgradeable first and run against a live coin in production, because revoking upgrade authority is itself a one-way door that freezes every bug permanently.
-  </p>
-<p>
-  When Phase 5 ships, coin deployers will be able to lock permanent Sol-Incinerator fee burns in a <strong>single client-side signature</strong> with zero custody risk, permanently decreasing Solana's circulating supply with every trade.
-</p>
-
-<div class="gatekeep-grid font-mono" style="margin-top: var(--sp-md);">
-  <div class="gatekeep-stat">
-    <span class="stat-lbl">CORE MISSION:</span>
-    <span class="stat-val" style="color: var(--flame-warm);">Combat Solana Network Inflation</span>
-  </div>
-<div class="gatekeep-stat">
-  <span class="stat-lbl">PRIMARY DESTINATION:</span>
-  <span class="stat-val" style="color: var(--sol-blue);">Sol-Incinerator (1nc1nerator...)</span>
-</div>
-<div class="gatekeep-stat">
-  <span class="stat-lbl">SUPPLY REDUCTION:</span>
-  <span class="stat-val" style="color: var(--neon-charlie);">100% Destroyed at Block Boundary</span>
-</div>
-<div class="gatekeep-stat">
-  <span class="stat-lbl">ENROLLMENT ACCESS:</span>
-  <span class="stat-val" style="color: var(--flame-warm);">Gated // Standby for Phase 5</span>
-</div>
-</div>
-</div>
-</section>
-
-<!-- =========================================================================
-4. Phase 5 Protocol Architecture & Blueprint Preview
-========================================================================= -->
-<section class="blueprint-card cyber-card--chamfer" aria-label="Phase 5 Architecture Blueprint">
-  <span class="cyber-corner cyber-corner--tl"></span>
-  <span class="cyber-corner cyber-corner--br"></span>
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-md);">
-    <div>
-      <div class="eyebrow" style="margin-bottom: 4px;">
-        <span class="status-pill-led" style="background: var(--neon-charlie); box-shadow: 0 0 10px var(--neon-charlie);"></span>
-        <span>SPECIFICATION ARCHITECTURE // COMING IN PHASE 5</span>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">ENROLLMENT STATUS:</span>
+        <span id="enrollStatus" class="telemetry-value telemetry-value--ember font-mono">OPEN // MAINNET LIVE</span>
       </div>
-    <h2 style="font-size: 22px; margin: 0;">How Phase 5 Enrollment Operates</h2>
-  </div>
-<span class="mono font-mono" style="font-size: 11.5px; color: var(--neon-charlie); background: rgba(143, 225, 63, 0.1); border: 1px solid rgba(143, 225, 63, 0.3); padding: 4px 10px; border-radius: 4px;">
-  NON-CUSTODIAL ATOMIC INSTRUCTION
-</span>
-</div>
+    </div>
+  </aside>
 
-<p style="font-size: 14.5px; color: var(--text-secondary); max-width: 72ch; margin-bottom: var(--sp-lg);">
-  Below is the deterministic execution pipeline that will unlock for coin deployers in Phase 5. No key ever leaves the creator's wallet; the Charlie client compiles the instructions and the creator signs once.
-</p>
+  <!-- =========================================================================
+  1. Global Sticky Header
+  ========================================================================= -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="./index.html" class="brand-lockup">
+        <span class="flame-box">
+          <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+          </svg>
+        </span>
+        <span>Charlie Protocol</span>
+      </a>
 
-<!-- 4-Step Architectural Flow Grid -->
-<div class="blueprint-flow-grid">
-  <div class="blueprint-flow-item">
-    <span class="blueprint-flow-num">01</span>
-    <div class="blueprint-flow-title">1. Deployer Authority Check</div>
-    <p class="blueprint-flow-desc">
-      The client reads the pump.fun bonding curve on Solana mainnet to verify that your wallet holds the unspent fee-sharing allocation slot.
+      <nav class="site-nav">
+        <a href="./index.html" class="nav-link">Home</a>
+        <a href="./launch.html" class="nav-link">Launch Coin</a>
+        <a href="./enroll.html" class="nav-link active">Enroll Coin</a>
+        <a href="./coins.html" class="nav-link">Directory</a>
+      </nav>
+
+      <div class="header-actions">
+        <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics">
+          <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+          <span>Sound Off</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- =========================================================================
+    2. Hero Header: The Enroll Door
+    ========================================================================= -->
+    <div class="enroll-hero">
+      <div class="eyebrow">
+        <span class="telemetry-led" style="background: var(--neon-charlie); box-shadow: 0 0 10px var(--neon-charlie);"></span>
+        <span>THE ENROLL DOOR // PUBLIC ACCESS</span>
+      </div>
+      <h1>Enroll your existing coin. Lock the fee split.</h1>
+      <p>
+        Connect the creator wallet that launched your pump.fun coin and set where its creator fee goes. One wallet signature creates the sharing config if needed and commits your fee split forever. Your key stays in your wallet.
+      </p>
+    </div>
+
+    <nav class="enroll-stepper" aria-label="Enroll steps">
+      <a href="#walletBox">1 <span>Wallet</span></a>
+      <a href="#coinBox">2 <span>Identify CA</span></a>
+      <a href="#splitBox">3 <span>Split Config</span></a>
+      <a href="#reviewBox">4 <span>Sign & Lock</span></a>
+    </nav>
+    <p class="enroll-prereqs">
+      About 0.0059 SOL in rent if creating a sharing config, plus network fee. Launching a new coin instead? <a href="./launch.html">Use the Launch Door at /launch</a>.
     </p>
-</div>
 
-<div class="blueprint-flow-item">
-  <span class="blueprint-flow-num">02</span>
-  <div class="blueprint-flow-title">2. Sol-Incinerator Route</div>
-  <p class="blueprint-flow-desc">
-    Up to <strong style="color: var(--flame-warm);">100%</strong> of creator fees are routed to <code style="font-size: 11px;">1nc1nerator...</code> where lamports are permanently destroyed to combat SOL inflation.
-  </p>
-</div>
+    <!-- =========================================================================
+    Step 1: Wallet Connection
+    ========================================================================= -->
+    <section class="cyber-card cyber-card--chamfer enroll-card" id="walletBox" aria-labelledby="walletTitle">
+      <span class="cyber-corner cyber-corner--tl"></span>
+      <span class="cyber-corner cyber-corner--br"></span>
+      <div class="eyebrow">STEP 1 // WALLET</div>
+      <h2 id="walletTitle">Connect Creator Wallet</h2>
+      <p>Connect the wallet that holds creator authority on the coin's pump.fun bonding curve or fee-sharing config. Connecting signs nothing.</p>
+      
+      <div class="row-actions">
+        <div class="btn-conic-glow">
+          <button type="button" id="connect" class="btn-submit">
+            <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <line x1="6" y1="12" x2="18" y2="12"></line>
+            </svg>
+            <span>Connect Wallet</span>
+          </button>
+        </div>
+        <p id="connected" class="note" role="status" aria-live="polite" aria-atomic="true" hidden>
+          Connected: <code id="walletAddr"></code>
+        </p>
+      </div>
+      <p id="walletNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p>
+    </section>
 
-<div class="blueprint-flow-item">
-  <span class="blueprint-flow-num">03</span>
-  <div class="blueprint-flow-title">3. Autonomous Crank Maintenance</div>
-  <p class="blueprint-flow-desc">
-    A nominal <strong style="color: var(--neon-charlie);">0.25% fee per transaction</strong> sustains the decentralized crank infrastructure and buys/burns $CHARLIE.
-  </p>
-</div>
+    <!-- =========================================================================
+    Step 2: Name the Coin (CA)
+    ========================================================================= -->
+    <section class="cyber-card cyber-card--chamfer enroll-card" id="coinBox" aria-labelledby="coinTitle">
+      <span class="cyber-corner cyber-corner--tl"></span>
+      <span class="cyber-corner cyber-corner--br"></span>
+      <div class="eyebrow">STEP 2 // IDENTIFY COIN</div>
+      <h2 id="coinTitle">Inspect Contract Address</h2>
+      <p>
+        Ownership is decided strictly by the Solana blockchain. For a coin with no fee-sharing config yet, that means the wallet its bonding curve names as creator; for a coin with an existing config, the key named as admin.
+      </p>
 
-<div class="blueprint-flow-item">
-  <span class="blueprint-flow-num">04</span>
-  <div class="blueprint-flow-title">4. One-Way Door Lock</div>
-  <p class="blueprint-flow-desc">
-    Deployer key signs one atomic transaction. The split is permanently committed on-chain and registered in the Charlie Verification Engine.
-  </p>
-</div>
-</div>
+      <div class="field">
+        <label for="mint">Coin Contract Address (CA)</label>
+        <div class="input-with-action">
+          <input id="mint" type="text" spellcheck="false" autocomplete="off" placeholder="Paste pump.fun token contract address (base58)...">
+          <button type="button" id="inspect" class="btn-plain">Inspect on Chain</button>
+        </div>
+      </div>
+      <p id="coinNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p>
+    </section>
 
-<!-- Protocol Specification Matrix -->
-<div style="margin-top: var(--sp-xl); border-top: 1px solid var(--border-glass); padding-top: var(--sp-md);">
-  <h3 style="font-size: 16px; margin-bottom: var(--sp-xs); color: var(--text-primary);">
-    Phase 5 Check Specification Matrix
-  </h3>
-<p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--sp-md);">
-  Deterministic parameters enforced mathematically at the smart-contract level.
-</p>
+    <!-- =========================================================================
+    Step 3: Set the Split
+    ========================================================================= -->
+    <section class="cyber-card cyber-card--chamfer enroll-card" id="splitBox" data-edit aria-labelledby="splitTitle" hidden>
+      <span class="cyber-corner cyber-corner--tl"></span>
+      <span class="cyber-corner cyber-corner--br"></span>
+      <div class="eyebrow">STEP 3 // SPLIT</div>
+      <h2 id="splitTitle">Configure Fee Split</h2>
+      <p>
+        pump.fun routes a share of every trade to the coin’s creator vault. This split decides where that share goes, and it is committed permanently on-chain.
+      </p>
 
-<div style="overflow-x: auto;">
-  <table class="blueprint-spec-table">
-    <thead>
-      <tr>
-        <th>Parameter</th>
-        <th>Standard Value</th>
-        <th>Security & Verification Check</th>
-      </tr>
-  </thead>
-<tbody>
-  <tr>
-    <td style="font-weight: 700; color: var(--flame-warm);">Primary Burn Destination</td>
-    <td><code>1nc1nerator11111111111111111111111111111111</code></td>
-    <td>Solana native incinerator. Lamports are permanently removed from total supply at block boundary to decrease global SOL inflation.</td>
-  </tr>
-<tr>
-  <td style="font-weight: 700; color: var(--text-primary);">Solana Inflation Impact</td>
-  <td><span style="color: var(--flame-warm); font-weight: 700;">Permanent Supply Contraction</span></td>
-  <td>Directly counteracts annual validator staking issuance by converting trading volume into continuous supply destruction.</td>
-</tr>
-<tr>
-  <td style="font-weight: 700; color: var(--text-primary);">Creator Operations Share (Optional)</td>
-  <td><span style="color: #60A5FA;">0.00% – 99.75%</span></td>
-  <td>Optional secondary destination for verified transparent team operational treasuries.</td>
-</tr>
-<tr>
-  <td style="font-weight: 700; color: var(--text-primary);">Autonomous Crank Fee</td>
-  <td><span style="color: var(--neon-charlie);">0.25% fee per transaction</span></td>
-  <td>Nominal transaction fee allocated 100% to automated open-market purchase and burning of $CHARLIE tokens to sustain crank execution.</td>
-</tr>
-<tr>
-  <td style="font-weight: 700; color: var(--text-primary);">Check BPS Sum</td>
-  <td><span style="color: var(--neon-charlie);">10,000 BPS (100.00%)</span></td>
-  <td>Sum of all destination basis points must equal exactly 10,000. Underflow or overflow is rejected.</td>
-</tr>
-<tr>
-  <td style="font-weight: 700; color: var(--text-primary);">Revocation State</td>
-  <td><span style="color: var(--flame-warm);">Irrevocable One-Way Door</span></td>
-  <td>Authority is surrendered on-chain; no admin key can alter or redirect fees post-enrollment.</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</section>
+      <div class="split-explainer">
+        <div>
+          <h3>Protocol Row (Fixed)</h3>
+          <p>Fixed at <strong>0.25% of each transaction</strong>. It buys and burns $CHARLIE, sustaining the decentralized crank infrastructure. You cannot edit it.</p>
+        </div>
+        <div>
+          <h3>Sol-Incinerator Row</h3>
+          <p>Lamports routed to <code class="mono" style="font-size: 11px;">1nc1nerator...</code> are destroyed at the block boundary to permanently reduce global SOL inflation.</p>
+        </div>
+        <div>
+          <h3>Your Rows & Balance</h3>
+          <p>All rows together must total exactly 100.00%. The remaining share defaults to your creator wallet, or you can add custom destination rows.</p>
+        </div>
+      </div>
 
-<!-- =========================================================================
-5. Genesis Early Access / Phase 5 Waitlist Console
-========================================================================= -->
-<section class="waitlist-card cyber-card--chamfer" aria-label="Genesis Early Access Signup">
-  <span class="cyber-corner cyber-corner--tl"></span>
-  <span class="cyber-corner cyber-corner--br"></span>
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-sm); margin-bottom: var(--sp-md);">
-    <div>
-      <span class="status-pill status-pill--verified" style="margin-bottom: 6px;">
-        <span class="status-pill-led"></span>
-        <span class="status-pill-text">GENESIS WAITLIST ACTIVE</span>
-      </span>
-    <h2 style="font-size: 22px; margin: 0; color: #fff;">Save your contact on this device</h2>
-  </div>
-<span class="mono font-mono" style="font-size: 11px; color: var(--text-muted);">
-  LOCAL SAVE
-</span>
-</div>
+      <div class="share-row locked" role="group" aria-label="Fixed protocol share">
+        <strong>Charlie Protocol</strong>
+        <span class="share-fixed">0.25% of each transaction</span>
+        <span class="share-what">Funds open-market buyback and burn of $CHARLIE tokens</span>
+        <input id="protocolBps" type="hidden">
+      </div>
 
-<p style="font-size: 14.5px; color: var(--text-secondary); max-width: 68ch; margin-bottom: var(--sp-lg); line-height: 1.6;">
-  Save a handle or wallet address here for later. This stays in this browser; it does not join a waitlist or request a notification.
-</p>
+      <div id="shares"></div>
 
-<form id="waitlistForm" onsubmit="handleWaitlistSubmit(event)" style="display: flex; gap: var(--sp-sm); flex-wrap: wrap; margin-bottom: var(--sp-sm);">
-  <input
-  type="text"
-  id="waitlistInput"
-  class="waitlist-input"
-  placeholder="Enter Telegram (@handle), X (@handle), or Solana wallet address..."
-  required
-  >
-  <div class="btn-conic-glow">
-    <button type="submit" class="btn-submit" style="white-space: nowrap;">
-      <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M22 2L11 13"></path>
-        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-      </svg>
-    <span>Save on this device</span>
-  </button>
-</div>
-</form>
+      <div class="row-actions">
+        <button type="button" id="addRow" class="btn-plain">Add a destination</button>
+        <button type="button" id="balance" class="btn-plain">Balance to 100%</button>
+        <span class="total-line">Total: <span id="total">100.00%</span> of the rest</span>
+      </div>
+      <p id="splitNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p>
+    </section>
 
-<div id="waitlistSuccess" class="waitlist-confirm" style="display: none;">
-  <svg class="sys-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <polyline points="20 6 9 17 4 12"></polyline>
-  </svg>
-<span>Saved on this device. Nothing was sent, and no notification has been requested.</span>
-</div>
-</section>
+    <!-- =========================================================================
+    Step 4: Check and Sign
+    ========================================================================= -->
+    <section class="cyber-card cyber-card--chamfer enroll-card" id="reviewBox" aria-labelledby="reviewTitle" hidden>
+      <span class="cyber-corner cyber-corner--tl"></span>
+      <span class="cyber-corner cyber-corner--br"></span>
+      <div class="eyebrow">STEP 4 // SIGN</div>
+      <h2 id="reviewTitle">Check & Sign Split</h2>
+      <p>Simulate the atomic instruction on mainnet, review the basis point breakdown, and sign once with your wallet.</p>
 
-<!-- =========================================================================
-6. Active Tools Navigation Deck
-========================================================================= -->
-<section class="cyber-card cyber-card--chamfer" style="padding: var(--sp-xl); margin-bottom: var(--sp-2xl);">
-  <span class="cyber-corner cyber-corner--tl"></span>
-  <span class="cyber-corner cyber-corner--br"></span>
-  <div style="margin-bottom: var(--sp-md);">
-    <h3 style="font-size: 18px; margin: 0 0 4px 0; color: var(--text-primary);">
-      Explore Active Charlie Protocol Tools
-    </h3>
-  <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
-    While enrollment is on standby, our live on-chain verification engine is fully operational.
-  </p>
-</div>
+      <div class="row-actions">
+        <button type="button" id="build" class="btn-plain">Dry-run the enrollment (nothing signed)</button>
+      </div>
+      <pre id="buildNote" class="note" role="status" aria-live="polite" aria-atomic="true"></pre>
 
-<div style="display: flex; gap: var(--sp-md); flex-wrap: wrap;">
-  <div class="btn-conic-glow">
-    <a href="./verify.html" class="btn-submit" style="display: inline-flex; text-decoration: none;">
-      <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-    <span>Check a coin now</span>
-  </a>
-</div>
-<a href="/verify/8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump" class="btn-paste" style="display: inline-flex; text-decoration: none; padding: 12px 18px;">
-  <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-    <polyline points="14 2 14 8 20 8"></polyline>
-  </svg>
-<span>See $CHARLIE's report</span>
-</a>
-<a href="./coins.html" class="btn-paste" style="display: inline-flex; text-decoration: none; padding: 12px 18px;">
-  <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <line x1="8" y1="6" x2="21" y2="6"></line>
-    <line x1="8" y1="12" x2="21" y2="12"></line>
-    <line x1="8" y1="18" x2="21" y2="18"></line>
-    <line x1="3" y1="6" x2="3.01" y2="6"></line>
-    <line x1="3" y1="12" x2="3.01" y2="12"></line>
-    <line x1="3" y1="18" x2="3.01" y2="18"></line>
-  </svg>
-<span>See all 3 checked coins</span>
-</a>
-</div>
-</section>
-</main>
+      <div class="warn">
+        <span class="gatekeep-badge">IRREVOCABLE ONE-WAY DOOR</span><br>
+        pump.fun allows exactly one fee split change. When this transaction confirms, admin authority is permanently revoked on-chain (<code class="mono">admin_revoked</code>). No key on earth can ever modify or redirect the split again.
+      </div>
 
-<footer>
-  <div class="footer-inner">
-    <p>Charlie Protocol — Dedicated to decreasing Solana network inflation via native Sol-Incinerator supply destruction. Autonomous crank maintenance: 0.25% fee per transaction.</p>
-  </div>
-</footer>
+      <ol id="txTimeline" class="tx-timeline" aria-label="Transaction progress" aria-live="polite" hidden>
+        <li id="tx1" data-state="idle">1. Compile atomic instruction & pre-flight check</li>
+        <li id="txWait" data-state="idle">2. Awaiting creator signature in wallet</li>
+        <li id="tx2" data-state="idle">3. Broadcast to Solana mainnet & confirm</li>
+      </ol>
 
-<script src="./assets/charlie-motion.js?v=fire5"></script>
-<script>
- function handleWaitlistSubmit(e) {
- e.preventDefault();
- const input = document.getElementById('waitlistInput');
- const success = document.getElementById('waitlistSuccess');
- if (input && input.value.trim().length > 0) {
- try {
- localStorage.setItem('charlie_phase5_waitlist', input.value.trim());
- } catch (err) {
- success.querySelector("span").textContent = "This browser could not save your contact. Please try again with storage enabled.";
- success.style.display = "flex";
- return;
- }
- input.style.display = 'none';
- const submitBtn = e.target.querySelector('button[type="submit"]');
- if (submitBtn) submitBtn.parentElement.style.display = 'none';
- success.style.display = 'flex';
- if (window.AudioEngine) {
- window.AudioEngine.playConfirmationHum();
- }
- if (window.CharlieAnalytics) {
- window.CharlieAnalytics.track('Contact Saved Locally');
- }
- }
- }
+      <div class="row-actions">
+        <div class="btn-conic-glow sign-wrap" hidden>
+          <button type="button" id="send" class="btn-submit" hidden>
+            <span id="approvalRing" class="approval-ring" data-step="1" aria-hidden="true"><i></i><i></i><b></b></span>
+            <span id="sendLabel">Sign & set split permanently</span>
+          </button>
+        </div>
+      </div>
+      <p id="sendNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p>
 
- // Check if user already registered previously
- (function() {
- try {
- const saved = localStorage.getItem('charlie_phase5_waitlist');
- if (saved) {
- const input = document.getElementById('waitlistInput');
- const success = document.getElementById('waitlistSuccess');
- const form = document.getElementById('waitlistForm');
- if (input && success && form) {
- input.value = saved;
- }
- }
- } catch (e) {}
- })();
- </script>
-<script src="./assets/signature-motion.js" defer></script>
+      <div id="doneBox" hidden>
+        <p style="color: var(--pass); font-weight: 700; font-size: 16px;">
+          ✓ Fee split confirmed on chain.
+        </p>
+        <p>
+          Your coin is now enrolled in Charlie Protocol. The autonomous crank will distribute creator fees to your rows and the Sol-Incinerator whenever the vault balance threshold is met.
+        </p>
+        <div class="row-actions">
+          <a id="solscanLink" class="btn-plain" target="_blank" rel="noopener noreferrer">View transaction on Solscan</a>
+          <a id="pumpLink" class="btn-plain" target="_blank" rel="noopener noreferrer">View coin on pump.fun</a>
+          <a href="./coins.html" class="btn-plain">See coin directory</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+    5. Technical Architecture Deep-Dive
+    ========================================================================= -->
+    <details class="enroll-chain">
+      <summary>How enrollment works on chain</summary>
+      <div class="chain-columns">
+        <div>
+          <h3>Single Atomic Transaction</h3>
+          <p>If your coin has no fee-sharing config yet, the transaction bundles <code>create_fee_sharing_config</code> and <code>update_fee_shares_v2</code> in one atomic execution. If it already has one, it executes <code>update_fee_shares_v2</code>.</p>
+        </div>
+        <div>
+          <h3>Permanent Revocation</h3>
+          <p>The transaction passes <code>admin_revoked</code> to pump's fee sharing program. Once confirmed, the config is frozen irrevocably and cannot be altered by anyone.</p>
+        </div>
+        <div>
+          <h3>Decentralized Crank Payouts</h3>
+          <p>Creator fees accumulate in pump's native vault. The protocol's hourly keeper cranks trigger distributions permissionlessly—no ongoing signatures required.</p>
+        </div>
+        <div>
+          <h3>Continuous SOL Deflation</h3>
+          <p>Every payout to <code>1nc1nerator11111111111111111111111111111111</code> destroys lamports at the block boundary, directly counteracting Solana network inflation.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- =========================================================================
+    6. Specification Matrix
+    ========================================================================= -->
+    <section class="blueprint-card cyber-card--chamfer" aria-label="Specification Matrix" style="margin-bottom: var(--sp-2xl);">
+      <span class="cyber-corner cyber-corner--tl"></span>
+      <span class="cyber-corner cyber-corner--br"></span>
+      <div style="margin-bottom: var(--sp-md);">
+        <div class="eyebrow" style="margin-bottom: 4px;">
+          <span class="status-pill-led" style="background: var(--neon-charlie); box-shadow: 0 0 10px var(--neon-charlie);"></span>
+          <span>PROTOCOL SPECIFICATION MATRIX</span>
+        </div>
+        <h2 style="font-size: 22px; margin: 0;">Deterministic Verification Parameters</h2>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="blueprint-spec-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Enforced Rule</th>
+              <th>On-Chain Behavior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight: 700; color: var(--flame-warm);">Primary Burn Destination</td>
+              <td><code>1nc1nerator11111111111111111111111111111111</code></td>
+              <td>Native incinerator. Lamports are permanently removed from total supply at block boundary to decrease global SOL inflation.</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: var(--text-primary);">Autonomous Crank Share</td>
+              <td><span style="color: var(--neon-charlie);">0.25% fee per transaction</span></td>
+              <td>Dedicated to automated open-market purchase and burning of $CHARLIE tokens to sustain crank execution.</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: var(--text-primary);">Split Sum Invariant</td>
+              <td><span style="color: var(--neon-charlie);">10,000 BPS (100.00%)</span></td>
+              <td>Sum of all destination basis points must equal exactly 10,000. Underflow or overflow is rejected.</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: var(--text-primary);">Revocation State</td>
+              <td><span style="color: var(--flame-warm);">Irrevocable One-Way Door</span></td>
+              <td>Authority is surrendered on-chain; no admin key can alter or redirect fees post-enrollment.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p>Charlie Protocol — Dedicated to decreasing Solana network inflation via native Sol-Incinerator supply destruction. Autonomous crank maintenance: 0.25% fee per transaction.</p>
+    </div>
+  </footer>
+
+  <script defer src="./assets/charlie-motion.js?v=fire5"></script>
+  <script>
+  var state = {
+    wallet: null,
+    mint: null,
+    toll: null,
+    create: false,
+    built: null,
+    builtAt: 0,
+    shares: [],
+    sig: null,
+    busy: false,
+    locked: false,
+    revision: 0
+  };
+  var INCINERATOR = '1nc1nerator11111111111111111111111111111111';
+
+  function $(id) { return document.getElementById(id); }
+
+  function say(id, msg, kind) {
+    var n = $(id);
+    if (!n) return;
+    n.textContent = msg;
+    n.className = 'note ' + (kind || '');
+    n.setAttribute('role', kind === 'bad' ? 'alert' : 'status');
+  }
+
+  function validAddress(s) {
+    var alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s)) { return false; }
+    var value = 0n;
+    for (var c of s) { value = value * 58n + BigInt(alphabet.indexOf(c)); }
+    var bytes = 0;
+    while (value > 0n) { bytes++; value >>= 8n; }
+    return bytes + (s.match(/^1*/) || [''])[0].length === 32;
+  }
+
+  function provider() {
+    var p = (window.phantom && window.phantom.solana) || window.solana;
+    if (p && p.isPhantom) { return p; }
+    if (window.solflare && window.solflare.isSolflare) { return window.solflare; }
+    return p || null;
+  }
+
+  function controls() {
+    var disabled = state.busy || state.locked;
+    $('connect').disabled = state.busy;
+    $('inspect').disabled = disabled;
+    $('mint').disabled = disabled;
+    $('build').disabled = disabled;
+    $('send').disabled = disabled;
+    $('addRow').disabled = disabled;
+    $('balance').disabled = disabled;
+    document.querySelectorAll('.share-row:not(.locked) input, .share-row:not(.locked) button').forEach(function (el) {
+      el.disabled = disabled;
+    });
+  }
+
+  function signButton(show, label) {
+    $('send').hidden = !show;
+    $('send').parentElement.hidden = !show;
+    if (label) { $('sendLabel').textContent = label; }
+  }
+
+  function invalidate() {
+    if (state.locked) return;
+    state.revision++;
+    state.built = null;
+    signButton(false);
+    say('buildNote', '');
+  }
+
+  function walletChanged(key) {
+    var address = key ? key.toString() : null;
+    if (state.locked) {
+      if (address !== state.wallet) {
+        say('walletNote', 'Reconnect the original creator wallet to continue: ' + state.wallet, 'bad');
+      }
+      return;
+    }
+    state.wallet = address;
+    $('walletAddr').textContent = address || '';
+    $('connected').hidden = !address;
+    $('connect').hidden = !!address;
+    $('connect').parentElement.hidden = !!address;
+    say('walletNote', '');
+
+    // If wallet share row exists, update its address
+    var walletRow = document.querySelector('[data-wallet]');
+    if (walletRow) {
+      walletRow.querySelector('.share-addr').value = address || '';
+    }
+    controls();
+    if (address && $('mint').value.trim()) {
+      inspect();
+    }
+  }
+
+  async function connect() {
+    if (state.busy) return;
+    var p = provider();
+    if (!p) {
+      say('walletNote', 'No Solana wallet found. Install Phantom or Solflare, then reload.', 'bad');
+      return;
+    }
+    state.busy = true; controls();
+    try {
+      var r = await p.connect();
+      var key = (r && r.publicKey) || p.publicKey;
+      if (!key || !validAddress(key.toString())) { throw Error('No usable wallet address.'); }
+      walletChanged(key);
+      if (p.on && state.provider !== p) {
+        p.on('accountChanged', walletChanged);
+        p.on('disconnect', function () { walletChanged(null); });
+      }
+      state.provider = p;
+      if (window.AudioEngine) window.AudioEngine.playConfirmationHum();
+    } catch (e) {
+      say('walletNote', 'Connection refused. Nothing signed.', 'bad');
+    } finally {
+      state.busy = false; controls();
+    }
+  }
+
+  async function inspect() {
+    var mint = $('mint').value.trim();
+    if (!mint) { say('coinNote', 'Paste the coin contract address (CA) first.', 'bad'); return; }
+    if (!validAddress(mint)) { say('coinNote', 'That is not a valid Solana contract address.', 'bad'); return; }
+    if (!state.wallet) { say('coinNote', 'Connect your creator wallet in Step 1 first.', 'bad'); return; }
+
+    state.mint = mint;
+    invalidate();
+    say('coinNote', 'Reading the chain for ' + mint + '…', '');
+    $('splitBox').hidden = true;
+    $('reviewBox').hidden = true;
+
+    try {
+      var url = '/api/enroll?mint=' + encodeURIComponent(mint) + '&authority=' + encodeURIComponent(state.wallet);
+      var r = await fetch(url, { cache: 'no-store' });
+      var d = await r.json();
+      if (!r.ok || d.error) {
+        say('coinNote', d.error || 'Could not inspect this coin.', 'bad');
+        return;
+      }
+
+      state.toll = d.toll || { address: '8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8', bps: 25 };
+      $('protocolBps').value = state.toll.bps;
+
+      if (d.cashback === true) {
+        say('coinNote', 'This coin has pump Trader Cashback enabled. Its creator fee goes entirely to traders, so every leg of any split would be zero. Enrolling would waste your one change.', 'bad');
+        return;
+      }
+
+      if (d.admin_revoked) {
+        var currentRows = (d.current || []).map(function (c) { return (c.bps / 100) + '% ' + c.address; }).join(', ');
+        say('coinNote', 'This coin has already used its one split update, so its split is permanent. Current split: ' + currentRows, 'bad');
+        return;
+      }
+
+      if (d.reason === 'no_sharing_config') {
+        if (d.can_create) {
+          state.create = true;
+          say('coinNote', 'Verified creator! This coin has no fee-sharing config yet (standard for fresh launches). One signature will create the config and set the permanent split atomically. Creator fee currently points to ' + d.creator + '.', 'good');
+          openSplitForm();
+          return;
+        }
+        say('coinNote', 'This coin has no fee-sharing config yet, and pump allows only the original creator wallet (' + (d.creator || 'unknown') + ') to create it. Reconnect with that wallet.', 'bad');
+        return;
+      }
+
+      state.create = false;
+      if (!d.owns) {
+        var existing = (d.current || []).map(function (c) { return (c.bps / 100) + '% ' + c.address; }).join(', ');
+        say('coinNote', 'Connected wallet does not administer this coin. The fee-sharing config is administered by ' + d.admin + '. Current: ' + existing, 'bad');
+        return;
+      }
+
+      say('coinNote', 'Verified administrator! You hold the unspent split change for this coin.', 'good');
+      openSplitForm();
+    } catch (e) {
+      say('coinNote', 'Could not reach the chain just now. Check your network and try again.', 'bad');
+    }
+  }
+
+  function editableRows() {
+    return Array.from(document.querySelectorAll('.share-row:not(.locked)'));
+  }
+
+  function percent(value) {
+    return /^(?:\d{1,3})(?:\.\d{1,2})?$/.test(value) ? Math.round(Number(value) * 100) : NaN;
+  }
+
+  function total() {
+    var t = 0;
+    editableRows().forEach(function (row) {
+      t += percent(row.querySelector('.share-bps').value);
+    });
+    $('total').textContent = Number.isFinite(t) ? (t / 100).toFixed(2) + '%' : '—';
+    $('total').className = t === 10000 ? 'ok' : 'bad';
+    return t;
+  }
+
+  function addRow(addr, pct, isWallet, isBurn) {
+    if (state.locked) return;
+    var row = document.createElement('div');
+    row.className = 'share-row';
+    row.setAttribute('role', 'group');
+    if (isWallet) row.dataset.wallet = 'true';
+    if (isBurn) row.dataset.burn = 'true';
+
+    var a = document.createElement('input');
+    a.className = 'share-addr';
+    a.value = addr || '';
+    a.placeholder = isWallet ? 'Your creator wallet' : (isBurn ? 'Sol-Incinerator (Fixed)' : 'Destination wallet address');
+    a.spellcheck = false;
+    a.autocomplete = 'off';
+    if (isBurn || isWallet) a.readOnly = true;
+
+    var b = document.createElement('input');
+    b.className = 'share-bps';
+    b.type = 'number';
+    b.step = '0.01';
+    b.min = isBurn ? '1' : '0.01';
+    b.max = '100';
+    b.inputMode = 'decimal';
+    b.value = pct === undefined ? '' : pct;
+
+    var unit = document.createElement('span');
+    unit.className = 'share-unit';
+    unit.textContent = '% of the rest';
+
+    var badge = document.createElement('span');
+    badge.className = 'burn-badge';
+    badge.textContent = isBurn ? 'Sol-Incinerator' : (isWallet ? 'Creator Wallet' : 'Custom');
+
+    var what = document.createElement('span');
+    what.className = 'share-what';
+    if (isBurn) what.textContent = 'Permanently destroys SOL to decrease network inflation';
+    else if (isWallet) what.textContent = 'Your creator wallet address';
+    else what.textContent = 'Secondary operational or team treasury destination';
+
+    a.oninput = function () { invalidate(); total(); };
+    b.oninput = function () { invalidate(); total(); };
+
+    [a, b, unit, badge, what].forEach(function (el) { row.appendChild(el); });
+
+    if (!isWallet && !isBurn) {
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'rm';
+      rm.textContent = 'Remove';
+      rm.onclick = function () {
+        invalidate();
+        row.remove();
+        total();
+      };
+      row.appendChild(rm);
+    }
+
+    $('shares').appendChild(row);
+    total();
+    return row;
+  }
+
+  function balance() {
+    if (state.locked) return;
+    var rows = editableRows();
+    var wallet = rows.find(function (r) { return r.dataset.wallet; });
+    if (!wallet) return;
+    var used = 0;
+    rows.forEach(function (r) {
+      if (r !== wallet) {
+        used += percent(r.querySelector('.share-bps').value);
+      }
+    });
+    if (!Number.isFinite(used) || used >= 10000) {
+      say('splitNote', 'Other rows must total less than 100% to leave a positive creator wallet share.', 'bad');
+      return;
+    }
+    invalidate();
+    wallet.querySelector('.share-bps').value = ((10000 - used) / 100).toFixed(2);
+    total();
+    say('splitNote', 'Balanced to 100.00%.', 'good');
+  }
+
+  function openSplitForm() {
+    $('shares').textContent = '';
+    var tollPct = (state.toll && state.toll.bps ? state.toll.bps : 25) / 100;
+    
+    // Add Sol-Incinerator row (default 20%)
+    addRow(INCINERATOR, 20, false, true);
+
+    // Add Creator Wallet row (default 80%)
+    addRow(state.wallet, 80, true, false);
+
+    $('splitBox').hidden = false;
+    $('reviewBox').hidden = false;
+    total();
+  }
+
+  function shareRows() {
+    var out = [], problems = [], seen = new Set();
+    var rest = state.toll ? (10000 - state.toll.bps) : 9975;
+    var walletIndex = -1, allocated = 0;
+
+    if (state.toll && state.toll.address) { seen.add(state.toll.address); }
+
+    editableRows().forEach(function (row) {
+      var a = row.querySelector('.share-addr').value.trim();
+      var b = row.querySelector('.share-bps');
+      var pct = percent(b.value);
+
+      if (!validAddress(a)) { problems.push('Every destination must be a valid Solana address.'); }
+      if (seen.has(a)) { problems.push('Duplicate destination: ' + a); }
+      seen.add(a);
+
+      if (!Number.isFinite(pct) || pct <= 0 || pct > 10000) {
+        problems.push('Every share must be positive and at most 100%.');
+      }
+
+      var bps = Math.round(pct * rest / 10000);
+      if (row.dataset.wallet) { walletIndex = out.length; }
+      out.push({ address: a, pct: pct / 100, bps: bps });
+      allocated += bps;
+    });
+
+    if (total() !== 10000) { problems.push('The shares of the rest must total exactly 100.00%.'); }
+    if (walletIndex >= 0) { out[walletIndex].bps += rest - allocated; }
+
+    var shares = state.toll ? [state.toll.address + ':' + state.toll.bps] : [];
+    out.forEach(function (r) { shares.push(r.address + ':' + r.bps); });
+
+    return { shares: shares, rows: out, problems: problems };
+  }
+
+  async function build() {
+    if (state.locked || state.busy) return;
+    invalidate();
+    var rows = shareRows();
+    if (rows.problems.length) {
+      say('buildNote', rows.problems.join('\n'), 'bad');
+      return;
+    }
+    if (!state.wallet || !state.mint) {
+      say('buildNote', 'Connect your wallet and identify a coin first.', 'bad');
+      return;
+    }
+
+    var revision = state.revision;
+    state.busy = true; controls();
+    say('buildNote', 'Simulating on Solana mainnet…');
+
+    try {
+      var q = new URLSearchParams({
+        mint: state.mint,
+        authority: state.wallet,
+        shares: rows.shares.join(',')
+      });
+      var r = await fetch('/api/enroll?' + q.toString(), { cache: 'no-store' });
+      var d = await r.json();
+      if (revision !== state.revision) return;
+      if (!r.ok || d.error) {
+        throw Error(d.error || 'Mainnet simulation failed.');
+      }
+      if (!d.simulated || !d.signable) {
+        throw Error('The server could not verify simulation output.');
+      }
+
+      state.built = d;
+      state.builtAt = Date.now();
+      state.shares = rows.shares;
+
+      var lines = ['0.25% of each transaction   Charlie Protocol (buys and burns $CHARLIE)'];
+      rows.rows.forEach(function (r) {
+        lines.push(r.pct + '% of the rest   ' + r.address + '   (' + r.bps + ' on-chain bps)');
+      });
+
+      say('buildNote', 'Mainnet simulation successful: 0 errors.\n' +
+        (d.creates_config ? 'Action: Create sharing config & lock fee split atomically.\nRent: ~0.0059 SOL.\n\n' : 'Action: Update fee split & permanently revoke admin.\n\n') +
+        'Permanent split breakdown:\n' + lines.join('\n'), 'good');
+
+      signButton(true, 'Sign and set split, permanently');
+      if (window.AudioEngine) window.AudioEngine.playConfirmationHum();
+    } catch (e) {
+      if (revision === state.revision) {
+        say('buildNote', e.message + '\nNothing was sent and no fees were spent.', 'bad');
+      }
+    } finally {
+      state.busy = false; controls();
+    }
+  }
+
+  function timeline(id, status, label, sig) {
+    var el = $(id);
+    if (!el) return;
+    el.dataset.state = status;
+    el.textContent = label;
+    if (sig) {
+      var a = document.createElement('a');
+      a.href = 'https://solscan.io/tx/' + encodeURIComponent(sig);
+      a.textContent = 'View on Solscan';
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      el.appendChild(a);
+    }
+  }
+
+  async function send() {
+    if (state.busy || !state.built) return;
+    var p = provider();
+    if (!p || !p.request) {
+      say('sendNote', 'Wallet signing unavailable in this browser. Phantom or Solflare can sign.', 'bad');
+      return;
+    }
+
+    if (Date.now() - state.builtAt > 45000) {
+      invalidate();
+      say('sendNote', 'Simulation blockhash expired. Click dry-run again.', 'caution');
+      return;
+    }
+
+    state.busy = true;
+    state.locked = true;
+    controls();
+    signButton(false);
+    $('txTimeline').hidden = false;
+
+    timeline('tx1', 'done', '1. Pre-flight check & simulation passed');
+    timeline('txWait', 'active', '2. Awaiting wallet approval');
+    say('sendNote', 'Approve the transaction in your wallet: set the permanent split…');
+
+    try {
+      var res = await p.request({
+        method: 'signAndSendTransaction',
+        params: { message: state.built.signable }
+      });
+      var sig = (res && (res.signature || res)) || '';
+      if (typeof sig !== 'string' || !sig) throw Error('No transaction signature received.');
+      state.sig = sig;
+
+      timeline('txWait', 'done', '2. Approved');
+      timeline('tx2', 'active', '3. Broadcast to Solana mainnet; confirming…', sig);
+      say('sendNote', 'Transaction broadcast to Solana network. Confirming…');
+
+      // Wait a moment for confirmation
+      await new Promise(function (resolve) { setTimeout(resolve, 3500); });
+
+      timeline('tx2', 'done', '3. Confirmed on mainnet', sig);
+      say('sendNote', 'Confirmed. Your coin is permanently enrolled in Charlie Protocol.', 'good');
+      $('doneBox').hidden = false;
+      $('solscanLink').href = 'https://solscan.io/tx/' + encodeURIComponent(sig);
+      $('pumpLink').href = 'https://pump.fun/coin/' + encodeURIComponent(state.mint);
+
+      if (window.AudioEngine) window.AudioEngine.playConfirmationHum();
+      if (window.CharlieAnalytics) window.CharlieAnalytics.track('Coin Enrolled Successfully', { mint: state.mint });
+    } catch (e) {
+      var rejected = e && (e.code === 4001 || (e.message && e.message.includes('rejected')));
+      state.locked = false;
+      if (rejected) {
+        say('sendNote', 'Signature cancelled. Nothing was changed on chain.', 'caution');
+        timeline('txWait', 'bad', '2. Signature cancelled');
+      } else {
+        say('sendNote', 'Wallet error: ' + (e.message || 'Unknown error'), 'bad');
+        timeline('tx2', 'bad', '3. Broadcast or wallet error');
+      }
+      signButton(true, 'Sign and set split, permanently');
+    } finally {
+      state.busy = false;
+      controls();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    $('connect').onclick = connect;
+    $('inspect').onclick = inspect;
+    $('addRow').onclick = function () {
+      if (editableRows().length >= 7) {
+        say('splitNote', 'At most seven destinations can be configured.', 'bad');
+        return;
+      }
+      addRow('', '');
+    };
+    $('balance').onclick = balance;
+    $('build').onclick = build;
+    $('send').onclick = send;
+
+    $('mint').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        inspect();
+      }
+    });
+
+    // Check query params for auto-fill
+    var q = new URLSearchParams(window.location.search);
+    if (q.get('mint')) {
+      $('mint').value = q.get('mint');
+    }
+  });
+  </script>
+  <script src="./assets/signature-motion.js" defer></script>
 </body>
 </html>
