@@ -1,11 +1,11 @@
-"""`/buildlog` -- dated milestones, and the gate that is still closed.
+"""`/buildlog` -- dated milestones, and the work that is not done yet.
 
 A build log for a protocol that asks strangers to check its figures has one
 obligation the genre usually skips: it has to be as willing to date what is
 NOT done as what is. A log that lists only shipped things reads as progress
-and hides the gate, and the gate is the single most important fact about this
-project's status -- phase 5 is funding-gated and closed, so the mainnet
-program does not exist.
+and hides what is open, and what is open is the single most important fact
+about this project's status -- phase 5 has not happened, so no mainnet
+program exists.
 
 So every entry here carries a status, and the statuses that matter most are
 the open ones. `GATED` is not a milestone waiting to be crossed off; it is a
@@ -23,9 +23,9 @@ has refused to make since 2026-09-03. Every entry that mentions the program
 says which cluster it means.
 
 NO DATES FROM THE FUTURE. Nothing here is a schedule. A build log that lists
-a date for an ungated deliverable is a roadmap with a timestamp, and phase 5
-depends on funding that does not exist. Entries are things that happened,
-plus open items with no date attached.
+a date for something not yet done is a roadmap with a timestamp, and this is
+a log. Entries are things that happened, plus open items with no date
+attached. `/phases` is where anything forward-looking lives.
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ BUILDLOG_FILENAME = "buildlog.html"
 #
 # status: "SHIPPED" -- built, committed, and checkable by a reader today
 #         "DEVNET"  -- deployed to devnet only, id given, mainnet is not this
-#         "GATED"   -- not done, and blocked on something named
+#         "GATED"   -- not done, and the entry names what is holding it
 _ENTRIES = [
     {
         "date": "2026-08-29",
@@ -132,8 +132,8 @@ _ENTRIES = [
         "title": "The $CHARLIE flywheel, run on a chain",
         "body": "A separate splitter program, deployed to devnet, answering a "
         "hypothetical: $CHARLIE's own sharing config is admin_revoked and its "
-        "one irreversible update is spent, so nobody -- its deployer included "
-        "-- can point its fees anywhere. If that destination COULD be changed "
+        "one irreversible update is spent, so no key its deployer or Charlie "
+        "holds can point its fees anywhere (pump's own admin_cto still could). If that destination COULD be changed "
         "to a splitter, would the mechanism hold? Three rounds ran. 2,400,000 "
         "lamports of simulated fee split 1,349,414 to the incinerator, 674,707 "
         "to the buyback vault, 674,707 to ops, and 3 lamports left behind "
@@ -161,8 +161,36 @@ _ENTRIES = [
     {
         "date": "2026-09-18",
         "status": "SHIPPED",
-        "title": "Phase 5 -- mainnet deploy, launch & enrollment live in production",
-        "body": "Mainnet deployment landed with ungated /launch and /enroll consoles, on-chain token metadata resolution, and automated protocol fee routing.",
+        "title": "Mainnet operations: the launch and enrolment consoles",
+        "body": "/launch and /enroll went live and enrolment opened. A coin "
+        "enrols by spending pump's one sharing-config change on the protocol's "
+        "destinations, so the SOL burn leg pays Solana's incinerator directly "
+        "and the protocol's share reaches its collection wallet -- both without "
+        "a program of ours, which is why this entry is not phase 5. The BURN "
+        "leg runs from that wallet: one transaction that buys $CHARLIE and "
+        "burns it, with the swap and the burn in the same transaction, "
+        "recorded in protocol-burns.json with the signature behind every unit "
+        "and a statement of whether the total is exact or a floor.",
+    },
+    {
+        "date": None,
+        "status": "GATED",
+        "title": "Phase 5 -- mainnet deploy, and revoking upgrade authority",
+        "body": "Held, not blocked. The cost is measured and published in the "
+        "2026-09-13 entry above; what remains is the deploy order, which is "
+        "deliberate. The absence-of-code guarantee only means anything once "
+        "the program is immutable, and "
+        "revoking upgrade authority is a one-way door that freezes every bug "
+        "permanently. Until this happens there is no mainnet program id, so no "
+        "mainnet address derives as a SOL-burn or token-burn vault, and the "
+        "indexer holds PROGRAM_ID = None rather than guessing.",
+    },
+    {
+        "date": None,
+        "status": "GATED",
+        "title": "/enroll, as a live path",
+        "body": "The page exists and describes the mechanism. Enrolling a coin "
+        "through the program is behind the same phase 5 gate.",
     },
 ]
 
@@ -180,7 +208,7 @@ _STYLE = """
 /* -- the log ----------------------------------------------------------
    A single column of dated entries. No timeline rail: a rail implies even
    spacing between milestones and these are not evenly spaced, and it reads
-   as a schedule running to a finish line that funding has not bought. */
+   as a schedule running to a finish line nobody has committed to. */
 .log { list-style: none; padding: 0; margin: var(--sp-xl) 0 0 0; }
 .log-entry {
   border-top: 1px solid var(--unchecked);
@@ -259,9 +287,11 @@ def render(*, now=None) -> str:
     # where it cannot be missed by someone who skimmed the entries.
     parts.append(
         '<aside class="gate-note">'
-        "<p>All five phases have shipped. Mainnet launch and enrollment "
-        "consoles are live in production with permanent on-chain fee routing "
-        "and automated SOL incinerator destruction.</p>"
+        "<p>No mainnet program is deployed. The devnet id above is a devnet id "
+        "and derives nothing on mainnet. Phase 5 is held rather than blocked: "
+        "its cost is measured and published, and what remains is the deploy "
+        "order. There is nothing to sign up for and nothing to buy in order to "
+        "be ready for it.</p>"
         "</aside>"
     )
 

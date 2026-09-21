@@ -8,7 +8,9 @@
     python -m indexer reconcile <mint> [--evidence PATH] [--write]   EVID-10's residual, as of an observation
     python -m indexer site <mint> [--evidence PATH] [--write] [--out]   WEB-02/WEB-03/WEB-06: the HTML page + raw JSON
     python -m indexer intake [--repo OWNER/REPO] [--limit N] [--dry-run]   D-34: read the public issue queue, measure submissions
-    python -m indexer buyback <mint> --keypair id.json [--lot 0.05] [--send] [--every N]   the BURN leg by hand: buy and burn in one tx
+    python -m indexer buyback <mint> --keypair id.json [--lot 0.05] [--send] [--every N]   a launched token's BURN leg: buy and burn in one tx
+    python -m indexer charlie-buyback --keypair id.json [--lot 0.05] [--send] [--every N]  the separate protocol $CHARLIE buy-and-burn leg
+    python -m indexer launch-buyback <mint> --keypair id.json --send   spend only that mint's credited shared-treasury balance
     python -m indexer burn <mint> --keypair id.json --amount N [--send]   burn held tokens (no swap)
 
 Exit codes are meant to be usable from a cron line or a CI step:
@@ -36,7 +38,9 @@ from . import (
     coverage,
     dilution_page,
     enroll_page,
+    launch_page,
     flywheel_page,
+    launchlab_page,
     phases_page,
     splitter_page,
     intake,
@@ -47,6 +51,7 @@ from . import (
 from .evidence import DEFAULT_DB_PATH, Evidence
 from .export import DEFAULT_EXPORT_DIR, export_all, import_all
 from .legs import GRANDFATHERED_SOL_BURN, Registry, split_of
+from . import legs
 from .observe import observe
 from .pump import read_bonding_curve, read_mint, read_sharing_config
 from .reconcile import DEFAULT_OUTPUT_PATH, reconcile, record as record_reconciliation, render as render_reconciliation
@@ -313,6 +318,10 @@ def _write_index(out_dir: Path, *, extra_counts: dict | None = None) -> list[Pat
     # advertises a route it has not generated -- /verify was published before
     # its page existed once already.
     written.append(enroll_page.write(out_dir))
+    # The launch door, beside the enrollment page it hands off to: the two
+    # are one mechanism entered from opposite ends, and the site must never
+    # link a route it has not written.
+    written.append(launch_page.write(out_dir))
     # The dilution page. Same rule as the others: generate it here so the site
     # never links a route it has not written.
     written.append(dilution_page.write(out_dir))
@@ -330,6 +339,8 @@ def _write_index(out_dir: Path, *, extra_counts: dict | None = None) -> list[Pat
     # than saying the proof has not been run.
     if flywheel_page.load() is not None:
         written.append(flywheel_page.write(out_dir))
+    if launchlab_page.load() is not None:
+        written.append(launchlab_page.write(out_dir))
     # The $CHARLIE splitter page, same rule: it has an input, and a page
     # that invented an empty run would be claiming a split moved nothing.
     if splitter_page.load_all() is not None:
@@ -566,13 +577,32 @@ def _distribute(args) -> int:
         payer = args.payer or distribute.STAND_IN_PAYER
         print(f"no key: simulating as {payer}" + ("" if args.payer else " (pump's fee wallet stands in as the payer)"))
     from .buyback import confirm as confirm_signature
-    try:
-        rows = distribute.run(rpc, mints, payer=payer, keypair=keypair,
-                              min_lamports=args.min_lamports,
-                              confirm=confirm_signature if keypair else None)
-    except distribute.DistributeError as exc:
-        print(f"refused: {exc}")
-        return 1
+    every = int(getattr(args, "every", 0) or 0)
+    while True:
+        try:
+            rows = distribute.run(rpc, mints, payer=payer, keypair=keypair,
+                                  min_lamports=args.min_lamports,
+                                  confirm=confirm_signature if keypair else None)
+        except distribute.DistributeError as exc:
+            print(f"refused: {exc}")
+            return 1
+        code = _report_distribution(rows)
+        if every <= 0:
+            return code
+        # The fast lane. A launch coin's first burn is the first payout to the
+        # incinerator, and a dev showing the coin to holders in its first hour
+        # should not wait for the hourly crank. Each cycle is the same
+        # permissionless call, 5,000 lamports, and an idle cycle is a success.
+        import time as _time
+        print(f"-- next cycle in {every}s (Ctrl-C to stop)")
+        try:
+            _time.sleep(every)
+        except KeyboardInterrupt:
+            print("stopped")
+            return code
+
+
+def _report_distribution(rows) -> int:
     failures = 0
     for row in rows:
         outcome = row["outcome"]
@@ -742,10 +772,21 @@ def _print_result(result: dict, as_json: bool) -> None:
         print(f"transaction (base64): {result['transaction_base64']}")
 
 
-def _buyback(args) -> int:
+def _buyback(args, *, route: str = "launch") -> int:
     from . import buyback
+    from . import buyback_routes
     rpc = RpcClient(_endpoints(args.rpc))
     wallet, keypair = _keeper_identity(args)
+    try:
+        if route == "charlie":
+            buyback_routes.charlie(wallet)
+            mint = buyback_routes.CHARLIE_MINT
+        else:
+            mint = args.mint
+            buyback_routes.launch(mint, wallet)
+    except ValueError as exc:
+        print(f"refused: {exc}", file=sys.stderr)
+        return 2
     lot = int(round(args.lot * buyback.LAMPORTS_PER_SOL))
     if args.sweep:
         # The wallet decides the lot. Read the balance once, here, so the
@@ -765,7 +806,7 @@ def _buyback(args) -> int:
                 raise SystemExit("--every runs a keeper: it needs --keypair and --send")
             budget = int(round(args.max_total * buyback.LAMPORTS_PER_SOL)) if args.max_total is not None else None
             summary = buyback.run_keeper(
-                rpc, args.mint, keypair, lot_lamports=lot, slippage_bps=args.slippage_bps,
+                rpc, mint, keypair, lot_lamports=lot, slippage_bps=args.slippage_bps,
                 every_seconds=args.every, max_total_lamports=budget, max_cranks=args.max_cranks,
                 also_burn_ui=args.also_burn, priority_micro_lamports=args.priority_fee,
                 log=lambda line: print(line, flush=True),
@@ -773,7 +814,7 @@ def _buyback(args) -> int:
             print(json.dumps(summary, sort_keys=True))
             return 0 if summary["cranks"] else 1
         plan = buyback.plan_for(
-            rpc, args.mint, wallet, lot_lamports=lot, slippage_bps=args.slippage_bps,
+            rpc, mint, wallet, lot_lamports=lot, slippage_bps=args.slippage_bps,
             also_burn_ui=args.also_burn, priority_micro_lamports=args.priority_fee,
         )
         if not args.json:
@@ -785,6 +826,52 @@ def _buyback(args) -> int:
         return 2
     _print_result(result, args.json)
     return 0 if not result.get("error") else 1
+
+
+def _charlie_buyback(args) -> int:
+    """Run the collection-wallet route that buys and burns $CHARLIE only."""
+    return _buyback(args, route="charlie")
+
+
+def _launch_buyback(args) -> int:
+    """Spend one launch mint's auditable credit from the fixed shared treasury."""
+    from . import buyback, launch_buybacks
+    rpc = RpcClient(_endpoints(args.rpc))
+    wallet, keypair = _keeper_identity(args)
+    if wallet != legs.LAUNCH_BUYBACK_DESTINATION:
+        print("refused: launch-buyback must use the fixed shared buyback treasury", file=sys.stderr)
+        return 2
+    path = Path(args.ledger)
+    try:
+        available = launch_buybacks.summary(path).get(args.mint, {}).get("available_lamports", 0)
+        requested = int(round(args.lot * buyback.LAMPORTS_PER_SOL))
+        lot = min(requested, available)
+        if lot < buyback.MIN_LOT_LAMPORTS:
+            print(f"nothing to burn yet: {available} credited lamports for this mint; minimum lot is {buyback.MIN_LOT_LAMPORTS}")
+            return 0
+        result = buyback.crank_once(rpc, args.mint, wallet, keypair, lot_lamports=lot,
+                                    slippage_bps=args.slippage_bps, priority_micro_lamports=args.priority_fee,
+                                    send=args.send)
+        if result.get("sent"):
+            launch_buybacks.record_burn(args.mint, result["plan"]["expected_cost"]["total"],
+                                        result["recorded"]["tokens_burned"], result["signature"], path=path)
+    except (buyback.BuybackError, launch_buybacks.LedgerError) as exc:
+        print(f"refused: {exc}", file=sys.stderr)
+        return 2
+    _print_result(result, args.json)
+    return 0 if not result.get("error") else 1
+
+
+def _launch_credit(args) -> int:
+    from . import buyback, launch_buybacks
+    try:
+        launch_buybacks.credit(args.mint, int(round(args.sol * buyback.LAMPORTS_PER_SOL)), args.signature,
+                               path=Path(args.ledger))
+    except launch_buybacks.LedgerError as exc:
+        print(f"refused: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps(launch_buybacks.summary(Path(args.ledger)).get(args.mint), sort_keys=True))
+    return 0
 
 
 def _burn(args) -> int:
@@ -955,6 +1042,11 @@ def build_parser() -> argparse.ArgumentParser:
     distribute_cmd.add_argument("--out", default=str(site.DEFAULT_OUTPUT_DIR), help=f"default {site.DEFAULT_OUTPUT_DIR}")
     distribute_cmd.add_argument("--keypair", help="the fee payer's key file; without it, simulate only")
     distribute_cmd.add_argument("--payer", help="the fee payer's address, for a simulation without a key file")
+    distribute_cmd.add_argument("--every", type=int, default=0, metavar="SECONDS",
+                                help="the fast lane: repeat the whole run every SECONDS until stopped, for a "
+                                     "coin launched minutes ago whose first payout should land as soon as "
+                                     "its vault clears pump's minimum rather than at the top of the hour. "
+                                     "Pair with --min-lamports 1 to let pump's own floor decide.")
     distribute_cmd.add_argument("--min-lamports", type=int, default=5_000_000,
                                 help="skip a vault holding less than this (default 5000000)")
     distribute_cmd.set_defaults(handler=_distribute)
@@ -1010,22 +1102,52 @@ def build_parser() -> argparse.ArgumentParser:
     keeper.add_argument("--send", action="store_true", help="sign and send (needs --keypair); without it the transaction is built and simulated only")
     keeper.add_argument("--json", action="store_true", help="one JSON object instead of prose")
 
-    buyback_cmd = sub.add_parser(
-        "buyback", parents=[common, keeper],
-        help="the BURN leg by hand: buy the coin on PumpSwap and burn it in the same transaction, from your own wallet",
-    )
-    buyback_cmd.add_argument("mint")
-    buyback_cmd.add_argument("--lot", type=float, default=0.05, help="SOL per crank, the maximum spend (default 0.05, ARCHITECTURE.md sec.2)")
-    buyback_cmd.add_argument("--sweep", action="store_true",
+    def add_buyback_options(command):
+        command.add_argument("--lot", type=float, default=0.05, help="SOL per crank, the maximum spend (default 0.05, ARCHITECTURE.md sec.2)")
+        command.add_argument("--sweep", action="store_true",
                              help="ignore --lot and spend what the wallet holds, less fee and rent headroom; "
                                   "below the minimum lot it stands down cleanly rather than failing")
-    buyback_cmd.add_argument("--slippage-bps", type=int, default=100, help="how much less than the quote the buy may deliver before it fails whole (default 100)")
-    buyback_cmd.add_argument("--also-burn", type=float, default=0.0, help="tokens you already hold to burn in the same transaction, on top of the ones bought")
-    buyback_cmd.add_argument("--priority-fee", type=int, default=0, help="priority fee in micro-lamports per compute unit (default 0)")
-    buyback_cmd.add_argument("--every", type=float, help="keeper mode: repeat every N seconds (needs --keypair and --send)")
-    buyback_cmd.add_argument("--max-total", type=float, help="keeper mode: stop once this many SOL has been committed")
-    buyback_cmd.add_argument("--max-cranks", type=int, help="keeper mode: stop after this many landed cranks")
+        command.add_argument("--slippage-bps", type=int, default=100, help="how much less than the quote the buy may deliver before it fails whole (default 100)")
+        command.add_argument("--also-burn", type=float, default=0.0, help="tokens you already hold to burn in the same transaction, on top of the ones bought")
+        command.add_argument("--priority-fee", type=int, default=0, help="priority fee in micro-lamports per compute unit (default 0)")
+        command.add_argument("--every", type=float, help="keeper mode: repeat every N seconds (needs --keypair and --send)")
+        command.add_argument("--max-total", type=float, help="keeper mode: stop once this many SOL has been committed")
+        command.add_argument("--max-cranks", type=int, help="keeper mode: stop after this many landed cranks")
+
+    buyback_cmd = sub.add_parser(
+        "buyback", parents=[common, keeper],
+        help="a launched token's BURN leg: buy its mint and burn it in one transaction",
+    )
+    buyback_cmd.add_argument("mint")
+    add_buyback_options(buyback_cmd)
     buyback_cmd.set_defaults(handler=_buyback)
+
+    charlie_buyback_cmd = sub.add_parser(
+        "charlie-buyback", parents=[common, keeper],
+        help="the protocol's separate leg: collection-wallet SOL buys and burns $CHARLIE",
+    )
+    add_buyback_options(charlie_buyback_cmd)
+    charlie_buyback_cmd.set_defaults(handler=_charlie_buyback)
+
+    launch_buyback_cmd = sub.add_parser(
+        "launch-buyback", parents=[common, keeper],
+        help="spend a launch mint's credited balance from the shared buyback treasury",
+    )
+    launch_buyback_cmd.add_argument("mint")
+    launch_buyback_cmd.add_argument("--ledger", default="state/launch-buybacks.jsonl",
+                                    help="append-only shared-treasury credit ledger")
+    launch_buyback_cmd.add_argument("--lot", type=float, default=0.05, help="maximum SOL per crank (default 0.05)")
+    launch_buyback_cmd.add_argument("--slippage-bps", type=int, default=100)
+    launch_buyback_cmd.add_argument("--priority-fee", type=int, default=0)
+    launch_buyback_cmd.set_defaults(handler=_launch_buyback)
+
+    launch_credit_cmd = sub.add_parser("launch-credit", parents=[common],
+                                       help="append a verified creator-fee payout to a launch mint's treasury credit")
+    launch_credit_cmd.add_argument("mint")
+    launch_credit_cmd.add_argument("--sol", required=True, type=float)
+    launch_credit_cmd.add_argument("--signature", required=True, help="the payout transaction signature")
+    launch_credit_cmd.add_argument("--ledger", default="state/launch-buybacks.jsonl")
+    launch_credit_cmd.set_defaults(handler=_launch_credit)
 
     burn_cmd = sub.add_parser(
         "burn", parents=[common, keeper],

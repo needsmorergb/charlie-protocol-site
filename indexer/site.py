@@ -61,20 +61,25 @@ def _artifact_name(mint: str, suffix: str) -> str:
 # fails the moment the two drift.
 NO_FEE_SPLIT_MARKER = "is not a fee-sharing config"
 
-# What a coin pays the protocol to be enrolled, in the two ways it can be
-# said. TOLL_BPS is the share of the coin's creator fee, which is the part
-# that is fixed; TOLL_HEADLINE_PERCENT is that same share expressed against
-# the trade, which is how every comparable protocol quotes its rate and so
-# how a reader will read ours. Duplicated from `legs` rather than imported,
-# for the reason above, and pinned to it by
-# `TestTheEnrolmentRate.test_the_rate_on_the_page_is_the_rate_in_legs`.
+# What a coin pays the protocol to be enrolled. TOLL_BPS is the value the
+# config actually carries and what `preflight` checks a split against.
+#
+# It is NOT how the rate is stated. On any public surface the fee is
+# "0.25% of each transaction" and nothing else: not as a share of the
+# creator fee, not as a derived per-trade figure, and not paired with
+# either as context. `TOLL_HEADLINE_PERCENT` and `legs.headline_percent()`
+# rendered that older framing and were removed with the copy that used
+# them. Duplicated from `legs` rather than imported, for the reason above,
+# and pinned to it by `TestTheEnrolmentRate`.
 TOLL_BPS = 2500
-TOLL_HEADLINE_PERCENT = "0.24"
+TOLL_RATE_SENTENCE = "0.25% of each transaction"
 # `observe` sets this `error_kind` when the bonding curve's creator is not a
 # fee-sharing config. A structured field beats matching an error message, and
 # the string marker above is kept only so a record written before this field
 # existed still renders as the finding it is.
 NO_SHARING_CONFIG = "no_sharing_config"
+# observe.CREATOR_REPLACED, copied for the same reason as the marker above.
+CREATOR_REPLACED = "creator_replaced"
 
 SITE_ORIGIN = "https://charlieprotocol.fun"
 META_IMAGE_SRC = "/assets/meta-image.png"
@@ -847,7 +852,8 @@ RISK_GENERATOR_ANCHOR = "risk-generator-unverified"
 
 _RISKS = (
     "No program is deployed.",
-    "There is no funding, and Phase 5 is gated on SOL that does not exist yet.",
+    "Phase 5 is held, not blocked: the mainnet deploy is sequenced behind a "
+    "production pipeline run rather than waiting on money.",
     "Revoking upgrade authority is a one-way door.",
     "The opening-balance mechanism is dormant on live data (D-07).",
 )
@@ -918,26 +924,34 @@ def _enrolment(observation) -> str:
     check = next((c for c in (observation.checks or ()) if c.name == "PROTOCOL_SHARE"), None)
     config = observation.config
     revoked = bool(config is not None and getattr(config, "admin_revoked", False))
-    if check is None or check.status == "UNCHECKED":
+    reading = invariants.enrollment_reading(check, getattr(observation, "mint", None))
+    if reading is None or reading == invariants.CLOSED:
         body = (
             "<strong>Enrollment is not open.</strong> The protocol's collection "
             "address is not set, so no coin can carry its share yet."
         )
-    elif check.status == "PASS":
+    elif reading == invariants.EXEMPT:
+        # The exemption is declared, not inferred: the check's own detail
+        # carries the reason verbatim from `legs.ENROLLMENT_EXEMPT`.
+        detail = check.detail[:1].upper() + check.detail[1:]
+        body = f"<strong>Not graded on enrollment.</strong> {esc(detail)}"
+    elif reading == invariants.ENROLLED:
         body = (
             f"<strong>Enrolled in Charlie Protocol.</strong> {esc(check.detail)}. "
             "pump pays every shareholder from this coin's creator vault, "
             + ("and the config is <code>admin_revoked</code>: its one change is "
-               "spent, so no key can alter this, including the coin's own admin."
+               "spent, so no key the coin's admin or Charlie holds can alter this; "
+               "only pump's admin can, through admin_cto."
                if revoked else
                "and its admin can still change the config once -- so this is "
-               "enrolled until then, and permanent after.")
+               "enrolled until then, and out of its admin's hands after.")
         )
     else:
+        detail = check.detail[:1].upper() + check.detail[1:]
         body = (
-            f"<strong>Not enrolled.</strong> {esc(check.detail)}. "
-            + ("The config is <code>admin_revoked</code>, so its split is permanent "
-               "and this coin cannot enroll."
+            f"<strong>Not enrolled.</strong> {esc(detail)}. "
+            + ("The config is <code>admin_revoked</code>, so its admin cannot change "
+               "the split and this coin cannot enroll."
                if revoked else
                'Its admin can enroll it at <a href="/enroll">/enroll</a>: one '
                "signature sets the split, and pump enforces it from then on.")
@@ -2109,6 +2123,23 @@ def render(observation, *, now=None) -> str:
         )
         return _document(f"{mint} -- Charlie Protocol", body + f"<script>{_COPY_SCRIPT}</script>")
 
+    if getattr(observation, "error_kind", None) == CREATOR_REPLACED:
+        # The chain answered, and the answer is that this coin's routing was
+        # changed from outside: a coin recorded with a split whose bonding
+        # curve now names another creator (observe._creator_replaced).
+        body = (
+            header
+            + '<section class="error-state">'
+            + "<h2>This coin's creator was replaced</h2>"
+            + f"<p>{html.escape(observation.error or '')}</p>"
+            + "<p>Its creator fee now goes to that address, not to the split it "
+            "enrolled with. pump's admin can reset any coin's creator and fee "
+            "sharing through <code>admin_cto</code>; neither the coin's creator "
+            "nor Charlie Protocol can undo it.</p>"
+            + "</section>"
+        )
+        return _document(f"{mint} -- Charlie Protocol", body + f"<script>{_COPY_SCRIPT}</script>")
+
     if observation.error:
         # A read that failed says nothing about the coin, so it must not fall
         # through to a report -- including a partial read that already got a
@@ -2236,11 +2267,14 @@ def index_rows(records, known_pages=frozenset()) -> list[str]:
         # Enrolled or not, from the record's own PROTOCOL_SHARE check. Not a
         # figure: it says what the coin's split IS, never how much moved.
         share = next((c for c in (gated.get("checks") or []) if c.get("name") == "PROTOCOL_SHARE"), None)
-        if share and share.get("status") == "PASS":
+        reading = invariants.enrollment_reading(share, mint)
+        if reading == invariants.ENROLLED:
             enrolled_html = '<span class="index-enrolled">enrolled</span>'
-        elif share and share.get("status") == "FAIL":
+        elif reading in (invariants.NOT_ENROLLED, invariants.UNDERPAYING):
             enrolled_html = '<span class="index-not-enrolled">not enrolled</span>'
         else:
+            # A closed door or an exempt coin carries no marker: neither is a
+            # statement about whether the coin joined.
             enrolled_html = ""
 
         rows.append(
@@ -2406,6 +2440,10 @@ def render_verify(*, now=None, example_mint=None) -> str:
         '<p><strong>Own a coin?</strong> '
         '<a href="/enroll">Set where its creator fee goes</a> -- connect the '
         "wallet that administers it and route the fee yourself.</p>"
+        '<p><strong>Launching one?</strong> '
+        '<a href="/launch">Create it here with its burn built in</a> -- pump '
+        "makes the coin, your wallet signs, and the fee destinations are set "
+        "in a second transaction right after it.</p>"
         "</main>"
         f'<p class="meta">generated at {esc(stamp)}</p>'
         f'<p class="meta snapshot-note">{esc(_SNAPSHOT_NOTE)}</p>'
@@ -2874,16 +2912,22 @@ def _supply_refusal(observation) -> str:
 
 # Two sentences, adapted from PROJECT.md's own Project section rather than
 # invented marketing copy. The second states the claims rule in the summary
-# and not only in the full spec: a burn claim requires a destination that
-# passes `SOL_BURN_UNSPENDABLE`, and $CHARLIE's does not. Keeping that
-# admission here is what shows the standard is not graded by its author.
+# and not only in the full spec: the word "burned" is permitted only where the
+# destination is provably one SOL does not come back from.
+#
+# It used to end "and $CHARLIE's is not." That was the claim retracted on
+# 2026-09-04, left standing here after the check itself was corrected.
+# `SOL_BURN_UNSPENDABLE` passes for $CHARLIE: `burn111...111` is a recognised
+# burn address and what reaches it is out of circulation. A landing page that
+# contradicts its own check is the failure mode this project exists to catch.
 _LANDING_DESCRIPTION = (
     "Charlie Protocol is a fee-routing and verification standard for pump.fun "
     "coins, naming three destinations for creator fees -- BURN (SOL), BURN (token), OPS -- "
     "and specifying the part nobody else does: what a coin is permitted to "
     "claim about them in public. Both burn: a SOL burn is deflation, SOL sent where no key can "
     "spend it, a BURN destroys token supply. The word is only permitted where "
-    "the destination is provably unspendable -- and $CHARLIE's is not."
+    "the destination is provably one SOL does not come back from, which is "
+    "checked per coin and published either way."
 )
 
 
@@ -2897,25 +2941,27 @@ _LANDING_SOON_HEADING = "Launch with Charlie Protocol"
 # `invariants.FIGURES`, and the no-figure-names test covers the whole
 # rendered document, prose included.
 _LANDING_SOON = (
+    "Launching is open at /launch. A coin is created there through pump's "
+    "own create instruction, with the wallet that signs as its creator, and "
+    "its fee destinations are set in the next transaction: a share to "
+    "Solana's incinerator, the protocol's share, and "
+    "the rest wherever the creator says. pump lets those destinations be "
+    "changed exactly once, and launching this way spends that one change at "
+    "creation, on purpose. Two wallet approvals; the key never leaves the "
+    "wallet, and nothing here holds the coin at any point.",
     "When it ships, a coin will name its three fee destinations when it is "
     "created -- SOL_BURN, BURN and OPS -- and its SOL burn vault will be derived by "
     "the program rather than chosen by whoever deploys it. The coin then gets "
     "a page like this one, on which no figure renders unless a passing check "
     "backs it.",
     f"Enrollment is open at /enroll. The protocol's share is "
-    f"{TOLL_HEADLINE_PERCENT}% of every trade -- pump pays the coin's creator a fee "
-    f"out of each one, and the protocol takes {TOLL_BPS // 100}% of that fee. A coin "
+    f"{TOLL_RATE_SENTENCE}, fixed. A coin "
     "is enrolled when its pump fee-sharing config pays the protocol's "
     "collection wallet that share. pump enforces the config, paying every "
     "destination from the coin's creator vault, and once the coin's one "
-    f"change is spent no key can alter it. The other {100 - TOLL_BPS // 100}% goes "
-    "wherever the coin's creator sends it. Every coin page and the index say "
+    "change is spent no key can alter it. Every other destination the coin "
+    "names is the creator's to choose. Every coin page and the index say "
     "whether a coin is enrolled, read from its config on the chain.",
-    "The trade figure moves with pump, not with us: the quarter is fixed, "
-    "and pump's creator fee is 95 bps of the trade at the tier a coin lands "
-    "on when it graduates, 30 bps while it is still on its bonding curve, "
-    "and as little as 5 bps above roughly 98,240 SOL of market cap. The "
-    "quoted rate is the graduation tier.",
     "Our program is written and deployed to DEVNET, not to mainnet. It is "
     "four instructions and the vaults it derives, and a reader can check "
     "every line of it in the repository linked below. No mainnet program is "
@@ -3050,6 +3096,8 @@ def render_landing(observation, *, now=None) -> str:
         "read while you wait.</p>"
         '<p class="meta">Own a coin? <a href="/enroll">Set where its creator '
         "fee goes</a>.</p>"
+        '<p class="meta">Launching one? <a href="/launch">Create it with its '
+        "burn built in</a>.</p>"
         # The one page that argues rather than reports, linked from the hero
         # because the question it answers is the one a reader arrives with.
         '<p class="meta">Hold SOL? <a href="/dilution">See what issuance '

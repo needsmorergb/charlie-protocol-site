@@ -14,7 +14,7 @@
     },
     "api/launch.py": {
       "includeFiles": "{indexer/**,web/**}",
-      "maxDuration": 20
+      "maxDuration": 60
     }
   },
   "rewrites": [
@@ -62,12 +62,12 @@
       "destination": "/coins.html"
     },
     {
-      "source": "/launch",
-      "destination": "/launch.html"
-    },
-    {
       "source": "/enroll",
       "destination": "/enroll.html"
+    },
+    {
+      "source": "/launch",
+      "destination": "/launch.html"
     },
     {
       "source": "/dilution",
@@ -88,6 +88,10 @@
     {
       "source": "/charlie-flywheel",
       "destination": "/charlie-flywheel.html"
+    },
+    {
+      "source": "/launchlab",
+      "destination": "/launchlab.html"
     },
     {
       "source": "/verify",
@@ -112,7 +116,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https:; connect-src 'self' https: https://va.vercel-scripts.com; form-action 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https:; connect-src 'self' https://va.vercel-scripts.com; form-action 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
         },
         {
           "key": "X-Content-Type-Options",

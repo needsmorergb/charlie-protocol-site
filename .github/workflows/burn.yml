@@ -79,12 +79,24 @@ jobs:
       # One crank per scheduled run rather than a long-lived --every loop:
       # cron is the repetition, and a job that exits is a job that cannot
       # wedge holding a key.
+      # The two routes are separate commands now, and `buyback` REFUSES
+      # $CHARLIE: `buyback_routes.launch()` sends it to `charlie-buyback`,
+      # which is the only route allowed to spend the collection wallet. That
+      # refusal exits 2, so calling the old command with this workflow's
+      # default mint would have failed every scheduled run.
       - name: Buy the coin and burn it, in one transaction
         run: |
-          if [ -n "$LOT" ]; then
-            python -m indexer buyback "$MINT" --lot "$LOT" $MODE
+          if [ "$MINT" = "8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump" ]; then
+            CMD="charlie-buyback"
+            set --
           else
-            python -m indexer buyback "$MINT" --sweep $MODE
+            CMD="buyback"
+            set -- "$MINT"
+          fi
+          if [ -n "$LOT" ]; then
+            python -m indexer "$CMD" "$@" --lot "$LOT" $MODE
+          else
+            python -m indexer "$CMD" "$@" --sweep $MODE
           fi
 
       - name: Forget the key

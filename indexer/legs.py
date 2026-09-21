@@ -163,10 +163,36 @@ _DISPLAY_NAME = {SOL_BURN: "sol_burn", BURN: "burn", OPS: "ops"}
 # leg, not this one.
 SOL_BURN_INCINERATOR = "1nc1nerator11111111111111111111111111111111"
 
-# PROTOCOL.md sec.3: $CHARLIE's vault, shared with other creators, predating the
-# spec. Grandfathered, weaker invariant, no new entries by default -- adding one
-# is a spec decision, not a code change.
-GRANDFATHERED_SOL_BURN = frozenset({"burn111111111111111111111111111111111111111"})
+# Recognised SOL burn destinations that are ON the ed25519 curve.
+#
+# Off-curve addresses need no entry here: `sol_burn_unspendable` passes them
+# on the keyless clause, which is what carries the incinerator and every
+# protocol vault. This set exists only for addresses a key could in principle
+# sign for, where the standing rests on convention rather than on the runtime.
+#
+# ADMISSION RULE, and it is deliberately hard to satisfy. An address goes in
+# here only when its use as a burn address predates and is independent of this
+# protocol, it is recognised as one across the ecosystem rather than by its own
+# coin's say-so, and no counterexample of SOL leaving it is known. "The dev
+# calls it a burn address" is not one of those things. Each entry carries the
+# reason it qualifies, in its own words, so a stranger can argue with the
+# specific claim rather than with the set.
+#
+# Widening this set is a spec decision. It is the only place in the codebase
+# where a wrong line silently converts somebody's spendable wallet into a
+# green burn badge, which is the exact failure this check exists to prevent.
+RECOGNISED_SOL_BURN = {
+    "burn111111111111111111111111111111111111111": (
+        "the canonical Solana burn address. Predates this spec, shared across "
+        "many coins, and used as a burn destination by convention long before "
+        "$CHARLIE. PROTOCOL.md sec.3 grandfathers it, and because it is shared "
+        "its inflows carry the weaker `<=` invariant rather than `==`."
+    ),
+}
+
+# The set the checks consume. Derived rather than typed twice, so a new entry
+# cannot land in one and be forgotten in the other.
+GRANDFATHERED_SOL_BURN = frozenset(RECOGNISED_SOL_BURN)
 
 # The protocol program is not deployed. Until it is, no address can be derived
 # as a SOL-burn or token-burn PDA, and every enrolled-looking split reads as OPS. That is
@@ -192,6 +218,37 @@ PROGRAM_ID: str | None = None
 # coin's page.
 TOLL_BPS = 2500
 TOLL_DESTINATION: str | None = "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8"
+
+# Shared, separately keyed treasury for launch-token buybacks. A launch's
+# creator chooses its allocation; the address itself cannot be substituted.
+LAUNCH_BUYBACK_DESTINATION: str = "6BHusg5vZoagPDMe5xZzPhLSvkHiKcWwELYzwbMG7Bjo"
+
+# Coins the enrollment check does not apply to, and why.
+#
+# This is an exemption list on a protocol's own check, which is the kind of
+# thing that is fatal when it is discovered rather than declared. So it is
+# declared: the reason is published on the coin's page verbatim, the set is
+# named here rather than inferred, and there is exactly one entry.
+#
+# It exists because grading a coin against a protocol it never joined and
+# CANNOT join is a category error this project already made once and retracted
+# on 2026-09-04. $CHARLIE's sharing config is `admin_revoked` and its single
+# irreversible update is spent, so nobody -- its deployer included -- can point
+# its fees at the collection wallet. A red FAIL for that is the same error in
+# a new place: it grades a coin on an action no key on the chain can perform.
+#
+# A coin that CAN enroll and has not is not exempt. It reads not-applicable,
+# which is a different thing and is decided in `invariants.protocol_share`.
+ENROLLMENT_EXEMPT: dict[str, str] = {
+    "8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump": (
+        "$CHARLIE is the protocol's reference implementation and cannot enroll "
+        "in it. Its pump sharing config is admin_revoked and its one "
+        "irreversible update is spent, so its split is permanent and only pump "
+        "can reset it. It routes 100% of its creator fee to a burn address by "
+        "force rather than by choice, and the protocol is built on top of it "
+        "rather than run by it."
+    ),
+}
 
 # Coins that enrolled before the rate changed, and the rate they enrolled at.
 #
@@ -225,16 +282,11 @@ PUMP_CREATOR_FEE_BPS_AT_GRADUATION = 95
 PUMP_CREATOR_FEE_BPS_ON_CURVE = 30
 
 
-def share_of_volume_percent(creator_fee_bps: int = PUMP_CREATOR_FEE_BPS_AT_GRADUATION,
-                            rate_bps: int | None = None) -> float:
-    """The toll as a percentage of trade volume at a given creator-fee tier."""
-    rate = TOLL_BPS if rate_bps is None else rate_bps
-    return creator_fee_bps * rate / 10_000 / 100
-
-
-def headline_percent(digits: int = 2) -> str:
-    """The advertised number: the toll as a share of a trade, at graduation."""
-    return f"{share_of_volume_percent():.{digits}f}"
+# `share_of_volume_percent` and `headline_percent` were removed with the copy
+# that rendered them. They expressed the toll as a share of a trade, which is
+# the one framing the protocol's fee may not be stated in: on any public
+# surface it is "0.25% of each transaction" and nothing else. TOLL_BPS below
+# is the value a config carries, not a way of stating the rate.
 
 
 def required_bps(mint: str | None = None) -> int:

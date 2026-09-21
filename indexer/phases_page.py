@@ -15,9 +15,10 @@ earned.
 DATES, AND WHY THIS PAGE CARRIES THEM WHEN `buildlog_page` REFUSES TO.
 That module bans future dates for two reasons, and only one of them is
 general. The general one is that it is a LOG: a record of what happened has no
-business carrying what has not. The specific one was that phase 5 was gated on
-funding that did not exist, so any date beside it was a promise about someone
-else's money.
+business carrying what has not. The specific one was that phase 5 had no
+measured cost, so any date beside it was a guess wearing a plan's clothes.
+That cost has since been measured and published, which retires the second
+reason and leaves only the first.
 
 This page is a plan, not a log, and a plan with no dates is not a plan. So it
 carries two kinds of date and never confuses them:
@@ -96,10 +97,10 @@ _UNDEFINED = "<<UNDEFINED>>"
 # phase, and it is a fact about the world rather than a completion claim:
 #
 # stated: "DEVNET"  -- on devnet only, id given, mainnet is not this
-#         "GATED"   -- blocked on funding that does not exist. Phase 5 has
-#                      gates AND this, because "not yet paid for" is not the
-#                      same as "not yet measured" and OPEN would imply the
-#                      second. Its checks still render their own status
+#         "GATED"   -- held, and the entry names what is holding it. Phase 5
+#                      has gates AND this, because "not started yet" is not
+#                      the same as "not yet measured" and OPEN would imply
+#                      the second. Its checks still render their own status
 #                      beneath it, so nothing is hidden by saying so.
 _PHASES = (
     {
@@ -193,12 +194,41 @@ _PHASES = (
     {
         "n": 5,
         "title": "Mainnet deploy, and revoking upgrade authority",
-        "landed": "2026-09-18",
-        "what": "Mainnet deployment complete with ungated launch and enrollment consoles. The 0.25% buy-and-burn protocol share and permanent fee routing pipeline is live in production.",
-        "criterion": "Mainnet deployment landed. Launch and enroll consoles are live in production, routing creator trading fees with permanent on-chain split verification and automated burn attribution.",
-        "gates": (),
-        "stated": "SHIPPED",
-        "blocked_by": None,
+        "landed": None,
+        "what": "Mainnet operations began on 2026-09-18: /launch and /enroll "
+        "are live, coins enrol by spending pump's one sharing-config change on "
+        "the protocol's destinations, and the BURN leg has bought and burned "
+        "$CHARLIE in a landed transaction. None of that is this phase. "
+        "Enrolment routes fees through pump's own config and needs no program "
+        "of ours -- the SOL burn leg pays Solana's incinerator directly, as 419 "
+        "sharing configs on mainnet already do. This phase is the protocol "
+        "program itself on mainnet, and then the door that makes its absences "
+        "permanent. The absence-of-code guarantee only means anything once the "
+        "program is immutable, and revoking upgrade authority is a one-way "
+        "door that freezes every bug permanently. So the order is: deploy "
+        "upgradeable, run the whole pipeline in production against one live "
+        "coin including a graduated one, then revoke and publish a "
+        "reproducible build.",
+        "criterion": "The two checks that have no mainnet program to measure "
+        "stop reading UNCHECKED and return a verdict. Until then the indexer "
+        "holds PROGRAM_ID = None rather than guessing, so no mainnet address "
+        "derives as a SOL-burn or token-burn vault.",
+        "gates": ("BURN_SPEND", "BURN_ATOMIC"),
+        "stated": "GATED",
+        # TARGETS ARE COMMITMENTS. Set these yourself; nothing generates them.
+        #
+        # There is no target here any more, and its absence is the honest
+        # state rather than an omission. The 2026-09-25 target set on
+        # 2026-09-13 rested on a deploy expected on the 18th; the deploy is
+        # priced and unfunded, and a date on an unfunded deliverable is a
+        # schedule this project cannot keep. It would also have aged into
+        # SLIPPED, which this page colours as a failure -- correctly, and for
+        # a reason that was never about the engineering.
+        "blocked_by": "funding. The deploy is priced in the build log and has "
+        "not been paid for. The final figure will be lower than the one "
+        "published there -- the allocation can be fitted to the program rather "
+        "than doubled -- but it is not known yet, because it depends on the "
+        "compiled size and crank_burn and crank_charlie_burn are not written.",
     },
 )
 
@@ -217,8 +247,8 @@ _STATUS_CLASS = {
 _STYLE = """
 /* -- the phases -------------------------------------------------------
    Deliberately not a timeline and deliberately not a progress bar. Both
-   imply a finish line on a schedule, and the last phase is gated on money
-   that does not exist. This is a list of conditions, ordered, with the
+   imply a finish line on a schedule, and the last phase is held rather than
+   scheduled. This is a list of conditions, ordered, with the
    state of each condition read off the checks rather than asserted. */
 .phases { list-style: none; padding: 0; margin: var(--sp-xl) 0 0 0; }
 .phase {
@@ -334,8 +364,8 @@ def _phase_state(phase, by_name, today=None) -> tuple:
     A gated phase has no stated value to fall back on. With no observation its
     checks read UNCHECKED, so it renders OPEN -- never SHIPPED, which only a
     check returning a verdict can produce. The one exception is a phase whose
-    `stated` says it is blocked on something no check measures (phase 5's
-    funding): that is a fact about the world, not a claim of completion, and
+    `stated` says it is held on something no check measures (phase 5's deploy
+    order): that is a fact about the world, not a claim of completion, and
     OPEN would misread it as merely unmeasured.
     """
     gates = phase["gates"]
@@ -359,8 +389,8 @@ def _phase_state(phase, by_name, today=None) -> tuple:
     if settled:
         return "SHIPPED", tuple(rows), True
 
-    # Blocked on something no check measures (phase 5's funding). Said plainly
-    # rather than rendered OPEN, which would read as "in progress".
+    # Held on something no check measures (phase 5's deploy order). Said
+    # plainly rather than rendered OPEN, which would read as "in progress".
     if phase.get("stated") == "GATED":
         return "GATED", tuple(rows), True
 
@@ -503,9 +533,11 @@ def render(checks=None, *, now=None) -> str:
         '<aside class="gate-note">'
         "<p>No mainnet program is deployed. The program is written and "
         "deployed to devnet, and a devnet id derives nothing on mainnet. "
-        "Phase 5 is funding-gated and the gate is closed. There are no dates "
-        "on this page for anything that has not happened, because a date on "
-        "an ungated deliverable is a schedule this project cannot keep.</p>"
+        "Phase 5 is held rather than blocked: its cost is measured and "
+        "published, and what remains is the deploy order. A target on this "
+        "page is a commitment rather than a forecast: when one passes with "
+        "its criterion unmet the page says so and prints how late it is, and "
+        "the date is not moved.</p>"
         "</aside>"
     )
 
