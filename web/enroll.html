@@ -831,6 +831,9 @@
     if (!buybackRow) { problems.push('Every Charlie split includes the shared buyback treasury. Choose its percentage; the address is fixed.'); }
     if (total() !== 10000) { problems.push('The shares of the rest must total exactly 100.00%.'); }
     if (walletIndex >= 0) { out[walletIndex].bps += rest - allocated; }
+    if (out.some(function (r) { return !Number.isInteger(r.bps) || r.bps <= 0; })) {
+      problems.push('A share is too small after on-chain rounding. Increase it or remove that destination.');
+    }
 
     var shares = state.toll ? [state.toll.address + ':' + state.toll.bps] : [];
     out.forEach(function (r) { shares.push(r.address + ':' + r.bps); });
