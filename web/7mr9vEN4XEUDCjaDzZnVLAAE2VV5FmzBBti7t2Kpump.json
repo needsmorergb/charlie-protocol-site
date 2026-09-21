@@ -105,11 +105,11 @@
     {
       "actual": "500",
       "backs": [],
-      "detail": "the split pays the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 500 bps, at or above the 500 bps every enrolled coin carries",
+      "detail": "this coin is not enrolled: the split pays the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 500 bps but lacks what every enrolled coin carries: the shared buyback treasury row (6BHusg5vZoagPDMe5xZzPhLSvkHiKcWwELYzwbMG7Bjo)",
       "equation": "bps(TOLL_DESTINATION) >= 500",
-      "expected": ">= 500",
+      "expected": ">= 500, plus the incinerator and buyback treasury rows",
       "name": "PROTOCOL_SHARE",
-      "status": "PASS"
+      "status": "UNCHECKED"
     },
     {
       "actual": "a burn destination",
@@ -237,7 +237,7 @@
     "supply": 1000000000000000,
     "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
   },
-  "observed_at": 1789994899.69598,
+  "observed_at": 1790027912.0635958,
   "publishable": [
     "split"
   ],
