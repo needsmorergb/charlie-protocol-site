@@ -47,7 +47,7 @@
     .split-explainer { display: grid; gap: 20px 28px; margin: 4px 0 28px; }
     .split-explainer h3 { font-size: 15px; margin: 0 0 6px; }
     .split-explainer p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
-    @media (min-width: 900px) { .split-explainer { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (min-width: 900px) { .split-explainer { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
     .share-row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; padding: 12px; border-left: 2px solid var(--border-glass); background: rgba(255,255,255,0.02); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
     .share-row .share-addr { flex: 1 1 100%; font: 400 13px var(--font-mono); }
@@ -292,12 +292,16 @@
           <p>Fixed at <strong>0.25% of each transaction</strong>. It buys and burns $CHARLIE, sustaining the decentralized crank infrastructure. You cannot edit it.</p>
         </div>
         <div>
-          <h3>Sol-Incinerator Row</h3>
-          <p>Lamports routed to <code class="mono" style="font-size: 11px;">1nc1nerator...</code> are destroyed at the block boundary to permanently reduce global SOL inflation.</p>
+          <h3>Sol-Incinerator Row (Fixed)</h3>
+          <p>Every split keeps this row. Lamports routed to <code class="mono" style="font-size: 11px;">1nc1nerator...</code> are destroyed to permanently reduce global SOL inflation. The address is fixed; you choose its share, 1% of the rest or more.</p>
+        </div>
+        <div>
+          <h3>Token Buyback Row (Fixed)</h3>
+          <p>Every split also includes the shared buyback treasury, the same row every coin launched here carries. The address is fixed; you choose its share, above 0%.</p>
         </div>
         <div>
           <h3>Your Rows & Balance</h3>
-          <p>All rows together must total exactly 100.00%. The remaining share defaults to your creator wallet, or you can add custom destination rows.</p>
+          <p>All rows together must total exactly 100.00% of the rest. The remaining share defaults to your creator wallet, or you can add custom destination rows.</p>
         </div>
       </div>
 
@@ -326,7 +330,7 @@
       <span class="cyber-corner cyber-corner--br"></span>
       <div class="eyebrow">STEP 4 // SIGN</div>
       <h2 id="reviewTitle">Check & Sign Split</h2>
-      <p>Simulate the atomic instruction on mainnet, review the basis point breakdown, and sign once with your wallet.</p>
+      <p>Simulate the atomic instruction on mainnet, review the basis point breakdown, and approve it with your wallet.</p>
 
       <div class="row-actions">
         <button type="button" id="build" class="btn-plain">Dry-run the enrollment (nothing signed)</button>
@@ -456,6 +460,8 @@
     wallet: null,
     mint: null,
     toll: null,
+    buyback: null,
+    incinerator: null,
     create: false,
     built: null,
     builtAt: 0,
@@ -466,6 +472,22 @@
     revision: 0
   };
   var INCINERATOR = '1nc1nerator11111111111111111111111111111111';
+  // Fallbacks only: /api/enroll names the buyback treasury and the incinerator
+  // floor, and the page prefers those. The server refuses a split without
+  // either row, so these checks are not the only guard.
+  var BUYBACK_TREASURY = '6BHusg5vZoagPDMe5xZzPhLSvkHiKcWwELYzwbMG7Bjo';
+  var MIN_BURN_BPS = 75;
+
+  function incineratorAddress() {
+    return (state.incinerator && validAddress(state.incinerator.address || '')) ? state.incinerator.address : INCINERATOR;
+  }
+  function buybackAddress() {
+    return (state.buyback && validAddress(state.buyback.address || '')) ? state.buyback.address : BUYBACK_TREASURY;
+  }
+  function minBurnBps() {
+    var m = state.incinerator && state.incinerator.min_bps;
+    return (Number.isInteger(m) && m > 0) ? m : MIN_BURN_BPS;
+  }
 
   function $(id) { return document.getElementById(id); }
 
@@ -595,8 +617,10 @@
         return;
       }
 
-      state.toll = d.toll || { address: '8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8', bps: 25 };
+      state.toll = d.toll || { address: '8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8', bps: 2500 };
       $('protocolBps').value = state.toll.bps;
+      state.buyback = d.buyback || null;
+      state.incinerator = d.incinerator || null;
 
       if (d.cashback === true) {
         say('coinNote', 'This coin has pump Trader Cashback enabled. Its creator fee goes entirely to traders, so every leg of any split would be zero. Enrolling would waste your one change.', 'bad');
@@ -652,21 +676,27 @@
     return t;
   }
 
-  function addRow(addr, pct, isWallet, isBurn) {
+  function addRow(addr, pct, isWallet, isBurn, isBuyback) {
     if (state.locked) return;
     var row = document.createElement('div');
     row.className = 'share-row';
     row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', isBurn ? 'Incinerator share; the address is fixed' : (isBuyback ? 'Shared buyback treasury; the address is fixed' : (isWallet ? 'Creator wallet share' : 'Fee destination')));
     if (isWallet) row.dataset.wallet = 'true';
     if (isBurn) row.dataset.burn = 'true';
+    if (isBuyback) row.dataset.buyback = 'true';
 
+    // The incinerator and buyback rows are part of every enrolled coin, as on
+    // /launch: their addresses are fixed and they cannot be removed. Only
+    // their shares are the dev's to set.
     var a = document.createElement('input');
     a.className = 'share-addr';
     a.value = addr || '';
-    a.placeholder = isWallet ? 'Your creator wallet' : (isBurn ? 'Sol-Incinerator (Fixed)' : 'Destination wallet address');
+    a.placeholder = isWallet ? 'Your creator wallet' : (isBurn ? 'Sol-Incinerator (Fixed)' : (isBuyback ? 'Token buyback (Fixed)' : 'Destination wallet address'));
     a.spellcheck = false;
     a.autocomplete = 'off';
-    if (isBurn || isWallet) a.readOnly = true;
+    a.setAttribute('aria-label', 'Destination address');
+    if (isBurn || isBuyback || isWallet) a.readOnly = true;
 
     var b = document.createElement('input');
     b.className = 'share-bps';
@@ -676,6 +706,7 @@
     b.max = '100';
     b.inputMode = 'decimal';
     b.value = pct === undefined ? '' : pct;
+    b.setAttribute('aria-label', 'Percent of the rest');
 
     var unit = document.createElement('span');
     unit.className = 'share-unit';
@@ -683,11 +714,12 @@
 
     var badge = document.createElement('span');
     badge.className = 'burn-badge';
-    badge.textContent = isBurn ? 'Sol-Incinerator' : (isWallet ? 'Creator Wallet' : 'Custom');
+    badge.textContent = isBurn ? 'Sol-Incinerator' : (isBuyback ? 'Token buyback' : (isWallet ? 'Creator Wallet' : 'Custom'));
 
     var what = document.createElement('span');
     what.className = 'share-what';
-    if (isBurn) what.textContent = 'Permanently destroys SOL to decrease network inflation';
+    if (isBurn) what.textContent = 'Permanently destroys SOL. Fixed address; 1% of the rest or more';
+    else if (isBuyback) what.textContent = 'Shared buyback treasury. Fixed address; you choose its share';
     else if (isWallet) what.textContent = 'Your creator wallet address';
     else what.textContent = 'Secondary operational or team treasury destination';
 
@@ -696,7 +728,7 @@
 
     [a, b, unit, badge, what].forEach(function (el) { row.appendChild(el); });
 
-    if (!isWallet && !isBurn) {
+    if (!isWallet && !isBurn && !isBuyback) {
       var rm = document.createElement('button');
       rm.type = 'button';
       rm.className = 'rm';
@@ -737,13 +769,15 @@
 
   function openSplitForm() {
     $('shares').textContent = '';
-    var tollPct = (state.toll && state.toll.bps ? state.toll.bps : 25) / 100;
+    var tollPct = (state.toll && state.toll.bps ? state.toll.bps : 2500) / 100;
     
-    // Add Sol-Incinerator row (default 20%)
-    addRow(INCINERATOR, 20, false, true);
+    // Fixed rows, the same ones /launch pins: the incinerator (default 20%)
+    // and the shared buyback treasury (default 20%).
+    addRow(incineratorAddress(), 20, false, true);
+    addRow(buybackAddress(), 20, false, false, true);
 
-    // Add Creator Wallet row (default 80%)
-    addRow(state.wallet, 80, true, false);
+    // Add Creator Wallet row (default 60%)
+    addRow(state.wallet, 60, true, false);
 
     $('splitBox').hidden = false;
     $('reviewBox').hidden = false;
@@ -752,8 +786,8 @@
 
   function shareRows() {
     var out = [], problems = [], seen = new Set();
-    var rest = state.toll ? (10000 - state.toll.bps) : 9975;
-    var walletIndex = -1, allocated = 0;
+    var rest = state.toll ? (10000 - state.toll.bps) : 7500;
+    var walletIndex = -1, allocated = 0, burnRow = false, buybackRow = false;
 
     if (state.toll && state.toll.address) { seen.add(state.toll.address); }
 
@@ -761,6 +795,7 @@
       var a = row.querySelector('.share-addr').value.trim();
       var b = row.querySelector('.share-bps');
       var pct = percent(b.value);
+      b.removeAttribute('aria-invalid');
 
       if (!validAddress(a)) { problems.push('Every destination must be a valid Solana address.'); }
       if (seen.has(a)) { problems.push('Duplicate destination: ' + a); }
@@ -771,13 +806,34 @@
       }
 
       var bps = Math.round(pct * rest / 10000);
+      if (row.dataset.burn === 'true') {
+        burnRow = true;
+        if (a !== incineratorAddress()) { problems.push('The incinerator row\'s address is fixed. Reload the page to restore it.'); }
+        if (Number.isFinite(pct) && (pct < 100 || bps < minBurnBps())) {
+          problems.push('The incinerator share must be at least 1% of the rest.');
+          b.setAttribute('aria-invalid', 'true');
+        }
+      }
+      if (row.dataset.buyback === 'true') {
+        buybackRow = true;
+        if (a !== buybackAddress()) { problems.push('The buyback treasury row\'s address is fixed. Reload the page to restore it.'); }
+        if (!Number.isFinite(pct) || pct <= 0 || bps <= 0) {
+          problems.push('The buyback treasury share must be above 0%.');
+          b.setAttribute('aria-invalid', 'true');
+        }
+      }
       if (row.dataset.wallet) { walletIndex = out.length; }
       out.push({ address: a, pct: pct / 100, bps: bps });
       allocated += bps;
     });
 
+    if (!burnRow) { problems.push('Every Charlie split keeps the incinerator row. Its address is fixed and its share must be at least 1% of the rest. Change the other destinations instead.'); }
+    if (!buybackRow) { problems.push('Every Charlie split includes the shared buyback treasury. Choose its percentage; the address is fixed.'); }
     if (total() !== 10000) { problems.push('The shares of the rest must total exactly 100.00%.'); }
     if (walletIndex >= 0) { out[walletIndex].bps += rest - allocated; }
+    if (out.some(function (r) { return !Number.isInteger(r.bps) || r.bps <= 0; })) {
+      problems.push('A share is too small after on-chain rounding. Increase it or remove that destination.');
+    }
 
     var shares = state.toll ? [state.toll.address + ':' + state.toll.bps] : [];
     out.forEach(function (r) { shares.push(r.address + ':' + r.bps); });
