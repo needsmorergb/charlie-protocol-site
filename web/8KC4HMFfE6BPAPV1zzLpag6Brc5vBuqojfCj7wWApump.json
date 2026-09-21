@@ -103,11 +103,11 @@
     {
       "actual": "0",
       "backs": [],
-      "detail": "the split does not pay the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 at all",
+      "detail": "this coin is not enrolled and claims nothing about the protocol: its split does not pay the collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8, so there is no enrollment claim to check. Not enrolled is not a failed check",
       "equation": "bps(TOLL_DESTINATION) >= 2500",
       "expected": ">= 2500",
       "name": "PROTOCOL_SHARE",
-      "status": "FAIL"
+      "status": "UNCHECKED"
     },
     {
       "actual": null,
@@ -230,7 +230,7 @@
     "supply": 1000000000000000,
     "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
   },
-  "observed_at": 1789937357.156828,
+  "observed_at": 1789966562.4457433,
   "publishable": [
     "split"
   ],
