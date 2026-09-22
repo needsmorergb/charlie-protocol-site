@@ -528,7 +528,15 @@
       return '<b>' + m.slice(0, 4) + '</b>' + m.slice(4, -4) + '<b>' + m.slice(-4) + '</b>';
     }
 
-    // X-tag launches carry "Requested by @handle" in their metadata description.
+    // A coin launched from an X tag pays a split row to the payout treasury
+    // (legs.CHARLIE_PAYOUT_TREASURY). The record's config.shareholders and
+    // attribution rows carry it; "Requested by @" in the description is only
+    // a fallback.
+    var PAYOUT_TREASURY = 'FiJU5VxHFy6B4S8LG5W1xPiH7kyUfsKVV5nWfUWaWzw';
+    function paysPayoutTreasury(d) {
+      var rows = [].concat((d.config && d.config.shareholders) || [], d.attribution || [], d.shares || []);
+      return rows.some(function (r) { return r && r.address === PAYOUT_TREASURY && Number(r.bps) > 0; });
+    }
     function showTagClaim(desc) {
       if (typeof desc === 'string' && desc.indexOf('Requested by @') !== -1) {
         document.getElementById('tagClaimSec').hidden = false;
@@ -596,7 +604,11 @@
       if (d.description) {
         document.getElementById('coinDesc').textContent = d.description;
       }
-      showTagClaim(d.description);
+      if (paysPayoutTreasury(d)) {
+        document.getElementById('tagClaimSec').hidden = false;
+      } else {
+        showTagClaim(d.description);
+      }
 
       // Render Token Image Photo & Visuals
       var imgEl = document.getElementById('coinImg');
