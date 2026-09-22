@@ -363,6 +363,15 @@
 
         </dl>
       </div>
+
+      <!-- Section: X-tag launch // shown only when the metadata names a requester -->
+      <div class="sec" id="tagClaimSec" hidden>
+        <div class="sec-eyebrow">X tag</div>
+        <p class="sec-note">launched from an X tag. the requester claims their share of creator fees at /claim</p>
+        <a href="/claim" class="btn-paste" style="text-decoration: none; padding: 10px 16px; font-size: 13px;">
+          <span>Go to /claim</span>
+        </a>
+      </div>
     </div>
 
     <!-- Action Bar -->
@@ -519,6 +528,13 @@
       return '<b>' + m.slice(0, 4) + '</b>' + m.slice(4, -4) + '<b>' + m.slice(-4) + '</b>';
     }
 
+    // X-tag launches carry "Requested by @handle" in their metadata description.
+    function showTagClaim(desc) {
+      if (typeof desc === 'string' && desc.indexOf('Requested by @') !== -1) {
+        document.getElementById('tagClaimSec').hidden = false;
+      }
+    }
+
     // Dynamic Loader for On-Chain Observation Data
     window.addEventListener('DOMContentLoaded', async function () {
       var urlParams = new URLSearchParams(window.location.search);
@@ -580,6 +596,7 @@
       if (d.description) {
         document.getElementById('coinDesc').textContent = d.description;
       }
+      showTagClaim(d.description);
 
       // Render Token Image Photo & Visuals
       var imgEl = document.getElementById('coinImg');
@@ -664,6 +681,7 @@
           if (meta && meta.description && !d.description) {
             document.getElementById('coinDesc').textContent = meta.description;
           }
+          showTagClaim(meta && meta.description);
         }).catch(function() {});
       }
 

@@ -1,0 +1,500 @@
+<!doctype html>
+<!-- charlie:authored-page -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Claim Creator Fees from an X-Tag Launch — Charlie Protocol</title>
+    <meta name="description" content="Coins launched by tagging @CharlieSlugSOL on X hold the requester's share of creator fees. Sign in with X and claim it to a Solana wallet.">
+
+    <!-- Modern Font Pairing -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="./assets/preview.css?v=fire5">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+
+    <style>
+    :root { --text-muted: #7C887B; }
+    [hidden] { display: none !important; }
+    .btn-conic-glow:has(> [hidden]) { display: none; }
+    main { min-width: 0; }
+    main h2 { font-size: clamp(22px, 2.4vw, 26px); margin: 0 0 16px; }
+    main p { font-size: 15px; line-height: 1.6; color: var(--text-secondary); }
+
+    .claim-hero { position: relative; isolation: isolate; margin-bottom: 40px; }
+    .claim-hero h1 { font-size: clamp(32px, 5vw, 50px); font-weight: 800; letter-spacing: -0.035em; text-wrap: balance; max-width: 18ch; line-height: 1.1; margin: 20px 0; }
+    .claim-hero p { max-width: 64ch; }
+
+    .claim-card { margin-bottom: 24px; }
+    .claim-card:last-of-type { margin-bottom: 64px; }
+    .claim-card .eyebrow { margin-bottom: 12px; }
+
+    .claim-figs { display: grid; gap: 0; margin: 0 0 24px; }
+    @media (min-width: 620px) { .claim-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; } }
+    .claim-fig { padding: 14px 0; border-top: 1px solid var(--border-glass); min-width: 0; }
+    .claim-fig dt { font: 500 12.5px var(--font-mono); color: var(--text-muted); margin: 0 0 6px; }
+    .claim-fig dd { margin: 0; font: 700 clamp(17px, 2vw, 22px)/1.3 var(--font-mono); color: var(--text-primary); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+    .claim-fig dd small { font-size: .6em; font-weight: 600; color: var(--text-secondary); }
+    .claim-fig dd.addr { font-size: 13px; font-weight: 500; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .field label { font: 500 13px var(--font-mono); color: var(--text-muted); }
+    .field input { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; background: var(--bg-input); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 12px; color: var(--text-primary); font: 400 14px var(--font-mono); }
+    .field input:focus { border-color: var(--neon-charlie); outline: none; }
+
+    .btn-plain { background: rgba(255,255,255,.05); border: 1px solid var(--border-glass); color: var(--text-secondary); font: 600 13px var(--font-sans, sans-serif); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; min-height: 44px; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; }
+    .btn-plain:hover { border-color: var(--border-highlight); color: var(--text-primary); }
+    .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 20px 0; }
+    a.btn-submit { text-decoration: none; }
+
+    .note { font: 400 13.5px/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+    .note:empty { display: none; }
+    .note.bad { color: var(--fail); }
+    .note.good { color: var(--pass); }
+    .note.caution { color: var(--unchecked); }
+    .note a { color: var(--neon-charlie); }
+
+    .warn { border-left: 2px solid var(--flame-warm); padding: 12px 16px; margin: 20px 0; font-size: 14.5px; line-height: 1.6; color: var(--text-secondary); background: rgba(255, 138, 31, 0.05); }
+    .signout { font: 400 13px var(--font-mono); color: var(--text-muted); }
+    .signout a { color: inherit; }
+
+    @media (max-width: 600px) {
+      .row-actions { flex-direction: column; align-items: stretch; }
+      .row-actions > *, .btn-conic-glow { width: 100%; box-sizing: border-box; }
+    }
+    </style>
+
+    <!-- Vercel Web Analytics & Speed Insights -->
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+      window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+    </script>
+    <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
+    <script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
+  </head>
+<body>
+
+  <!-- =========================================================================
+  0. Global Facility Telemetry Strip
+  ========================================================================= -->
+  <aside class="facility-telemetry-strip" aria-label="Solana Network & Facility Telemetry">
+    <div class="facility-telemetry-inner">
+      <div class="telemetry-pill">
+        <span class="telemetry-led"></span>
+        <span class="telemetry-label">NETWORK:</span>
+        <span class="telemetry-value">SOLANA MAINNET-BETA</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="telemetry-label">CLAIMS:</span>
+        <span id="claimStatus" class="telemetry-value telemetry-value--ember font-mono">X-TAG LAUNCHES</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+  1. Global Sticky Header
+  ========================================================================= -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="./index.html" class="brand-lockup">
+        <span class="flame-box">
+          <svg class="sys-icon sys-icon--flame" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+          </svg>
+        </span>
+        <span>Charlie Protocol</span>
+      </a>
+
+      <nav class="site-nav">
+        <a href="./index.html" class="nav-link">Home</a>
+        <a href="./launch.html" class="nav-link">Launch Coin</a>
+        <a href="./enroll.html" class="nav-link">Enroll Coin</a>
+        <a href="./coins.html" class="nav-link">Directory</a>
+      </nav>
+
+      <div class="header-actions">
+        <button id="audioToggle" class="btn-icon" onclick="toggleAudio()" title="Toggle procedural sound & haptics" data-tooltip="Toggle Audio">
+          <svg class="sys-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+          <span>Sound Off</span>
+        </button>
+        <a href="https://x.com/CharlieSlugSOL" target="_blank" rel="noopener noreferrer" class="btn-icon btn-icon--social" title="Official X (@CharlieSlugSOL)" aria-label="Official X Profile" data-tooltip="X (@CharlieSlugSOL)">
+          <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </a>
+        <a href="https://t.me/charlietheslug" target="_blank" rel="noopener noreferrer" class="btn-icon btn-icon--social" title="Telegram Channel (@charlietheslug)" aria-label="Telegram Channel" data-tooltip="Telegram (@charlietheslug)">
+          <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+          </svg>
+        </a>
+        <a href="https://x.com/i/communities/1950742728611914230" target="_blank" rel="noopener noreferrer" class="btn-icon btn-icon--social" title="X Community Hub" aria-label="X Community" data-tooltip="X Community">
+          <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </a>
+        <a href="https://charlie-incinerator.com" target="_blank" rel="noopener noreferrer" class="btn-sister-pill" title="Sol-Incinerator Sister Portal (charlie-incinerator.com)" aria-label="Sol-Incinerator Sister Facility" data-tooltip="Sol-Incinerator Sister Page">
+          <span class="sister-led" aria-hidden="true"></span>
+          <span class="sister-label">Incinerator</span>
+          <svg class="sys-icon sys-icon--ext" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </a>
+        <a href="https://github.com/needsmorergb/charlie-protocol-v1" target="_blank" rel="noopener noreferrer" class="btn-icon btn-icon--social" title="View Source on GitHub" aria-label="GitHub Repository" data-tooltip="GitHub">
+          <svg class="sys-icon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="claim-hero">
+      <div class="eyebrow">
+        <span class="telemetry-led" style="background: var(--neon-charlie); box-shadow: 0 0 10px var(--neon-charlie);"></span>
+        <span>CLAIM // X-TAG LAUNCHES</span>
+      </div>
+      <h1>Claim your share of creator fees.</h1>
+      <p>
+        coins launched by tagging @CharlieSlugSOL on X route part of their creator fees to the person who asked for the launch. that share is held here until you claim it. sign in with the X account that sent the tag, name a Solana wallet, and it is paid there.
+      </p>
+      <p class="warn">
+        unclaimed fees burn after 7 days. a burn sends them to the protocol's collection wallet, where they buy $CHARLIE and that $CHARLIE is burned.
+      </p>
+    </div>
+
+    <p id="closedNote" class="note caution" role="status" hidden>Claims are not open yet.</p>
+    <p id="signinNote" class="note bad" role="status" aria-live="polite"></p>
+    <p id="loadNote" class="note" role="status" aria-live="polite">reading your claim...</p>
+
+    <!-- Signed out -->
+    <section class="cyber-card cyber-card--chamfer claim-card" id="signedOut" aria-labelledby="signinTitle" hidden>
+      <span class="cyber-corner cyber-corner--tl"></span>
+      <span class="cyber-corner cyber-corner--br"></span>
+      <div class="eyebrow">STEP 1 // SIGN IN</div>
+      <h2 id="signinTitle">Sign in with X</h2>
+      <p>signing in only reads your X id and handle. it posts nothing and asks for no wallet key.</p>
+      <div class="row-actions">
+        <div class="btn-conic-glow">
+          <a href="/api/claim?step=login" class="btn-submit">
+            <svg class="sys-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            <span>Sign in with X</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Signed in -->
+    <section class="cyber-card cyber-card--chamfer claim-card" id="signedIn" aria-labelledby="claimTitle" hidden>
+      <span class="cyber-corner cyber-corner--tl"></span>
+      <span class="cyber-corner cyber-corner--br"></span>
+      <div class="eyebrow">YOUR CLAIM</div>
+      <h2 id="claimTitle">@<span id="handle"></span></h2>
+
+      <dl class="claim-figs">
+        <div class="claim-fig">
+          <dt>claimable now</dt>
+          <dd><span id="claimable">0</span> <small>SOL</small></dd>
+        </div>
+        <div class="claim-fig">
+          <dt>unclaimed fees burn at</dt>
+          <dd id="burnsAt">nothing due to burn</dd>
+        </div>
+        <div class="claim-fig">
+          <dt>bound wallet</dt>
+          <dd class="addr" id="wallet">none yet. your first claim binds one.</dd>
+        </div>
+        <div class="claim-fig" id="pendingRow" hidden>
+          <dt>wallet change pending</dt>
+          <dd class="addr"><span id="walletPending"></span><br>takes effect <span id="walletReady"></span></dd>
+        </div>
+      </dl>
+
+      <div class="field">
+        <label for="walletInput">Solana wallet to pay</label>
+        <input id="walletInput" type="text" spellcheck="false" autocomplete="off" placeholder="base58 wallet address">
+      </div>
+      <div class="row-actions">
+        <div class="btn-conic-glow">
+          <button type="button" id="claimBtn" class="btn-submit"><span>Claim</span></button>
+        </div>
+      </div>
+      <p class="note">naming a wallet other than the bound one starts a wallet change. the change becomes active at the ready time shown above.</p>
+      <p id="statusNote" class="note" role="status" aria-live="polite" aria-atomic="true"></p>
+      <p class="signout"><a href="/api/claim?step=logout">sign out</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        
+        <!-- Col 1: Brand & Telemetry Lockup -->
+        <div class="footer-brand-col">
+          <a href="./index.html" class="brand-lockup" style="display: inline-flex;">
+            <span class="flame-box">
+              <svg class="sys-icon sys-icon--flame" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+              </svg>
+            </span>
+            <span style="font-weight: 800; font-size: 16px; color: var(--text-primary);">Charlie Protocol</span>
+          </a>
+          <p class="footer-desc">
+            Automated creator-fee routing and Sol-Incinerator combustion architecture combating Solana supply inflation through immutable on-chain token contracts.
+          </p>
+          <div class="status-pill status-pill--verified" style="width: fit-content; font-size: 10.5px;">
+            <span class="status-pill-led"></span>
+            <span class="status-pill-text">MAINNET-BETA // VERIFIED</span>
+          </div>
+        </div>
+
+        <!-- Col 2: Protocol Architecture & Specs -->
+        <div class="footer-nav-col">
+          <h4 class="footer-heading">
+            <span class="footer-heading-icon">⚙</span>
+            <span>Protocol Doors</span>
+          </h4>
+          <ul class="footer-links">
+            <li><a href="./index.html">Home Overview</a></li>
+            <li><a href="./launch.html">Launch Door <span class="link-tag">New</span></a></li>
+            <li><a href="./enroll.html">Enrollment Gateway <span class="link-tag link-tag--flame">Crank</span></a></li>
+            <li><a href="./coins.html">Measured Directory</a></li>
+            <li><a href="./flywheel.html">Flywheel Simulation</a></li>
+            <li><a href="./phases.html">Rollout Phases <span class="link-tag">v5 Shipped</span></a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Official Transmissions & Community -->
+        <div class="footer-nav-col">
+          <h4 class="footer-heading">
+            <span class="footer-heading-icon">📡</span>
+            <span>Official Channels</span>
+          </h4>
+          <ul class="footer-links">
+            <li>
+              <a href="https://x.com/CharlieSlugSOL" target="_blank" rel="noopener noreferrer" class="link-highlight-ember">
+                <span class="link-tag">OFFICIAL</span>
+                <span>X (@CharlieSlugSOL)</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/i/communities/1950742728611914230" target="_blank" rel="noopener noreferrer">
+                <span class="link-tag link-tag--community">FORUM</span>
+                <span>X Community Hub</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://t.me/charlietheslug" target="_blank" rel="noopener noreferrer">
+                <span class="link-tag">DISPATCH</span>
+                <span>Telegram Channel</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/needsmorergb/charlie-protocol-v1" target="_blank" rel="noopener noreferrer">
+                <span class="link-tag">SOURCE</span>
+                <span>GitHub Repository</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Ecosystem & Verification -->
+        <div class="footer-nav-col">
+          <h4 class="footer-heading">
+            <span class="footer-heading-icon">⚡</span>
+            <span>Ecosystem & Proofs</span>
+          </h4>
+          <ul class="footer-links">
+            <li>
+              <a href="https://charlie-incinerator.com" target="_blank" rel="noopener noreferrer" class="link-highlight-flame">
+                <span class="facility-dot facility-dot--flame"></span>
+                <span>charlie-incinerator.com</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://solscan.io/account/1nc1nerator11111111111111111111111111111111" target="_blank" rel="noopener noreferrer">
+                <span class="facility-dot facility-dot--flame"></span>
+                <span class="mono" style="font-size: 12px;">1nc1nerator...</span>
+              </a>
+            </li>
+            <li><a href="./verify.html"><span class="facility-dot facility-dot--pump"></span><span>Ledger Verifier</span></a></li>
+            <li><a href="./buildlog.html"><span class="facility-dot facility-dot--sol"></span><span>Telemetry Build Log</span></a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Bottom Colophon -->
+      <div class="footer-bottom">
+        <div class="footer-disclaimer">
+          <p>
+            Deterministic Protocol Contracts &amp; Ledger Records: 
+            <a href="https://github.com/needsmorergb/charlie-protocol-v1" target="_blank" rel="noopener noreferrer" class="font-mono">needsmorergb/charlie-protocol-v1</a>.
+            Every figure is mathematically recomputable from public Solana mainnet ledger states.
+          </p>
+        </div>
+        <div class="footer-copyright">
+          &copy; 2025–2026 Charlie Protocol. All burns permanent &amp; non-custodial.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./assets/charlie-motion.js?v=fire5"></script>
+  <script>
+  (function () {
+    var $ = function (id) { return document.getElementById(id); };
+
+    function sol(lamports) {
+      var n = Number(lamports || 0) / 1e9;
+      return n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+    }
+    function when(epoch) {
+      if (!epoch) return '';
+      return new Date(Number(epoch) * 1000).toLocaleString();
+    }
+    function closed() {
+      $('loadNote').hidden = true;
+      $('signedOut').hidden = true;
+      $('signedIn').hidden = true;
+      $('closedNote').hidden = false;
+      $('claimStatus').textContent = 'NOT OPEN YET';
+    }
+
+    function renderStatus(s) {
+      var el = $('statusNote');
+      el.className = 'note';
+      el.textContent = '';
+      if (!s || !s.state) return;
+      if (s.state === 'queued') {
+        el.textContent = 'claim queued. it is paid on the next payout run.';
+      } else if (s.state === 'paid') {
+        el.className = 'note good';
+        el.appendChild(document.createTextNode('paid ' + sol(s.lamports) + ' SOL. '));
+        if (s.signature) {
+          var a = document.createElement('a');
+          a.href = 'https://solscan.io/tx/' + encodeURIComponent(s.signature);
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.textContent = 'view the transaction on solscan';
+          el.appendChild(a);
+        }
+      } else if (s.state === 'held') {
+        el.className = 'note caution';
+        el.textContent = 'sent for manual review.';
+      } else if (s.state === 'refused') {
+        el.className = 'note bad';
+        el.textContent = 'refused' + (s.reason ? ': ' + s.reason : '.');
+      }
+    }
+
+    function render(me) {
+      $('loadNote').hidden = true;
+      if (!me || me.error) { closed(); return; }
+      if (!me.signed_in) {
+        $('signedIn').hidden = true;
+        $('signedOut').hidden = false;
+        return;
+      }
+      $('signedOut').hidden = true;
+      $('signedIn').hidden = false;
+      $('handle').textContent = me.handle || '';
+      $('claimable').textContent = sol(me.claimable);
+      $('burnsAt').textContent = me.burns_at ? when(me.burns_at) : 'nothing due to burn';
+      if (me.wallet) {
+        $('wallet').textContent = me.wallet;
+        if (!$('walletInput').value) $('walletInput').value = me.wallet;
+      }
+      if (me.wallet_pending) {
+        $('pendingRow').hidden = false;
+        $('walletPending').textContent = me.wallet_pending;
+        $('walletReady').textContent = me.wallet_ready_at ? when(me.wallet_ready_at) : 'soon';
+      } else {
+        $('pendingRow').hidden = true;
+      }
+      renderStatus(me.status);
+    }
+
+    async function load() {
+      try {
+        var res = await fetch('/api/claim?step=me', { cache: 'no-store', credentials: 'same-origin' });
+        if (res.status === 503) { closed(); return; }
+        var body = await res.json();
+        if (!res.ok) { closed(); return; }
+        render(body);
+      } catch (e) {
+        closed();
+      }
+    }
+
+    $('claimBtn').addEventListener('click', async function () {
+      var wallet = $('walletInput').value.trim();
+      var el = $('statusNote');
+      if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(wallet)) {
+        el.className = 'note bad';
+        el.textContent = 'that does not look like a Solana wallet address.';
+        return;
+      }
+      $('claimBtn').disabled = true;
+      try {
+        var res = await fetch('/api/claim', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ wallet: wallet })
+        });
+        if (res.status === 503) { closed(); return; }
+        var body = {};
+        try { body = await res.json(); } catch (e) {}
+        if (res.ok && body.queued) {
+          renderStatus({ state: 'queued' });
+          load();
+        } else if (res.status === 429) {
+          el.className = 'note caution';
+          el.textContent = 'a claim is already queued. wait for it to finish.';
+        } else if (res.status === 401) {
+          el.className = 'note bad';
+          el.textContent = 'your sign-in expired. sign in again.';
+          load();
+        } else {
+          el.className = 'note bad';
+          el.textContent = body.error || ('the claim was not accepted (HTTP ' + res.status + ').');
+        }
+      } catch (e) {
+        el.className = 'note bad';
+        el.textContent = 'could not reach the claim service. try again.';
+      } finally {
+        $('claimBtn').disabled = false;
+      }
+    });
+
+    var SIGNIN_ERRORS = {
+      denied: 'sign-in was cancelled.',
+      expired: 'sign-in took too long, try again.',
+      x: 'X did not answer, try again.'
+    };
+    var params = new URLSearchParams(window.location.search);
+    var signinError = params.get('error');
+    if (signinError !== null) {
+      if (SIGNIN_ERRORS[signinError]) {
+        $('signinNote').textContent = SIGNIN_ERRORS[signinError];
+      }
+      params.delete('error');
+      var qs = params.toString();
+      history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : '') + window.location.hash);
+    }
+
+    load();
+  })();
+  </script>
+</body>
+</html>
