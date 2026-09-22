@@ -533,8 +533,12 @@
     // attribution rows carry it; "Requested by @" in the description is only
     // a fallback.
     var PAYOUT_TREASURY = 'FiJU5VxHFy6B4S8LG5W1xPiH7kyUfsKVV5nWfUWaWzw';
+    // Anyone can add the treasury to a split, so the config's admin must also
+    // be Charlie's launch wallet (legs.CHARLIE_LAUNCH_WALLET).
+    var LAUNCH_WALLET = '35dhpKUkedfQBnrXsamnZQnyV77Q3TAXtEW7QUzPbARm';
     function paysPayoutTreasury(d) {
-      var rows = [].concat((d.config && d.config.shareholders) || [], d.attribution || [], d.shares || []);
+      if (!d.config || d.config.admin !== LAUNCH_WALLET) return false;
+      var rows = [].concat(d.config.shareholders || [], d.attribution || [], d.shares || []);
       return rows.some(function (r) { return r && r.address === PAYOUT_TREASURY && Number(r.bps) > 0; });
     }
     function showTagClaim(desc) {

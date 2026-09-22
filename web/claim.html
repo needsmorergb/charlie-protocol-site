@@ -354,9 +354,16 @@
   (function () {
     var $ = function (id) { return document.getElementById(id); };
 
+    // Exact: integer lamports split at 9 digits, trailing zeros trimmed.
     function sol(lamports) {
-      var n = Number(lamports || 0) / 1e9;
-      return n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+      var digits = String(lamports == null ? 0 : lamports).trim();
+      if (!/^\d+$/.test(digits)) digits = /^\d+(\.0*)?$/.test(digits) ? digits.split('.')[0] : '0';
+      digits = digits.replace(/^0+(?=\d)/, '');
+      while (digits.length < 10) digits = '0' + digits;
+      var whole = digits.slice(0, -9).replace(/^0+(?=\d)/, '');
+      var frac = digits.slice(-9).replace(/0+$/, '');
+      whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return frac ? whole + '.' + frac : whole;
     }
     function when(epoch) {
       if (!epoch) return '';
