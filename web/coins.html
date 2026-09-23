@@ -501,6 +501,88 @@
     </div>
   </footer>
 
+<script>
+ // Live directory: every enrolled coin, read off the chain by /api/coins, so a
+ // coin appears as soon as its split lands. Names and images come from each
+ // coin's own metadata (untrusted), so they are set as text, never as HTML.
+ (function () {
+ function el(tag, cls, text) {
+ var n = document.createElement(tag);
+ if (cls) n.className = cls;
+ if (text != null) n.textContent = text;
+ return n;
+ }
+ function card(c) {
+ var name = (c.name || '').slice(0, 64);
+ var sym = (c.symbol || '').slice(0, 16);
+ var item = el('div', 'counter-card cyber-card cyber-card--chamfer tilt-card coin-item');
+ item.setAttribute('data-search', (c.mint + ' ' + name + ' ' + sym).toLowerCase());
+ item.setAttribute('data-cat', 'enrolled');
+ item.appendChild(el('span', 'cyber-corner cyber-corner--tl'));
+ item.appendChild(el('span', 'cyber-corner cyber-corner--br'));
+ var row = el('div');
+ row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-md);';
+ var left = el('div');
+ left.style.cssText = 'flex:1 1 340px;display:flex;align-items:center;gap:12px;min-width:0;';
+ var img = el('img');
+ img.alt = '';
+ img.width = 44; img.height = 44;
+ img.style.cssText = 'width:44px;height:44px;border-radius:10px;object-fit:cover;background:var(--bg-input);flex:0 0 auto;';
+ left.appendChild(img);
+ var text = el('div');
+ text.style.cssText = 'min-width:0;';
+ var pill = el('span', 'status-pill status-pill--verified');
+ pill.style.fontSize = '10px';
+ pill.appendChild(el('span', 'status-pill-led'));
+ pill.appendChild(el('span', 'status-pill-text', 'ENROLLED'));
+ var title = el('div');
+ title.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0;';
+ var nm = el('span', null, (sym ? '$' + sym.replace(/^\$/, '') : 'Unnamed coin') + (name ? ' · ' + name : ''));
+ nm.style.cssText = 'font-weight:800;color:var(--text-primary);font-size:16px;';
+ title.appendChild(nm);
+ var ca = el('p', 'mono font-mono', c.mint);
+ ca.style.cssText = 'font-size:13px;word-break:break-all;margin:0;color:var(--text-secondary);';
+ text.appendChild(pill); text.appendChild(title); text.appendChild(ca);
+ left.appendChild(text);
+ var go = el('div', 'btn-conic-glow');
+ var a = el('a', 'btn-submit');
+ a.href = './coin.html?mint=' + encodeURIComponent(c.mint);
+ a.style.cssText = 'font-size:13px;padding:8px 16px;text-decoration:none;';
+ a.appendChild(el('span', null, 'Coin details'));
+ go.appendChild(a);
+ row.appendChild(left); row.appendChild(go);
+ item.appendChild(row);
+ if (c.uri && /^https:\/\//.test(c.uri)) {
+ fetch(c.uri, { cache: 'force-cache' }).then(function (r) { return r.json(); }).then(function (m) {
+ var src = m && typeof m.image === 'string' ? m.image.replace(/^ipfs:\/\//, 'https://ipfs.io/ipfs/') : '';
+ if (/^https:\/\//.test(src)) img.src = src;
+ }).catch(function () {});
+ }
+ return item;
+ }
+ function load() {
+ var list = document.getElementById('coinsList');
+ if (!list) return;
+ fetch('/api/coins', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+ if (!d || !Array.isArray(d.coins)) return;
+ var shown = {};
+ list.querySelectorAll('a[href*="mint="]').forEach(function (a) {
+ var m = (a.getAttribute('href').split('mint=')[1] || '').split('&')[0];
+ shown[decodeURIComponent(m)] = true;
+ });
+ d.coins.forEach(function (c) {
+ if (!c || typeof c.mint !== 'string' || shown[c.mint]) return;
+ shown[c.mint] = true;
+ list.insertBefore(card(c), list.firstChild);
+ });
+ var badge = document.getElementById('coinCountBadge');
+ if (badge) badge.textContent = list.querySelectorAll('.coin-item').length + ' coins';
+ if (typeof applyFilters === 'function') applyFilters();
+ }).catch(function () {});
+ }
+ if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load); else load();
+ })();
+</script>
 <script src="./assets/signature-motion.js" defer></script>
 </body>
 </html>
