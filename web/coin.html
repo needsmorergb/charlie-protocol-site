@@ -363,6 +363,15 @@
 
         </dl>
       </div>
+
+      <!-- Section: X-tag launch // shown only when the metadata names a requester -->
+      <div class="sec" id="tagClaimSec" hidden>
+        <div class="sec-eyebrow">X tag</div>
+        <p class="sec-note">launched from an X tag. the requester claims their share of creator fees at /claim</p>
+        <a href="/claim" class="btn-paste" style="text-decoration: none; padding: 10px 16px; font-size: 13px;">
+          <span>Go to /claim</span>
+        </a>
+      </div>
     </div>
 
     <!-- Action Bar -->
@@ -519,6 +528,25 @@
       return '<b>' + m.slice(0, 4) + '</b>' + m.slice(4, -4) + '<b>' + m.slice(-4) + '</b>';
     }
 
+    // A coin launched from an X tag pays a split row to the payout treasury
+    // (legs.CHARLIE_PAYOUT_TREASURY). The record's config.shareholders and
+    // attribution rows carry it; "Requested by @" in the description is only
+    // a fallback.
+    var PAYOUT_TREASURY = 'FiJU5VxHFy6B4S8LG5W1xPiH7kyUfsKVV5nWfUWaWzw';
+    // Anyone can add the treasury to a split, so the config's admin must also
+    // be Charlie's launch wallet (legs.CHARLIE_LAUNCH_WALLET).
+    var LAUNCH_WALLET = '35dhpKUkedfQBnrXsamnZQnyV77Q3TAXtEW7QUzPbARm';
+    function paysPayoutTreasury(d) {
+      if (!d.config || d.config.admin !== LAUNCH_WALLET) return false;
+      var rows = [].concat(d.config.shareholders || [], d.attribution || [], d.shares || []);
+      return rows.some(function (r) { return r && r.address === PAYOUT_TREASURY && Number(r.bps) > 0; });
+    }
+    function showTagClaim(desc) {
+      if (typeof desc === 'string' && desc.indexOf('Requested by @') !== -1) {
+        document.getElementById('tagClaimSec').hidden = false;
+      }
+    }
+
     // Dynamic Loader for On-Chain Observation Data
     window.addEventListener('DOMContentLoaded', async function () {
       var urlParams = new URLSearchParams(window.location.search);
@@ -579,6 +607,11 @@
       }
       if (d.description) {
         document.getElementById('coinDesc').textContent = d.description;
+      }
+      if (paysPayoutTreasury(d)) {
+        document.getElementById('tagClaimSec').hidden = false;
+      } else {
+        showTagClaim(d.description);
       }
 
       // Render Token Image Photo & Visuals
@@ -664,6 +697,7 @@
           if (meta && meta.description && !d.description) {
             document.getElementById('coinDesc').textContent = meta.description;
           }
+          showTagClaim(meta && meta.description);
         }).catch(function() {});
       }
 
