@@ -105,9 +105,9 @@
     {
       "actual": "500",
       "backs": [],
-      "detail": "this coin is not enrolled: the split pays the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 500 bps but lacks what every enrolled coin carries: the shared buyback treasury row (6BHusg5vZoagPDMe5xZzPhLSvkHiKcWwELYzwbMG7Bjo)",
+      "detail": "this coin is not enrolled: the split pays the protocol's collection wallet 8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8 500 bps but lacks what every enrolled coin carries: the shared buyback treasury row (6BHusg5vZoagPDMe5xZzPhLSvkHiKcWwELYzwbMG7Bjo) or, for a coin launched from an X tag, Charlie's OPS row (964A71b6LgvvJhcYqpyWkSTShh9cPcKdo9ZUQ31vveYG) at 950 bps or more",
       "equation": "bps(TOLL_DESTINATION) >= 500",
-      "expected": ">= 500, plus the incinerator and buyback treasury rows",
+      "expected": ">= 500, plus the incinerator row and either the buyback treasury row or Charlie's OPS row",
       "name": "PROTOCOL_SHARE",
       "status": "UNCHECKED"
     },
@@ -237,7 +237,7 @@
     "supply": 1000000000000000,
     "token_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
   },
-  "observed_at": 1790111950.2576973,
+  "observed_at": 1790138743.2248175,
   "publishable": [
     "split"
   ],
