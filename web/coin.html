@@ -66,15 +66,22 @@
   .sec h3{font-family:var(--font-display);font-size:18px;font-weight:700;margin:0 0 var(--sp-xs);letter-spacing:-.01em}
   .sec-note{font-size:13px;color:var(--text-muted);margin:0 0 var(--sp-lg);line-height:1.6;max-width:66ch}
   
+  [hidden]{display:none!important}
   /* ---- split bar ---- */
   .split-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12px;margin-bottom:7px;flex-wrap:wrap;gap:var(--sp-sm)}
   .split-legend-item{display:inline-flex;align-items:center;gap:6px;color:var(--text-secondary)}
   .legend-dot{width:8px;height:8px;border-radius:var(--radius-pill)}
-  .bar-container{height:20px;width:100%;background:var(--bg-input);border:1px solid var(--border-glass);border-radius:var(--radius-sm);overflow:hidden;display:flex}
-  .bar-seg{height:100%;transition:width 0.4s ease}
-  .seg-sol-burn{background:var(--flame-warm);box-shadow:0 0 10px rgba(255,138,31,.4)}
-  .seg-token-burn{background:var(--ember);box-shadow:0 0 10px rgba(143,225,63,.4)}
-  .seg-ops{background:var(--sol-blue)}
+  .bar-container{height:22px;width:100%;background:var(--bg-input);border:1px solid var(--border-glass);border-radius:var(--radius-sm);overflow:hidden;display:flex;gap:3px;padding:3px}
+  .bar-seg{height:100%;min-width:6px;border-radius:2px;flex-basis:0;flex-shrink:0}
+  .split-rows{list-style:none;margin:var(--sp-lg) 0 0;padding:0}
+  .split-row{display:grid;grid-template-columns:10px 1fr auto;gap:4px 12px;align-items:baseline;padding:12px 0;border-top:1px solid var(--border-subtle)}
+  .split-row .legend-dot{align-self:center}
+  .split-name{font:600 13.5px/1.3 var(--font-display);color:var(--text-primary)}
+  .split-pct{font:600 13px/1.3 var(--font-mono);color:var(--text-primary);text-align:right;white-space:nowrap}
+  .split-pct small{display:block;font-weight:400;font-size:10.5px;color:var(--text-muted);letter-spacing:.02em}
+  .split-note{grid-column:2 / 4;font-size:12.5px;line-height:1.55;color:var(--text-secondary)}
+  .split-note a{color:var(--text-muted);font-family:var(--font-mono);font-size:11px}
+  .bar-cap{font:400 11px/1.5 var(--font-mono);color:var(--text-muted);margin:0 0 7px;letter-spacing:.02em}
   .bar-foot{font:400 11px/1.5 var(--font-mono);color:var(--text-muted);margin:9px 0 0;letter-spacing:.02em}
   
   /* ---- legs ---- */
@@ -224,7 +231,7 @@
 
       <div class="telemetry">
         <span><span class="led"></span>Network: Solana Mainnet-Beta</span>
-        <span id="observedStamp">Read: 2026-09-18 20:54 UTC</span>
+        <span id="observedStamp">Read: —</span>
       </div>
 
       <div class="hero">
@@ -233,16 +240,14 @@
           <span id="sigilGlyph" style="display: flex; width: 100%; height: 100%; align-items: center; justify-content: center;">◈</span>
         </figure>
         <div>
-          <div class="eyebrow" id="coinStatusEyebrow">Launched coin // fee split on chain</div>
-          <h2 class="coin-name" id="coinName">Charlie</h2>
-          <p class="coin-sym" id="coinSym">$CHARLIE</p>
-          <p class="coin-desc" id="coinDesc">The first coin to route 100% of trading creator fees into permanent Solana incinerator destruction.</p>
-          
+          <div class="eyebrow" id="coinStatusEyebrow">Coin // fee split on chain</div>
+          <h2 class="coin-name" id="coinName">Reading the chain…</h2>
+          <p class="coin-sym" id="coinSym">&nbsp;</p>
+          <p class="coin-desc" id="coinDesc"></p>
+
           <div class="mintrow">
             <span class="mintlab">CA</span>
-            <span class="mintval" id="mintDisplay">
-              <b>8FhA</b>Xv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgL<b>pump</b>
-            </span>
+            <span class="mintval" id="mintDisplay"></span>
             <button type="button" class="btn-copy" onclick="copyMint()" style="padding: 3px 8px; font-size: 11px;">
               <svg class="sys-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -253,7 +258,7 @@
           </div>
 
           <!-- Official Ecosystem Channels Bar -->
-          <div class="coin-community-bar" id="coinCommunityDeck">
+          <div class="coin-community-bar" id="coinCommunityDeck" hidden>
             <span class="coin-community-label">OFFICIAL LINKS:</span>
             <div class="coin-community-chips">
               <a href="https://x.com/CharlieSlugSOL" target="_blank" rel="noopener noreferrer" class="coin-chip">
@@ -283,29 +288,12 @@
       <div class="sec">
         <div class="sec-eyebrow">The promise</div>
         <h3>Fee split</h3>
-        <p class="sec-note">Set on chain at launch. This is the allocation, not the amount collected.</p>
-        
-        <div class="split-labels">
-          <span class="split-legend-item">
-            <span class="legend-dot" style="background:var(--flame-warm)"></span>
-            <span id="labelSolBurn">SOL burn 100.00%</span>
-          </span>
-          <span class="split-legend-item">
-            <span class="legend-dot" style="background:var(--ember)"></span>
-            <span id="labelTokenBurn">Token buyback burn 0.00%</span>
-          </span>
-          <span class="split-legend-item">
-            <span class="legend-dot" style="background:var(--sol-blue)"></span>
-            <span id="labelOps">Ops 0.00%</span>
-          </span>
-        </div>
+        <p class="sec-note" id="splitNote">Every row of this coin's creator-fee split, read from its pump sharing config. This is the allocation, not the amount collected.</p>
 
-        <div class="bar-container">
-          <div id="barSol" class="bar-seg seg-sol-burn" style="width:100%"></div>
-          <div id="barToken" class="bar-seg seg-token-burn" style="width:0%"></div>
-          <div id="barOps" class="bar-seg seg-ops" style="width:0%"></div>
-        </div>
-        <p class="bar-foot">allocation set at launch; realized amounts below</p>
+        <p class="bar-cap" id="splitBarCap" hidden></p>
+        <div class="bar-container" id="splitBar" role="img" aria-label="Fee split"></div>
+        <ul class="split-rows" id="splitRows"></ul>
+        <p class="bar-foot" id="splitFoot">reading the split…</p>
       </div>
 
       <!-- Section: Performance // Protocol legs -->
@@ -316,49 +304,41 @@
         
         <dl class="legs">
 
-          <!-- Row 1: SOL burn -->
+          <!-- Every value below is filled per coin by renderCoin(); a dash means not published for this coin. -->
           <div class="leg" id="legSolBurn">
             <dt class="leg-label">SOL burn</dt>
-            <dd class="leg-value" id="valSolBurn">179.668087718<span class="leg-unit">SOL</span></dd>
-            <p class="leg-source" id="srcSolBurn">sol_burn_balances</p>
+            <dd class="leg-value" id="valSolBurn"><span class="leg-dash">—</span></dd>
+            <p class="leg-source" id="srcSolBurn"></p>
           </div>
 
-          <!-- Row 2: Token buyback burn -->
-          <div class="leg" id="legTokenBuyback" data-value="absent" data-absence="not-live">
+          <div class="leg" id="legTokenBuyback">
             <dt class="leg-label">Token buyback burn</dt>
-            <dd class="leg-value" id="valTokenBuyback">
-              <span class="leg-dash">—</span>
-              <span class="sr-only">No value yet</span>
-            </dd>
-            <p class="leg-source" id="srcTokenBuyback">burn_spend</p>
+            <dd class="leg-value" id="valTokenBuyback"><span class="leg-dash">—</span></dd>
+            <p class="leg-source" id="srcTokenBuyback"></p>
           </div>
 
-          <!-- Row 3: Supply destroyed -->
           <div class="leg" id="legSupplyDestroyed">
             <dt class="leg-label">Supply destroyed</dt>
-            <dd class="leg-value" id="valSupplyDestroyed">43,661,429.634096<span class="leg-unit">tokens</span></dd>
-            <p class="leg-source">evidence.burn_total · every burn against the mint, by anyone</p>
+            <dd class="leg-value" id="valSupplyDestroyed"><span class="leg-dash">—</span></dd>
+            <p class="leg-source" id="srcSupplyDestroyed"></p>
           </div>
 
-          <!-- Row 4: Ops -->
           <div class="leg" id="legOps">
-            <dt class="leg-label">Ops</dt>
-            <dd class="leg-value" id="valOps">0.000000000<span class="leg-unit">SOL</span></dd>
-            <p class="leg-source">leg: paid</p>
+            <dt class="leg-label">Paid to wallets</dt>
+            <dd class="leg-value" id="valOps"><span class="leg-dash">—</span></dd>
+            <p class="leg-source" id="srcOps"></p>
           </div>
 
-          <!-- Row 5: Distributed -->
           <div class="leg" id="legDistributed">
             <dt class="leg-label">Distributed</dt>
-            <dd class="leg-value" id="valDistributed">179.668087718<span class="leg-unit">SOL</span></dd>
-            <p class="leg-source">distribute crank · all shareholders</p>
+            <dd class="leg-value" id="valDistributed"><span class="leg-dash">—</span></dd>
+            <p class="leg-source" id="srcDistributed"></p>
           </div>
 
-          <!-- Row 6: Paired token -->
           <div class="leg" id="legPairedToken">
             <dt class="leg-label">Paired token</dt>
-            <dd class="leg-value" id="valPairedToken">WSOL</dd>
-            <p class="leg-source">So1111…1112 · pool quote_mint</p>
+            <dd class="leg-value" id="valPairedToken"><span class="leg-dash">—</span></dd>
+            <p class="leg-source" id="srcPairedToken"></p>
           </div>
 
         </dl>
@@ -513,7 +493,26 @@
 
   <script src="./assets/charlie-motion.js?v=fire5"></script>
   <script>
-    var currentMint = '8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump';
+    var CHARLIE_MINT = '8FhAXv2tfXUpyMbJsHDHX9zfiEb9PERzFWSY9sgLpump';
+    var currentMint = CHARLIE_MINT;
+
+    // Addresses from indexer/legs.py. Each one is a leg of the flywheel and is
+    // named on the split by role, never lumped in with other spendable rows.
+    var TOLL_DESTINATION = '8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8';   // legs.TOLL_DESTINATION
+    var TOLL_BPS = 2500;                                                     // legs.TOLL_BPS (never shown)
+    var INCINERATOR = '1nc1nerator11111111111111111111111111111111';
+    var BURN_ADDRESS = 'burn111111111111111111111111111111111111111';
+    var BUYBACK_TREASURY = '6BHusg5vZoagPDMe5xZzPhLSvkHiKcWwELYzwbMG7Bjo';  // legs.LAUNCH_BUYBACK_DESTINATION
+    var CHARLIE_OPS = '964A71b6LgvvJhcYqpyWkSTShh9cPcKdo9ZUQ31vveYG';       // legs.CHARLIE_OPS_DESTINATION
+    // A coin launched from an X tag pays a split row to the payout treasury
+    // (legs.CHARLIE_PAYOUT_TREASURY). Anyone can add the treasury to a split,
+    // so the config's admin must also be Charlie's launch wallet
+    // (legs.CHARLIE_LAUNCH_WALLET).
+    var PAYOUT_TREASURY = 'FiJU5VxHFy6B4S8LG5W1xPiH7kyUfsKVV5nWfUWaWzw';
+    var LAUNCH_WALLET = '35dhpKUkedfQBnrXsamnZQnyV77Q3TAXtEW7QUzPbARm';
+
+    // Fast CORS-enabled gateways first; ipfs.io is last because it often hangs.
+    var IPFS_GATEWAYS = ['https://pump.mypinata.cloud/ipfs/', 'https://dweb.link/ipfs/', 'https://ipfs.io/ipfs/'];
 
     function copyMint() {
       if (window.copyToClipboard) {
@@ -528,226 +527,402 @@
       return '<b>' + m.slice(0, 4) + '</b>' + m.slice(4, -4) + '<b>' + m.slice(-4) + '</b>';
     }
 
-    // A coin launched from an X tag pays a split row to the payout treasury
-    // (legs.CHARLIE_PAYOUT_TREASURY). The record's config.shareholders and
-    // attribution rows carry it; "Requested by @" in the description is only
-    // a fallback.
-    var PAYOUT_TREASURY = 'FiJU5VxHFy6B4S8LG5W1xPiH7kyUfsKVV5nWfUWaWzw';
-    // Anyone can add the treasury to a split, so the config's admin must also
-    // be Charlie's launch wallet (legs.CHARLIE_LAUNCH_WALLET).
-    var LAUNCH_WALLET = '35dhpKUkedfQBnrXsamnZQnyV77Q3TAXtEW7QUzPbARm';
-    function paysPayoutTreasury(d) {
-      if (!d.config || d.config.admin !== LAUNCH_WALLET) return false;
-      var rows = [].concat(d.config.shareholders || [], d.attribution || [], d.shares || []);
-      return rows.some(function (r) { return r && r.address === PAYOUT_TREASURY && Number(r.bps) > 0; });
+    function shortAddr(a) { return a ? a.slice(0, 4) + '…' + a.slice(-4) : ''; }
+
+    function el(tag, cls, text) {
+      var n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text !== undefined) n.textContent = text;
+      return n;
     }
+
+    // Every URL a gateway could serve for this link, fastest first.
+    function gatewayUrls(src) {
+      if (!src || typeof src !== 'string') return [];
+      var m = src.match(/^ipfs:\/\/(?:ipfs\/)?(.+)$/) || src.match(/^https?:\/\/[^\/]+\/ipfs\/(.+)$/);
+      if (!m) return /^https?:\/\//.test(src) ? [src] : [];
+      return IPFS_GATEWAYS.map(function (g) { return g + m[1]; });
+    }
+
+    async function fetchJsonAny(urls, timeoutMs) {
+      for (var i = 0; i < urls.length; i++) {
+        var ctl = window.AbortController ? new AbortController() : null;
+        var t = ctl ? setTimeout(function () { ctl.abort(); }, timeoutMs) : null;
+        try {
+          var r = await fetch(urls[i], { cache: 'force-cache', signal: ctl ? ctl.signal : undefined });
+          if (r.ok) { var j = await r.json(); clearTimeout(t); return j; }
+        } catch (e) {}
+        clearTimeout(t);
+      }
+      return null;
+    }
+
+    function fmtTime(v) {
+      if (typeof v === 'number') return new Date(v * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+      return String(v);
+    }
+
+    function fmtNum(v, minD, maxD) {
+      return Number(v).toLocaleString('en-US', { minimumFractionDigits: minD, maximumFractionDigits: maxD });
+    }
+
+    function setLeg(key, valueHtml, source) {
+      if (valueHtml !== null) document.getElementById('val' + key).innerHTML = valueHtml;
+      document.getElementById('src' + key).textContent = source || '';
+    }
+
+    function isTagLaunch(d) {
+      if (!d.config || d.config.admin !== LAUNCH_WALLET) return false;
+      return splitRows(d).some(function (r) { return r.address === PAYOUT_TREASURY && r.bps > 0; });
+    }
+
     function showTagClaim(desc) {
       if (typeof desc === 'string' && desc.indexOf('Requested by @') !== -1) {
         document.getElementById('tagClaimSec').hidden = false;
       }
     }
 
-    // Dynamic Loader for On-Chain Observation Data
+    // The coin's own split rows: the sharing config's shareholders, with the
+    // leg each row was classified as (attribution) where the record has it.
+    function splitRows(d) {
+      var legOf = {};
+      (d.attribution || []).forEach(function (a) { if (a && a.address) legOf[a.address] = a.leg; });
+      var src = (d.config && d.config.shareholders) || d.attribution || d.shares || [];
+      return src.filter(function (r) { return r && r.address && Number(r.bps) > 0; })
+        .map(function (r) { return { address: r.address, bps: Number(r.bps), leg: r.leg || legOf[r.address] || null }; });
+    }
+
+    var creatorSeen = {};  // creator address -> colour slot, stable per page
+    var ROLE_ORDER =['protocol', 'sol_burn', 'token_burn', 'buyback', 'requester', 'creator', 'ops'];
+
+    function describeRow(r, d) {
+      var a = r.address;
+      if (a === TOLL_DESTINATION) {
+        return { role: 'protocol', color: 'var(--ember)', name: 'Charlie Protocol',
+          note: 'Buys and burns $CHARLIE. The fixed row every enrolled coin carries.' };
+      }
+      if (a === INCINERATOR) {
+        return { role: 'sol_burn', color: 'var(--flame-warm)', name: 'SOL burn · incinerator',
+          note: "Solana's incinerator. SOL paid here is destroyed, which is why its balance always reads 0.", link: a };
+      }
+      if (a === BURN_ADDRESS || r.leg === 'sol_burn') {
+        return { role: 'sol_burn', color: 'var(--flame-warm)', name: 'SOL burn',
+          note: 'A burn address. SOL paid here cannot be spent.', link: a };
+      }
+      if (r.leg === 'burn') {
+        return { role: 'token_burn', color: '#FF5A36', name: 'Token buyback burn',
+          note: 'Buys this coin and burns it.', link: a };
+      }
+      if (a === BUYBACK_TREASURY) {
+        return { role: 'buyback', color: '#FFC857', name: 'Buyback treasury',
+          note: 'Shared treasury that buys this coin back and burns it. Its ledger caps each buy at what this coin has paid in.', link: a };
+      }
+      if (a === PAYOUT_TREASURY && d.config && d.config.admin === LAUNCH_WALLET) {
+        return { role: 'requester', color: 'var(--sol-blue)', name: 'Requester',
+          note: 'Held for the X account that requested this coin, who claims it at /claim. Credits unclaimed after 7 days go to the $CHARLIE buy-and-burn.', link: a };
+      }
+      if (a === CHARLIE_OPS) {
+        return { role: 'ops', color: '#B18CFF', name: 'Charlie ops',
+          note: "Pays for tag launches and Charlie's infrastructure. A spendable wallet.", link: a };
+      }
+      var creatorColors = ['#7FB2FF', '#FF6FA8', '#5EEAD4', '#E8E27A'];
+      creatorSeen[a] = creatorSeen[a] !== undefined ? creatorSeen[a] : Object.keys(creatorSeen).length;
+      return { role: 'creator', color: creatorColors[creatorSeen[a] % creatorColors.length], name: 'Creator wallet ' + shortAddr(a),
+        note: 'A spendable wallet chosen by the coin’s creator.', link: a };
+    }
+
+    function renderSplit(d) {
+      var bar = document.getElementById('splitBar');
+      var list = document.getElementById('splitRows');
+      var foot = document.getElementById('splitFoot');
+      bar.innerHTML = ''; list.innerHTML = '';
+
+      var rows = splitRows(d);
+      if (!rows.length) {
+        foot.textContent = d.config ? 'this coin has no fee split rows' : 'no pump sharing config found for this coin';
+        bar.hidden = true;
+        return;
+      }
+      var described = rows.map(function (r) { var x = describeRow(r, d); x.bps = r.bps; x.address = r.address; return x; });
+      described.sort(function (x, y) { return ROLE_ORDER.indexOf(x.role) - ROLE_ORDER.indexOf(y.role) || y.bps - x.bps; });
+
+      // The protocol row is quoted as a share of each transaction, never as a
+      // share of the fee; the other rows are shares of what is left after it,
+      // which is how /launch and /enroll set them.
+      var protocolBps = 0;
+      described.forEach(function (x) { if (x.role === 'protocol') protocolBps += x.bps; });
+      var rest = 10000 - protocolBps;
+      var ofRest = protocolBps > 0 && rest > 0;
+
+      // The bar draws the same shares the rows list. With a protocol row, that
+      // is the rest after it: sizing the protocol row by its bps would draw it
+      // far wider than its 0.25% label.
+      var cap = document.getElementById('splitBarCap');
+      cap.hidden = !ofRest;
+      cap.textContent = ofRest ? 'after the 0.25% protocol row, the rest is split:' : '';
+      described.forEach(function (x) {
+        if (!(ofRest && x.role === 'protocol')) {
+          var seg = el('div', 'bar-seg');
+          seg.style.background = x.color;
+          seg.style.flexGrow = String(x.bps);
+          seg.title = x.name + ' · ' + (Math.round(x.bps / (ofRest ? rest : 10000) * 10000) / 100) + '%';
+          bar.appendChild(seg);
+        }
+
+        var li = el('li', 'split-row');
+        var dot = el('span', 'legend-dot'); dot.style.background = x.color;
+        li.appendChild(dot);
+        li.appendChild(el('span', 'split-name', x.name));
+        var pct = el('span', 'split-pct');
+        if (x.role === 'protocol') {
+          pct.textContent = x.bps >= TOLL_BPS ? '0.25%' : 'enrolled';
+          pct.appendChild(el('small', null, x.bps >= TOLL_BPS ? 'of each transaction' : 'at an earlier rate'));
+        } else {
+          var p = x.bps / (ofRest ? rest : 10000) * 100;
+          pct.textContent = (Math.round(p * 100) / 100) + '%';
+          pct.appendChild(el('small', null, ofRest ? 'of the rest' : 'of creator fees'));
+        }
+        li.appendChild(pct);
+        var note = el('span', 'split-note', x.note + ' ');
+        if (x.link) {
+          var a = el('a', null, shortAddr(x.link));
+          a.href = 'https://solscan.io/account/' + x.link;
+          a.target = '_blank'; a.rel = 'noopener noreferrer';
+          note.appendChild(a);
+        }
+        li.appendChild(note);
+        list.appendChild(li);
+      });
+
+      var locked = d.config && d.config.admin_revoked;
+      foot.textContent = (locked ? 'locked on chain: pump allows no further change to this split' : 'set on chain; pump allows one change')
+        + ' · realized amounts below';
+    }
+
+    function renderLegs(d) {
+      var figs = d.figures || {};
+      var pub = d.publishable || [];
+      function published(k) { return pub.indexOf(k) !== -1 && figs[k] !== undefined && figs[k] !== null; }
+      function blockedWhy(k) {
+        var b = d.blocked && d.blocked[k] && d.blocked[k][0];
+        return b ? 'not published yet: ' + b.check + ' is ' + String(b.status).toLowerCase() : 'not published yet';
+      }
+      var rows = splitRows(d);
+      var sol = ' <span class="leg-unit">SOL</span>';
+
+      // SOL burn
+      if (published('sol_burn_total')) {
+        setLeg('SolBurn', fmtNum(figs.sol_burn_total, 4, 9) + sol, 'reconciled total');
+      } else {
+        var bal = 0, readable = false, incinOnly = true;
+        var balances = d.sol_burn_balances || {};
+        Object.keys(balances).forEach(function (addr) {
+          if (addr === INCINERATOR) return;
+          incinOnly = false;
+          if (typeof balances[addr] === 'number') { bal += balances[addr]; readable = true; }
+        });
+        var hasBurnRow = rows.some(function (r) { return describeRow(r, d).role === 'sol_burn'; });
+        if (readable && bal > 0) {
+          setLeg('SolBurn', fmtNum(bal / 1e9, 4, 9) + sol, 'balance at the burn address, read off chain, not a reconciled total');
+        } else if (hasBurnRow && incinOnly) {
+          setLeg('SolBurn', null, 'the incinerator destroys SOL on arrival, so there is no balance to read; payout recording is not built yet');
+        } else {
+          setLeg('SolBurn', null, hasBurnRow ? blockedWhy('sol_burn_total') : 'no SOL burn row in this split');
+        }
+      }
+
+      // Token buyback burn
+      if (published('burn_total')) {
+        setLeg('TokenBuyback', fmtNum(figs.burn_total, 2, 6) + ' <span class="leg-unit">tokens</span>', 'reconciled total');
+      } else {
+        var hasBuyback = rows.some(function (r) { var role = describeRow(r, d).role; return role === 'buyback' || role === 'token_burn'; });
+        setLeg('TokenBuyback', null, hasBuyback ? blockedWhy('burn_total') : 'no token buyback row in this split');
+      }
+
+      // Supply destroyed: initial supply at creation minus live supply, both chain reads.
+      var init = d.evidence && d.evidence.initial_supply;
+      var ms = d.mint_state;
+      if (published('supply_destroyed')) {
+        setLeg('SupplyDestroyed', fmtNum(figs.supply_destroyed, 2, 6) + ' <span class="leg-unit">tokens</span>', 'reconciled total');
+      } else if (init && init.raw_supply && ms && typeof ms.supply === 'number') {
+        var dec = ms.decimals || init.decimals || 0;
+        var gone = (init.raw_supply - ms.supply) / Math.pow(10, dec);
+        setLeg('SupplyDestroyed', fmtNum(gone, 2, 6) + ' <span class="leg-unit">tokens</span>', 'supply at creation minus live supply · every burn against the mint, by anyone');
+      } else {
+        setLeg('SupplyDestroyed', null, blockedWhy('supply_destroyed'));
+      }
+
+      // Paid to wallets (every spendable row)
+      if (published('ops_total')) {
+        setLeg('Ops', fmtNum(figs.ops_total, 4, 9) + sol, 'reconciled total');
+      } else {
+        var spendable = rows.some(function (r) { var role = describeRow(r, d).role; return role !== 'sol_burn' && role !== 'token_burn'; });
+        setLeg('Ops', null, spendable ? blockedWhy('ops_total') : 'no spendable rows in this split');
+      }
+
+      // Distributed
+      if (figs.distributed_total !== undefined && figs.distributed_total !== null) {
+        setLeg('Distributed', fmtNum(figs.distributed_total, 4, 9) + sol, 'distribute crank · all rows');
+      } else {
+        setLeg('Distributed', null, isTagLaunch(d)
+          ? 'paid out by the tag bot about every 30 minutes; per-coin totals not published yet'
+          : 'paid out by the distribute crank; per-coin totals not published yet');
+      }
+
+      // Paired token
+      var quote = d.quote_mint || (d.pool && d.pool.quote_mint);
+      if (quote) {
+        var wsol = quote === 'So11111111111111111111111111111111111111112';
+        setLeg('PairedToken', wsol ? 'SOL' : shortAddr(quote), 'pool quote_mint · ' + shortAddr(quote));
+      } else if (d.graduated === false) {
+        setLeg('PairedToken', 'SOL', 'pump bonding curve · not graduated yet');
+      } else {
+        setLeg('PairedToken', null, 'pool not read');
+      }
+    }
+
+    var imageSet = false;
+    function setTokenImage(src, force) {
+      var urls = gatewayUrls(src);
+      if (!urls.length || (imageSet && !force)) return;
+      imageSet = true;
+      var imgEl = document.getElementById('coinImg');
+      var glyphEl = document.getElementById('sigilGlyph');
+      var i = 0;
+      imgEl.onerror = function () {
+        i += 1;
+        if (i < urls.length) { imgEl.src = urls[i]; return; }
+        imgEl.style.display = 'none'; glyphEl.style.display = 'flex'; imageSet = false;
+      };
+      imgEl.onload = function () { imgEl.style.display = 'block'; glyphEl.style.display = 'none'; };
+      imgEl.src = urls[0];
+    }
+
+    function addLinks(links) {
+      var deck = document.getElementById('coinCommunityDeck');
+      var chips = deck.querySelector('.coin-community-chips');
+      var seen = {};
+      Array.prototype.forEach.call(chips.querySelectorAll('a'), function (a) { seen[a.href] = true; });
+      links.forEach(function (l) {
+        if (!l.url || !/^https?:\/\//i.test(l.url) || seen[l.url]) return;
+        seen[l.url] = true;
+        var a = el('a', 'coin-chip' + (l.flame ? ' coin-chip--flame' : ''));
+        a.href = l.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.appendChild(el('span', null, l.label));
+        chips.appendChild(a);
+      });
+      if (chips.children.length) deck.hidden = false;
+    }
+
+    function setText(id, v) { document.getElementById(id).textContent = v; }
+    function sym(s) { return s.charAt(0) === '$' ? s : '$' + s; }
+
     window.addEventListener('DOMContentLoaded', async function () {
       var urlParams = new URLSearchParams(window.location.search);
       var mint = urlParams.get('mint');
-      if (mint && mint.trim().length >= 32) {
-        currentMint = mint.trim();
-      }
+      if (mint && mint.trim().length >= 32) currentMint = mint.trim();
 
       document.getElementById('mintDisplay').innerHTML = formatMint(currentMint);
       document.title = currentMint + ' — Coin Details — Charlie Protocol';
+      setText('coinName', shortAddr(currentMint));
 
-      // Fetch observation JSON
-      try {
-        var res = await fetch('./' + encodeURIComponent(currentMint) + '.json', { cache: 'no-store' });
-        if (!res.ok) {
-          res = await fetch('/api/verify?mint=' + encodeURIComponent(currentMint) + '&format=json', { cache: 'no-store' });
-        }
-        if (res.ok) {
-          var data = await res.json();
-          renderCoin(data);
-          return;
-        }
-      } catch (e) {}
-
-      // Fallback presets for known coins
-      if (currentMint.startsWith('8KC4')) {
-        renderCoin({
-          mint: currentMint,
-          observed_at: '2026-09-18 20:54:26Z',
-          name: 'Creator Ops Coin',
-          symbol: '$OPS',
-          description: 'A reference pump.fun token allocating 100% of creator fees to operational treasury.',
-          split: { sol_burn: 0, burn: 0, paid: 10000 },
-          figures: { sol_burn_total: 0, burn_total: null, supply_destroyed: null, ops_total: 0 }
-        });
-      } else if (currentMint.startsWith('7mr9')) {
-        renderCoin({
-          mint: currentMint,
-          observed_at: '2026-09-18 20:54:26Z',
-          name: 'Enrolled Coin',
-          symbol: '$ENROLLED',
-          description: 'Enrolled pump.fun token routing creator fees with permanent on-chain split.',
-          split: { sol_burn: 2000, burn: 0, paid: 8000 },
-          figures: { sol_burn_total: 1.25, burn_total: null, supply_destroyed: null, ops_total: 5.0 }
-        });
+      // $CHARLIE's official links are known; every other coin shows only what
+      // its own metadata or DexScreener profile names.
+      var chips = document.querySelector('#coinCommunityDeck .coin-community-chips');
+      if (currentMint === CHARLIE_MINT) {
+        document.getElementById('coinCommunityDeck').hidden = false;
+      } else {
+        chips.innerHTML = '';
       }
+
+      // Live record first; the committed snapshot only if the API is down.
+      var data = null;
+      var sources = ['/api/verify?mint=' + encodeURIComponent(currentMint) + '&format=json',
+                     './' + encodeURIComponent(currentMint) + '.json'];
+      for (var i = 0; i < sources.length && !data; i++) {
+        try {
+          var res = await fetch(sources[i], { cache: 'no-store' });
+          if (res.ok) {
+            var j = await res.json();
+            if (j && !j.error) data = j;
+          }
+        } catch (e) {}
+      }
+      if (!data) {
+        setText('coinName', 'Could not read this coin');
+        setText('splitFoot', 'the chain read failed; reload to try again');
+        document.getElementById('splitBar').hidden = true;
+        return;
+      }
+      renderCoin(data);
     });
 
     function renderCoin(d) {
-      if (d.observed_at) {
-        document.getElementById('observedStamp').textContent = 'Read: ' + d.observed_at;
-      }
-      if (d.name) {
-        document.getElementById('coinName').textContent = d.name;
-      }
-      if (d.symbol) {
-        document.getElementById('coinSym').textContent = d.symbol.startsWith('$') ? d.symbol : ('$' + d.symbol);
-      }
-      if (d.description) {
-        document.getElementById('coinDesc').textContent = d.description;
-      }
-      if (paysPayoutTreasury(d)) {
-        document.getElementById('tagClaimSec').hidden = false;
-      } else {
-        showTagClaim(d.description);
-      }
+      if (d.observed_at) setText('observedStamp', 'Read: ' + fmtTime(d.observed_at));
+      if (d.name) setText('coinName', d.name);
+      if (d.symbol) setText('coinSym', sym(d.symbol));
+      if (d.description) setText('coinDesc', d.description);
+      if (d.name || d.symbol) document.title = (d.symbol ? sym(d.symbol) + ' ' : '') + (d.name || '') + ' — Charlie Protocol';
 
-      // Render Token Image Photo & Visuals
-      var imgEl = document.getElementById('coinImg');
-      var glyphEl = document.getElementById('sigilGlyph');
+      if (isTagLaunch(d)) document.getElementById('tagClaimSec').hidden = false;
+      else showTagClaim(d.description);
 
-      function setTokenImage(src) {
-        if (!src) return;
-        var resolved = src.replace(/^ipfs:\/\//, 'https://ipfs.io/ipfs/');
-        imgEl.src = resolved;
-        imgEl.style.display = 'block';
-        glyphEl.style.display = 'none';
-      }
+      var direct = d.image || d.imageUrl || d.logoURI || (d.metadata && d.metadata.image);
+      if (direct) setTokenImage(direct);
 
-      var directImg = d.image || d.imageUrl || d.logoURI || d.icon || (d.metadata && d.metadata.image);
-      if (directImg) {
-        setTokenImage(directImg);
-      }
+      renderSplit(d);
+      renderLegs(d);
 
-      // Fetch live token profile and real image from DexScreener
-      if (currentMint) {
-        fetch('https://api.dexscreener.com/latest/dex/tokens/' + encodeURIComponent(currentMint))
-          .then(function (r) { return r.json(); })
-          .then(function (dex) {
-            if (dex && dex.pairs && dex.pairs.length > 0) {
-              var pair = dex.pairs[0];
-              var dexImage = (pair.info && (pair.info.imageUrl || pair.info.openGraph)) || null;
-              if (dexImage) {
-                setTokenImage(dexImage);
-              }
-              if (pair.baseToken) {
-                if (pair.baseToken.name && (!d.name || d.name === 'Charlie')) {
-                  document.getElementById('coinName').textContent = pair.baseToken.name;
-                }
-                if (pair.baseToken.symbol) {
-                  var sym = pair.baseToken.symbol;
-                  document.getElementById('coinSym').textContent = sym.startsWith('$') ? sym : ('$' + sym);
-                }
-              }
-              if (pair.info && pair.info.socials && Array.isArray(pair.info.socials) && pair.info.socials.length > 0) {
-                var deck = document.getElementById('coinCommunityDeck');
-                if (deck) {
-                  var chipContainer = deck.querySelector('.coin-community-chips');
-                  if (chipContainer) {
-                    var html = '';
-                    pair.info.socials.forEach(function(s) {
-                      var type = (s.type || '').toLowerCase();
-                      var url = s.url || '';
-                      if (!url) return;
-                      var label = type === 'twitter' ? 'X / Twitter' : (type === 'telegram' ? 'Telegram' : (type === 'discord' ? 'Discord' : type));
-                      html += '<a href="' + encodeURI(url) + '" target="_blank" rel="noopener noreferrer" class="coin-chip"><span>' + label + '</span></a>';
-                    });
-                    if (pair.info.websites && Array.isArray(pair.info.websites)) {
-                      pair.info.websites.forEach(function(w) {
-                        if (w && w.url) {
-                          html += '<a href="' + encodeURI(w.url) + '" target="_blank" rel="noopener noreferrer" class="coin-chip coin-chip--flame"><span>' + (w.label || 'Website') + '</span></a>';
-                        }
-                      });
-                    }
-                    if (html) chipContainer.innerHTML = html;
-                  }
-                }
-              }
-            }
-          })
-          .catch(function () {});
-      }
-
-      // Fetch metadata URI in background if metadata URI is present
+      // The coin's own metadata JSON: its current image, description and links.
+      // A committed record can predate the name/symbol/uri fields; the live
+      // directory carries them for every enrolled coin.
       var metaUri = d.uri || d.metadata_uri || (d.metadata && d.metadata.uri);
-      if (metaUri) {
-        var resolvedUri = metaUri.replace(/^ipfs:\/\//, 'https://ipfs.io/ipfs/');
-        fetch(resolvedUri, { cache: 'force-cache' }).then(function(r) { return r.json(); }).then(function(meta) {
-          if (meta && meta.image) {
-            setTokenImage(meta.image);
-          }
-          if (meta && meta.name && !d.name) {
-            document.getElementById('coinName').textContent = meta.name;
-          }
-          if (meta && meta.symbol && !d.symbol) {
-            document.getElementById('coinSym').textContent = meta.symbol.startsWith('$') ? meta.symbol : ('$' + meta.symbol);
-          }
-          if (meta && meta.description && !d.description) {
-            document.getElementById('coinDesc').textContent = meta.description;
-          }
-          showTagClaim(meta && meta.description);
-        }).catch(function() {});
-      }
+      var uriFound = (metaUri && d.name) ? Promise.resolve(metaUri) : fetch('/api/coins', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          var c = ((j && j.coins) || []).filter(function (x) { return x && x.mint === currentMint; })[0];
+          if (!c) return metaUri;
+          if (c.name && !d.name) { d.name = c.name; setText('coinName', c.name); }
+          if (c.symbol && !d.symbol) { d.symbol = c.symbol; setText('coinSym', sym(c.symbol)); }
+          if (d.name || d.symbol) document.title = (d.symbol ? sym(d.symbol) + ' ' : '') + (d.name || '') + ' — Charlie Protocol';
+          return metaUri || c.uri;
+        })
+        .catch(function () { return metaUri; });
+      var metaDone = uriFound.then(function (uri) { return uri ? fetchJsonAny(gatewayUrls(uri), 6000) : null; }).then(function (meta) {
+        if (!meta) return;
+        if (meta.image) setTokenImage(meta.image, true);
+        if (meta.name && !d.name) setText('coinName', meta.name);
+        if (meta.symbol && !d.symbol) setText('coinSym', sym(meta.symbol));
+        if (meta.description && !d.description) setText('coinDesc', meta.description);
+        showTagClaim(meta.description);
+        addLinks([
+          { url: meta.twitter, label: 'X' },
+          { url: meta.telegram, label: 'Telegram' },
+          { url: meta.website, label: 'Website', flame: true }
+        ]);
+      });
 
-      // Compute split percentages
-      var solBps = 0, tokenBps = 0, opsBps = 0;
-      if (d.split) {
-        solBps = d.split.sol_burn || 0;
-        tokenBps = d.split.burn || 0;
-        opsBps = d.split.paid || 0;
-      } else if (d.shares && Array.isArray(d.shares)) {
-        d.shares.forEach(function (s) {
-          if (s.address === '1nc1nerator11111111111111111111111111111111') {
-            solBps += s.bps;
-          } else {
-            opsBps += s.bps;
-          }
+      // DexScreener: fills the image only if metadata had none, plus any
+      // socials the coin's profile lists there.
+      metaDone.then(function () {
+        return fetch('https://api.dexscreener.com/latest/dex/tokens/' + encodeURIComponent(currentMint)).then(function (r) { return r.json(); });
+      }).then(function (dex) {
+        var pair = dex && dex.pairs && dex.pairs[0];
+        if (!pair) return;
+        var info = pair.info || {};
+        if (info.imageUrl) setTokenImage(info.imageUrl);
+        if (pair.baseToken) {
+          if (pair.baseToken.name && !d.name) setText('coinName', pair.baseToken.name);
+          if (pair.baseToken.symbol && !d.symbol) setText('coinSym', sym(pair.baseToken.symbol));
+        }
+        var links = [];
+        (info.socials || []).forEach(function (s) {
+          var t = (s.type || '').toLowerCase();
+          links.push({ url: s.url, label: t === 'twitter' ? 'X' : t === 'telegram' ? 'Telegram' : t === 'discord' ? 'Discord' : (t || 'Link') });
         });
-      }
-
-      var total = solBps + tokenBps + opsBps;
-      if (total === 0) {
-        solBps = 10000; total = 10000;
-      }
-
-      var solPct = (solBps / 100).toFixed(2);
-      var tokenPct = (tokenBps / 100).toFixed(2);
-      var opsPct = (opsBps / 100).toFixed(2);
-
-      document.getElementById('labelSolBurn').textContent = 'SOL burn ' + solPct + '%';
-      document.getElementById('labelTokenBurn').textContent = 'Token buyback burn ' + tokenPct + '%';
-      document.getElementById('labelOps').textContent = 'Ops ' + opsPct + '%';
-
-      document.getElementById('barSol').style.width = (solBps / total * 100) + '%';
-      document.getElementById('barToken').style.width = (tokenBps / total * 100) + '%';
-      document.getElementById('barOps').style.width = (opsBps / total * 100) + '%';
-
-      // Performance legs
-      var figs = d.figures || {};
-      if (figs.sol_burn_total !== undefined && figs.sol_burn_total !== null) {
-        document.getElementById('valSolBurn').innerHTML = Number(figs.sol_burn_total).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 9 }) + '<span class="leg-unit">SOL</span>';
-        document.getElementById('legSolBurn').removeAttribute('data-value');
-      }
-
-      if (figs.supply_destroyed !== undefined && figs.supply_destroyed !== null) {
-        document.getElementById('valSupplyDestroyed').innerHTML = Number(figs.supply_destroyed).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + '<span class="leg-unit">tokens</span>';
-      }
-
-      if (figs.ops_total !== undefined && figs.ops_total !== null) {
-        document.getElementById('valOps').innerHTML = Number(figs.ops_total).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 9 }) + '<span class="leg-unit">SOL</span>';
-      }
+        (info.websites || []).forEach(function (w) { links.push({ url: w && w.url, label: (w && w.label) || 'Website', flame: true }); });
+        addLinks(links);
+      }).catch(function () {});
     }
   </script>
 </body>
