@@ -41,6 +41,7 @@ jobs:
       # The same gateway every other chain read in this repository goes
       # through. Never a public endpoint directly.
       CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      CROWD_API_KEY: ${{ secrets.CROWD_API_KEY }}
       # Coins already traced as carrying a live sharing config, so the run has
       # candidates even if the launch sample is refused by the gateway. Every
       # freshly launched fee-shared coin has admin_revoked true, which is the

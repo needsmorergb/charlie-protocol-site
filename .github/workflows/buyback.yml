@@ -35,6 +35,7 @@ jobs:
     timeout-minutes: 10
     env:
       CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      CROWD_API_KEY: ${{ secrets.CROWD_API_KEY }}
       MINTS: ${{ github.event.inputs.mints || '' }}
     steps:
       - uses: actions/checkout@v4
