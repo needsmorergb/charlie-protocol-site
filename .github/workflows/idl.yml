@@ -29,6 +29,7 @@ jobs:
     timeout-minutes: 5
     env:
       CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+      CROWD_API_KEY: ${{ secrets.CROWD_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

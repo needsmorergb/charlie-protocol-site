@@ -68,6 +68,7 @@ jobs:
           # method-level denials that stop a provider answering a signature
           # query with an empty array instead of an error.
           CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+          CROWD_API_KEY: ${{ secrets.CROWD_API_KEY }}
         run: |
           python -m indexer intake --refresh \
             --repo "${{ github.repository }}" \
@@ -101,6 +102,7 @@ jobs:
         continue-on-error: true
         env:
           CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+          CROWD_API_KEY: ${{ secrets.CROWD_API_KEY }}
         run: |
           python -m indexer site --write --landing --require-counters \
             --evidence state/evidence.db \
@@ -148,6 +150,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CHARLIE_RPC_URLS: https://crowd-api-gateway.vercel.app/
+          CROWD_API_KEY: ${{ secrets.CROWD_API_KEY }}
         run: |
           python -m indexer intake \
             --repo "${{ github.repository }}" \
