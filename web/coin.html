@@ -81,6 +81,7 @@
   .split-pct small{display:block;font-weight:400;font-size:10.5px;color:var(--text-muted);letter-spacing:.02em}
   .split-note{grid-column:2 / 4;font-size:12.5px;line-height:1.55;color:var(--text-secondary)}
   .split-note a{color:var(--text-muted);font-family:var(--font-mono);font-size:11px}
+  .bar-cap{font:400 11px/1.5 var(--font-mono);color:var(--text-muted);margin:0 0 7px;letter-spacing:.02em}
   .bar-foot{font:400 11px/1.5 var(--font-mono);color:var(--text-muted);margin:9px 0 0;letter-spacing:.02em}
   
   /* ---- legs ---- */
@@ -289,6 +290,7 @@
         <h3>Fee split</h3>
         <p class="sec-note" id="splitNote">Every row of this coin's creator-fee split, read from its pump sharing config. This is the allocation, not the amount collected.</p>
 
+        <p class="bar-cap" id="splitBarCap" hidden></p>
         <div class="bar-container" id="splitBar" role="img" aria-label="Fee split"></div>
         <ul class="split-rows" id="splitRows"></ul>
         <p class="bar-foot" id="splitFoot">reading the split…</p>
@@ -652,12 +654,20 @@
       var rest = 10000 - protocolBps;
       var ofRest = protocolBps > 0 && rest > 0;
 
+      // The bar draws the same shares the rows list. With a protocol row, that
+      // is the rest after it: sizing the protocol row by its bps would draw it
+      // far wider than its 0.25% label.
+      var cap = document.getElementById('splitBarCap');
+      cap.hidden = !ofRest;
+      cap.textContent = ofRest ? 'after the 0.25% protocol row, the rest is split:' : '';
       described.forEach(function (x) {
-        var seg = el('div', 'bar-seg');
-        seg.style.background = x.color;
-        seg.style.flexGrow = String(x.bps);
-        seg.title = x.name;
-        bar.appendChild(seg);
+        if (!(ofRest && x.role === 'protocol')) {
+          var seg = el('div', 'bar-seg');
+          seg.style.background = x.color;
+          seg.style.flexGrow = String(x.bps);
+          seg.title = x.name + ' · ' + (Math.round(x.bps / (ofRest ? rest : 10000) * 10000) / 100) + '%';
+          bar.appendChild(seg);
+        }
 
         var li = el('li', 'split-row');
         var dot = el('span', 'legend-dot'); dot.style.background = x.color;
@@ -864,8 +874,21 @@
       renderLegs(d);
 
       // The coin's own metadata JSON: its current image, description and links.
+      // A committed record can predate the name/symbol/uri fields; the live
+      // directory carries them for every enrolled coin.
       var metaUri = d.uri || d.metadata_uri || (d.metadata && d.metadata.uri);
-      var metaDone = metaUri ? fetchJsonAny(gatewayUrls(metaUri), 6000).then(function (meta) {
+      var uriFound = (metaUri && d.name) ? Promise.resolve(metaUri) : fetch('/api/coins', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          var c = ((j && j.coins) || []).filter(function (x) { return x && x.mint === currentMint; })[0];
+          if (!c) return metaUri;
+          if (c.name && !d.name) { d.name = c.name; setText('coinName', c.name); }
+          if (c.symbol && !d.symbol) { d.symbol = c.symbol; setText('coinSym', sym(c.symbol)); }
+          if (d.name || d.symbol) document.title = (d.symbol ? sym(d.symbol) + ' ' : '') + (d.name || '') + ' — Charlie Protocol';
+          return metaUri || c.uri;
+        })
+        .catch(function () { return metaUri; });
+      var metaDone = uriFound.then(function (uri) { return uri ? fetchJsonAny(gatewayUrls(uri), 6000) : null; }).then(function (meta) {
         if (!meta) return;
         if (meta.image) setTokenImage(meta.image, true);
         if (meta.name && !d.name) setText('coinName', meta.name);
@@ -877,7 +900,7 @@
           { url: meta.telegram, label: 'Telegram' },
           { url: meta.website, label: 'Website', flame: true }
         ]);
-      }) : Promise.resolve();
+      });
 
       // DexScreener: fills the image only if metadata had none, plus any
       // socials the coin's profile lists there.
