@@ -77,7 +77,7 @@
   },
   "checks": [
     {
-      "actual": "CNT5L1AijM92nNTJH7oiTZ4J6ZNMq7BC2yRuiNU1nc1n",
+      "actual": "bg4Yzv1tz9YGuVKfr82yzdsxMbn36eKSurGcUZ1nc1n",
       "backs": [
         "split",
         "sol_burn_total",
@@ -87,7 +87,7 @@
       ],
       "detail": "the sharing config names this coin",
       "equation": "sharing_config.mint == mint",
-      "expected": "CNT5L1AijM92nNTJH7oiTZ4J6ZNMq7BC2yRuiNU1nc1n",
+      "expected": "bg4Yzv1tz9YGuVKfr82yzdsxMbn36eKSurGcUZ1nc1n",
       "name": "CONFIG_MINT",
       "status": "PASS"
     },
@@ -192,10 +192,10 @@
     }
   ],
   "config": {
-    "address": "Fwcuje6HpFfb1UdHcwiC1LpR9ZwusiuYocuCGE3SJf6i",
+    "address": "45MkPPa2wkyEwePw57wSrA94N3x88ogdjSnhtx3a8Szn",
     "admin": "35dhpKUkedfQBnrXsamnZQnyV77Q3TAXtEW7QUzPbARm",
     "admin_revoked": true,
-    "mint": "CNT5L1AijM92nNTJH7oiTZ4J6ZNMq7BC2yRuiNU1nc1n",
+    "mint": "bg4Yzv1tz9YGuVKfr82yzdsxMbn36eKSurGcUZ1nc1n",
     "shareholders": [
       {
         "address": "8SvEu1bvkhgaSkZW4XHLzfw8djd748KAVHMwvkYGfyr8",
@@ -229,7 +229,7 @@
     "FiJU5VxHFy6B4S8LG5W1xPiH7kyUfsKVV5nWfUWaWzw": 0
   },
   "graduated": false,
-  "mint": "CNT5L1AijM92nNTJH7oiTZ4J6ZNMq7BC2yRuiNU1nc1n",
+  "mint": "bg4Yzv1tz9YGuVKfr82yzdsxMbn36eKSurGcUZ1nc1n",
   "mint_state": {
     "decimals": 6,
     "freeze_authority": null,
@@ -237,7 +237,7 @@
     "supply": 1000000000000000,
     "token_program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
   },
-  "observed_at": 1790372107.0634685,
+  "observed_at": 1790372108.26039,
   "publishable": [
     "split"
   ],
