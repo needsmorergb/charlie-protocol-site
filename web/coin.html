@@ -1039,6 +1039,7 @@
     }
     function buyControls() {
       $b('buyConnect').hidden = !!buy.wallet;
+      $b('buySwitch').disabled = buy.busy;
       $b('buyWallet').hidden = !buy.wallet;
       $b('buyWalletAddr').textContent = buy.wallet ? shortAddr(buy.wallet) : '';
       $b('buyWalletAddr').title = buy.wallet || '';
@@ -1092,6 +1093,7 @@
     }
     // Disconnect, then ask the wallet again, so the owner can pick another account.
     async function buySwitch() {
+      if (buy.busy) return;   // never swap the wallet under a buy that is signing
       var p = buy.provider || walletProvider();
       buy.wallet = null; buyNote(''); invalidateQuote();
       try { if (p && p.disconnect) await p.disconnect(); } catch (e) {}
