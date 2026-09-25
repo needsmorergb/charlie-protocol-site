@@ -104,7 +104,31 @@
   .action-deck{margin-top:var(--sp-2xl);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-md);padding:var(--sp-lg);background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg)}
   
   .breadcrumb-link:hover { color: var(--text-primary) !important; text-decoration: underline !important; }
-  
+
+  /* ---- buy ---- */
+  .buy-grid{display:grid;gap:var(--sp-lg);margin:0 0 var(--sp-lg)}
+  @media(min-width:620px){.buy-grid{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--sp-2xl)}}
+  .buy-field{display:flex;flex-direction:column;gap:var(--sp-sm);min-width:0}
+  .buy-label{font:600 10px/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)}
+  .buy-input{width:100%;min-width:0;background:var(--bg-input);border:1px solid var(--border-glass);border-radius:var(--radius-sm);
+    padding:12px;color:var(--text-primary);font:500 16px/1.2 var(--font-mono);box-shadow:inset 0 2px 6px rgba(0,0,0,.6)}
+  .buy-input:focus{outline:none;border-color:var(--ember)}
+  .buy-row{display:flex;flex-wrap:wrap;gap:var(--sp-sm);align-items:center}
+  .buy-row .chip{min-height:36px;padding:6px 14px}
+  .buy-row .chip[aria-pressed=true]{border-color:var(--ember);color:var(--ember);background:var(--ember-halo)}
+  .buy-hint{font:400 11px/1.5 var(--font-mono);color:var(--text-muted);margin:0;letter-spacing:.02em}
+  .buy-quote{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-md) var(--sp-2xl);margin:0 0 var(--sp-lg);
+    padding:var(--sp-md);background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:var(--radius-md)}
+  .buy-quote dt{font:600 10px/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin:0 0 6px}
+  .buy-quote dd{margin:0;font:700 15px/1.3 var(--font-mono);color:var(--text-primary);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+  .buy-actions{display:flex;flex-wrap:wrap;gap:var(--sp-sm);align-items:center}
+  .buy-btn{min-height:44px}
+  .buy-btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+  .buy-note{font:400 12.5px/1.6 var(--font-mono);color:var(--text-secondary);white-space:pre-wrap;overflow-wrap:anywhere;margin:var(--sp-md) 0 0}
+  .buy-note:empty{display:none}
+  .buy-note.bad{color:var(--fail)} .buy-note.good{color:var(--pass)} .buy-note.caution{color:var(--unchecked)}
+  .buy-note a{color:var(--text-primary)}
+
   @media(max-width:600px){
     .wrap { padding: var(--sp-md) var(--sp-sm) var(--sp-2xl); }
     .hero{ grid-template-columns: 1fr; padding: var(--sp-lg) var(--sp-md); gap: var(--sp-md); }
@@ -119,6 +143,8 @@
     .split-labels{ flex-direction: column; gap: 6px; align-items: flex-start; }
     .split-legend-item{ font-size: 11.5px; }
     .legs{ grid-template-columns: 1fr; }
+    .buy-quote{ grid-template-columns: 1fr; }
+    .buy-actions .buy-btn{ flex: 1 1 100%; }
     .leg-value{ font-size: clamp(18px, 5vw, 22px); word-break: break-all; }
     .leg-source{ font-size: 10.5px; word-break: break-all; }
   }
@@ -282,6 +308,47 @@
           
           <p class="disclaim">Name, image, description and links come from the coin's own metadata. Charlie Protocol did not write or check them.</p>
         </div>
+      </div>
+
+      <!-- Section: Buy // the buyer's own wallet signs; /api/buy builds and checks it -->
+      <div class="sec" id="buySec">
+        <div class="sec-eyebrow">Buy</div>
+        <h3 id="buyTitle">Buy this coin</h3>
+        <p class="sec-note">Your wallet pays, signs and receives the tokens. The price is read from the chain: pump's bonding curve, or its PumpSwap pool once the coin has graduated. Every transaction is simulated against mainnet before your wallet is asked to sign it. pump's own trading fee applies.</p>
+
+        <div class="buy-grid">
+          <div class="buy-field">
+            <label class="buy-label" for="buySol">Spend (SOL)</label>
+            <input class="buy-input" id="buySol" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="0.1" aria-describedby="buyNote">
+            <div class="buy-row" role="group" aria-label="Amount presets">
+              <button type="button" class="chip" data-sol="0.1">0.1</button>
+              <button type="button" class="chip" data-sol="0.5">0.5</button>
+              <button type="button" class="chip" data-sol="1">1</button>
+            </div>
+          </div>
+          <div class="buy-field">
+            <span class="buy-label" id="buySlipLabel">Slippage</span>
+            <div class="buy-row" role="group" aria-labelledby="buySlipLabel">
+              <button type="button" class="chip" data-slip="100" aria-pressed="false">1%</button>
+              <button type="button" class="chip" data-slip="500" aria-pressed="true">5%</button>
+              <button type="button" class="chip" data-slip="1000" aria-pressed="false">10%</button>
+            </div>
+            <p class="buy-hint">The buy fails, and costs only the network fee, if the price moves more than this before it lands.</p>
+          </div>
+        </div>
+
+        <dl class="buy-quote" id="buyQuote" hidden>
+          <div><dt>You receive</dt><dd id="buyTokens">—</dd></div>
+          <div><dt>Pays at most</dt><dd id="buyMax">—</dd></div>
+          <div><dt>Venue</dt><dd id="buyVenue">—</dd></div>
+          <div><dt>Price impact</dt><dd id="buyImpact">—</dd></div>
+        </dl>
+
+        <div class="buy-actions">
+          <button type="button" class="btn-paste buy-btn" id="buyConnect">Connect wallet</button>
+          <button type="button" class="btn-submit buy-btn" id="buyGo" disabled>Get quote</button>
+        </div>
+        <p class="buy-note" id="buyNote" role="status" aria-live="polite"></p>
       </div>
 
       <!-- Section: The Promise // Fee split -->
@@ -834,6 +901,11 @@
       } else {
         chips.innerHTML = '';
       }
+      // Where the coin trades, for every coin: its chart and its pump page.
+      addLinks([
+        { url: 'https://dexscreener.com/solana/' + encodeURIComponent(currentMint), label: 'DexScreener' },
+        { url: 'https://pump.fun/coin/' + encodeURIComponent(currentMint), label: 'pump.fun' }
+      ]);
 
       // Live record first; the committed snapshot only if the API is down.
       var data = null;
@@ -924,6 +996,209 @@
         addLinks(links);
       }).catch(function () {});
     }
+  </script>
+  <script>
+    // ---- Buy: /api/buy builds and simulates; the wallet signs; the site relays ----
+    // The same sign-then-relay path /launch uses: the wallet signs only, and
+    // /api/launch?send=1 checks every signature and sends, and sends again
+    // until the chain has it. A wallet that cannot sign without sending falls
+    // back to its own send.
+    var buy = { wallet: null, provider: null, slip: 500, quote: null, quotedAt: 0, busy: false, signed: null, sig: null };
+    var QUOTE_TTL_MS = 45000;   // a blockhash lives about a minute; re-quote before that
+
+    function $b(id) { return document.getElementById(id); }
+    function buyNote(text, tone, link) {
+      var n = $b('buyNote');
+      n.className = 'buy-note' + (tone ? ' ' + tone : '');
+      n.textContent = text || '';
+      if (link) {
+        n.appendChild(document.createTextNode(' '));
+        var a = el('a', null, link.label);
+        a.href = link.href; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        n.appendChild(a);
+      }
+    }
+    function walletProvider() {
+      var p = (window.phantom && window.phantom.solana) || window.solana;
+      if (p && p.isPhantom) return p;
+      if (window.solflare && window.solflare.isSolflare) return window.solflare;
+      return p || null;
+    }
+    function validSol(v) { return /^(\d+(\.\d{1,9})?|\.\d{1,9})$/.test(v) && Number(v) >= 0.001 && Number(v) <= 100; }
+    function coinLabel() {
+      var s = ($b('coinSym').textContent || '').trim();
+      return s && s !== ' ' ? s : 'tokens';
+    }
+    function buyControls() {
+      $b('buyConnect').hidden = !!buy.wallet;
+      var go = $b('buyGo');
+      go.disabled = buy.busy || !buy.wallet || !validSol($b('buySol').value.trim());
+      go.textContent = buy.quote ? 'Buy ' + coinLabel() : 'Get quote';
+      if (coinLabel() !== 'tokens') $b('buyTitle').textContent = 'Buy ' + coinLabel();
+    }
+    function invalidateQuote() {
+      buy.quote = null; buy.quotedAt = 0;
+      $b('buyQuote').hidden = true;
+      buyControls();
+    }
+    async function buyRequest(url, init, timeoutMs) {
+      var ctl = window.AbortController ? new AbortController() : null;
+      var t = ctl ? setTimeout(function () { ctl.abort(); }, timeoutMs || 25000) : null;
+      try {
+        var opts = init || {};
+        if (ctl) opts.signal = ctl.signal;
+        var r = await fetch(url, opts);
+        var d = null;
+        try { d = await r.json(); } catch (e) {}
+        if (!r.ok || !d || d.error) throw Error((d && d.error) || 'The server could not answer just now. Nothing was signed.');
+        return d;
+      } catch (e) {
+        if (e && e.name === 'AbortError') throw Error('The server took too long to answer. Nothing was signed; try again.');
+        throw e;
+      } finally { clearTimeout(t); }
+    }
+    async function buyConnect() {
+      var p = walletProvider();
+      if (!p) { buyNote('No Solana wallet found. Install Phantom or Solflare, then reload.', 'bad'); return; }
+      buy.busy = true; buyControls();
+      try {
+        var r = await p.connect();
+        var key = (r && r.publicKey) || p.publicKey;
+        if (!key) throw Error('no key');
+        buy.wallet = key.toString(); buy.provider = p;
+        if (p.on) {
+          p.on('accountChanged', function (k) { buy.wallet = k ? k.toString() : null; invalidateQuote(); });
+          p.on('disconnect', function () { buy.wallet = null; invalidateQuote(); });
+        }
+        buyNote('Connected ' + shortAddr(buy.wallet) + '.');
+      } catch (e) { buyNote('Connection refused. Nothing signed.', 'bad'); }
+      finally { buy.busy = false; invalidateQuote(); }
+    }
+    async function fetchQuote() {
+      var q = await buyRequest('/api/buy?' + new URLSearchParams({
+        mint: currentMint, wallet: buy.wallet, sol: $b('buySol').value.trim(), slippage_bps: String(buy.slip)
+      }));
+      if (!q.signable || !q.transaction || !q.simulated || q.simulated.err !== null) throw Error('The server did not confirm the simulation. Nothing was signed.');
+      if (q.wallet !== buy.wallet || q.mint !== currentMint) throw Error('The quote does not match this wallet and coin. Nothing was signed.');
+      buy.quote = q; buy.quotedAt = Date.now();
+      $b('buyTokens').textContent = fmtNum(q.expected_tokens, 0, Math.min(q.decimals || 0, 4)) + ' ' + coinLabel();
+      $b('buyMax').textContent = fmtNum(q.max_sol_lamports / 1e9, 3, 9) + ' SOL';
+      $b('buyVenue').textContent = q.venue === 'pumpswap' ? 'PumpSwap pool' : 'pump bonding curve';
+      $b('buyImpact').textContent = (q.price_impact_bps / 100).toFixed(2) + '%';
+      $b('buyQuote').hidden = false;
+      return q;
+    }
+    function signatureOfBuy(res) {
+      var s = res && (res.signature || res);
+      if (typeof s !== 'string' || !/^[1-9A-HJ-NP-Za-km-z]{64,90}$/.test(s)) throw Error('The wallet returned no usable transaction signature.');
+      return s;
+    }
+    function relayBuy(body) {
+      return buyRequest('/api/launch?send=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, 20000);
+    }
+    function pause(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    async function signAndRelay(p, q) {
+      var res = null;
+      buy.signed = null;
+      try { res = await p.request({ method: 'signTransaction', params: { message: q.signable } }); }
+      catch (e) { if (e && e.code === 4001) throw e; }
+      var signed = res && (res.transaction || res.signedTransaction || res.signature || res);
+      if (signed && typeof signed.serialize === 'function') signed = signed.serialize();
+      if (signed && typeof signed !== 'string' && signed.length !== undefined) signed = Array.from(signed);
+      if (typeof signed === 'string' || Array.isArray(signed)) {
+        for (var attempt = 0; attempt < 3; attempt++) {
+          try {
+            var d = await relayBuy({ transaction: q.transaction, signed: signed });
+            buy.signed = d.transaction;
+            return signatureOfBuy(d.signature);
+          } catch (e) {
+            if (/^Not sent/.test(e.message)) break;
+            await pause(1500);
+          }
+        }
+      }
+      return signatureOfBuy(await p.request({ method: 'signAndSendTransaction', params: { message: q.signable } }));
+    }
+    async function waitForBuy(sig) {
+      var end = Date.now() + 90000, seen = null;
+      while (Date.now() < end) {
+        try {
+          var d = await buyRequest('/api/launch?status=' + encodeURIComponent(sig), null, 10000);
+          if (d.failed) return 'failed';
+          seen = !!d.seen;
+          if (d.landed) return 'landed';
+        } catch (e) { /* a failed status read is unknown, not a failed buy */ }
+        if (buy.signed) relayBuy({ transaction: buy.signed }).catch(function () {});
+        await pause(3000);
+      }
+      return seen === false ? 'dropped' : 'unknown';
+    }
+    async function buyGo() {
+      if (buy.busy || !buy.wallet) return;
+      var p = buy.provider || walletProvider();
+      if (!p || !p.request) { buyNote('This wallet cannot sign from this page. Phantom or Solflare can.', 'bad'); return; }
+      if (!validSol($b('buySol').value.trim())) { buyNote('Enter between 0.001 and 100 SOL.', 'bad'); return; }
+      buy.busy = true; buyControls();
+      try {
+        if (!buy.quote) {
+          buyNote('Reading the price and simulating the buy…');
+          await fetchQuote();
+          buyNote('Simulated with no error. Check the quote, then press Buy to sign.', 'good');
+          return;
+        }
+        if (Date.now() - buy.quotedAt > QUOTE_TTL_MS) {
+          buyNote('The quote was over 45 seconds old; reading the price again…');
+          await fetchQuote();
+        }
+        if (!p.publicKey || p.publicKey.toString() !== buy.wallet) throw Error('Reconnect the wallet that was quoted: ' + buy.wallet);
+        var q = buy.quote;
+        buyNote('Waiting for your wallet to sign…');
+        var sig = await signAndRelay(p, q);
+        buy.sig = sig;
+        var link = { href: 'https://solscan.io/tx/' + sig, label: 'View on Solscan' };
+        buyNote('Sent. Waiting for the chain to confirm ' + shortAddr(sig) + '…', 'caution', link);
+        var outcome = await waitForBuy(sig);
+        if (outcome === 'landed') {
+          buyNote('Bought. ' + $b('buyTokens').textContent + ' are in your wallet.', 'good', link);
+        } else if (outcome === 'failed') {
+          buyNote('The buy failed on chain, most often because the price moved past your slippage. Only the network fee was charged. Quote again to retry.', 'bad', link);
+        } else if (outcome === 'dropped') {
+          buyNote('The buy never reached the chain, so nothing was spent. Quote again to retry.', 'caution');
+        } else {
+          buyNote('Confirmation is still unknown. Check Solscan before you buy again.', 'caution', link);
+        }
+        invalidateQuote();
+      } catch (e) {
+        buyNote(e && e.code === 4001 ? 'You declined in the wallet. Nothing was signed.' : (e.message || 'The buy could not be built.'), 'bad');
+      } finally { buy.busy = false; buyControls(); }
+    }
+
+    window.addEventListener('DOMContentLoaded', function () {
+      $b('buyConnect').addEventListener('click', buyConnect);
+      $b('buyGo').addEventListener('click', buyGo);
+      $b('buySol').addEventListener('input', invalidateQuote);
+      Array.prototype.forEach.call(document.querySelectorAll('#buySec [data-sol]'), function (b) {
+        b.addEventListener('click', function () { $b('buySol').value = b.getAttribute('data-sol'); invalidateQuote(); });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('#buySec [data-slip]'), function (b) {
+        b.addEventListener('click', function () {
+          buy.slip = Number(b.getAttribute('data-slip'));
+          Array.prototype.forEach.call(document.querySelectorAll('#buySec [data-slip]'), function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+          invalidateQuote();
+        });
+      });
+      // The heading and button name the coin once its metadata arrives.
+      if (window.MutationObserver) new MutationObserver(buyControls).observe($b('coinSym'), { childList: true, characterData: true, subtree: true });
+      // A wallet that already trusts this site connects without a prompt.
+      var p = walletProvider();
+      if (p && p.connect) {
+        p.connect({ onlyIfTrusted: true }).then(function (r) {
+          var key = (r && r.publicKey) || p.publicKey;
+          if (key) { buy.wallet = key.toString(); buy.provider = p; invalidateQuote(); }
+        }).catch(function () {});
+      }
+      buyControls();
+    });
   </script>
 </body>
 </html>
