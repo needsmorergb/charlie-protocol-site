@@ -123,6 +123,12 @@
   .buy-quote dd{margin:0;font:700 15px/1.3 var(--font-mono);color:var(--text-primary);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
   .buy-actions{display:flex;flex-wrap:wrap;gap:var(--sp-sm);align-items:center}
   .buy-btn{min-height:44px}
+  .buy-wallet{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-sm);margin:0 0 var(--sp-md);
+    font:400 12.5px/1.6 var(--font-mono);color:var(--text-secondary)}
+  .buy-wallet[hidden]{display:none}
+  .buy-wallet b{color:var(--text-primary);font-weight:700}
+  .buy-wallet button{font:600 11px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text-primary);
+    background:none;border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:6px 10px;cursor:pointer}
   .buy-btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
   .buy-note{font:400 12.5px/1.6 var(--font-mono);color:var(--text-secondary);white-space:pre-wrap;overflow-wrap:anywhere;margin:var(--sp-md) 0 0}
   .buy-note:empty{display:none}
@@ -344,6 +350,8 @@
           <div><dt>Price impact</dt><dd id="buyImpact">—</dd></div>
         </dl>
 
+        <p class="buy-wallet" id="buyWallet" hidden>Paying from <b id="buyWalletAddr"></b>
+          <button type="button" id="buySwitch">Switch wallet</button></p>
         <div class="buy-actions">
           <button type="button" class="btn-paste buy-btn" id="buyConnect">Connect wallet</button>
           <button type="button" class="btn-submit buy-btn" id="buyGo" disabled>Get quote</button>
@@ -1031,6 +1039,10 @@
     }
     function buyControls() {
       $b('buyConnect').hidden = !!buy.wallet;
+      $b('buySwitch').disabled = buy.busy;
+      $b('buyWallet').hidden = !buy.wallet;
+      $b('buyWalletAddr').textContent = buy.wallet ? shortAddr(buy.wallet) : '';
+      $b('buyWalletAddr').title = buy.wallet || '';
       var go = $b('buyGo');
       go.disabled = buy.busy || !buy.wallet || !validSol($b('buySol').value.trim());
       go.textContent = buy.quote ? 'Buy ' + coinLabel() : 'Get quote';
@@ -1057,6 +1069,15 @@
         throw e;
       } finally { clearTimeout(t); }
     }
+    var buyListening = false;
+    function adoptWallet(p, key) {
+      buy.wallet = key.toString(); buy.provider = p;
+      if (p.on && !buyListening) {
+        buyListening = true;
+        p.on('accountChanged', function (k) { buy.wallet = k ? k.toString() : null; buyNote(''); invalidateQuote(); });
+        p.on('disconnect', function () { buy.wallet = null; buyNote(''); invalidateQuote(); });
+      }
+    }
     async function buyConnect() {
       var p = walletProvider();
       if (!p) { buyNote('No Solana wallet found. Install Phantom or Solflare, then reload.', 'bad'); return; }
@@ -1065,14 +1086,18 @@
         var r = await p.connect();
         var key = (r && r.publicKey) || p.publicKey;
         if (!key) throw Error('no key');
-        buy.wallet = key.toString(); buy.provider = p;
-        if (p.on) {
-          p.on('accountChanged', function (k) { buy.wallet = k ? k.toString() : null; invalidateQuote(); });
-          p.on('disconnect', function () { buy.wallet = null; invalidateQuote(); });
-        }
+        adoptWallet(p, key);
         buyNote('Connected ' + shortAddr(buy.wallet) + '.');
       } catch (e) { buyNote('Connection refused. Nothing signed.', 'bad'); }
       finally { buy.busy = false; invalidateQuote(); }
+    }
+    // Disconnect, then ask the wallet again, so the owner can pick another account.
+    async function buySwitch() {
+      if (buy.busy) return;   // never swap the wallet under a buy that is signing
+      var p = buy.provider || walletProvider();
+      buy.wallet = null; buyNote(''); invalidateQuote();
+      try { if (p && p.disconnect) await p.disconnect(); } catch (e) {}
+      await buyConnect();
     }
     async function fetchQuote() {
       var q = await buyRequest('/api/buy?' + new URLSearchParams({
@@ -1142,7 +1167,8 @@
       try {
         if (!buy.quote) {
           buyNote('Reading the price and simulating the buy…');
-          await fetchQuote();
+          try { await fetchQuote(); }
+          catch (e) { throw Error((e.message || 'The buy could not be built.') + ' Wallet: ' + shortAddr(buy.wallet) + '.'); }
           buyNote('Simulated with no error. Check the quote, then press Buy to sign.', 'good');
           return;
         }
@@ -1175,6 +1201,7 @@
 
     window.addEventListener('DOMContentLoaded', function () {
       $b('buyConnect').addEventListener('click', buyConnect);
+      $b('buySwitch').addEventListener('click', buySwitch);
       $b('buyGo').addEventListener('click', buyGo);
       $b('buySol').addEventListener('input', invalidateQuote);
       Array.prototype.forEach.call(document.querySelectorAll('#buySec [data-sol]'), function (b) {
@@ -1194,7 +1221,7 @@
       if (p && p.connect) {
         p.connect({ onlyIfTrusted: true }).then(function (r) {
           var key = (r && r.publicKey) || p.publicKey;
-          if (key) { buy.wallet = key.toString(); buy.provider = p; invalidateQuote(); }
+          if (key) { adoptWallet(p, key); invalidateQuote(); }
         }).catch(function () {});
       }
       buyControls();
