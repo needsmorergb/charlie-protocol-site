@@ -37,8 +37,16 @@ TIMEOUT = 20
 TWEET_FIELDS = "created_at,edit_history_tweet_ids,referenced_tweets,attachments,author_id,text"
 USER_FIELDS = "created_at,public_metrics,verified_type,protected,profile_image_url,withheld,parody,username,name"
 MEDIA_FIELDS = "url,type"
-EXPANSIONS = "author_id,attachments.media_keys"
+# The referenced-post expansions bring the replied-to / quoted post and its
+# media, so a tag under a news post can take that post's picture.
+EXPANSIONS = "author_id,attachments.media_keys,referenced_tweets.id,referenced_tweets.id.attachments.media_keys"
 MAX_PAGES = 50        # a safety stop; a backlog deeper than this raises
+
+# The tag search polls as often as X's rate limit allows, spreading what is
+# left of the window evenly, never faster than MIN_POLL_SECONDS.
+RATE_HEADERS = ("x-rate-limit-limit", "x-rate-limit-remaining", "x-rate-limit-reset")
+MIN_POLL_SECONDS = 2.0
+RATE_RESERVE = 1      # calls left over for a replay or a retry
 
 
 class XError(RuntimeError):
@@ -53,19 +61,32 @@ class XError(RuntimeError):
 # -- transport ---------------------------------------------------------------
 
 
-def _open(request: urllib.request.Request, opener=None, *, limit: int = 2_000_000) -> tuple[str, bytes]:
+def _keep_rate(headers, seen: dict | None) -> None:
+    if seen is None or not hasattr(headers, "get"):
+        return
+    for name in RATE_HEADERS:
+        value = headers.get(name)
+        if value is not None and str(value).strip().lstrip("-").isdigit():
+            seen[name] = int(str(value).strip())
+
+
+def _open(request: urllib.request.Request, opener=None, *, limit: int = 2_000_000,
+          seen: dict | None = None) -> tuple[str, bytes]:
     """`(content-type, body)` for a request, reading at most `limit` bytes.
-    An HTTP error status becomes `XError` with that status."""
+    An HTTP error status becomes `XError` with that status. With `seen`, X's
+    rate-limit headers (success or error) are copied into it."""
     open_ = opener or urllib.request.urlopen
     try:
         with open_(request, timeout=TIMEOUT) as response:
             headers = getattr(response, "headers", None) or {}
+            _keep_rate(headers, seen)
             ctype = headers.get("Content-Type", "") if hasattr(headers, "get") else ""
             declared = headers.get("Content-Length") if hasattr(headers, "get") else None
             if declared and str(declared).isdigit() and int(declared) > limit:
                 raise XError(f"answer larger than {limit} bytes", 0)
             body = response.read(limit + 1)
     except urllib.error.HTTPError as exc:
+        _keep_rate(getattr(exc, "headers", None), seen)
         detail = b""
         try:
             detail = exc.read(2_000)
@@ -79,8 +100,8 @@ def _open(request: urllib.request.Request, opener=None, *, limit: int = 2_000_00
     return ctype, body
 
 
-def _json(request: urllib.request.Request, opener=None) -> dict:
-    _ctype, body = _open(request, opener)
+def _json(request: urllib.request.Request, opener=None, *, seen: dict | None = None) -> dict:
+    _ctype, body = _open(request, opener, seen=seen)
     try:
         answer = json.loads(body.decode("utf-8"))
     except ValueError:
@@ -135,6 +156,7 @@ class XClient:
     def __init__(self, *, bearer: str = "", consumer_key="", consumer_secret="", access_token="",
                  access_secret="", opener=None, now=time.time, nonce=None):
         self.bearer = bearer
+        self.rate: dict[str, int] = {}     # the last rate-limit headers X sent (see poll_wait)
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
         self.access_token = access_token
@@ -150,7 +172,21 @@ class XClient:
             raise XError("no bearer token configured", 0)
         request = urllib.request.Request(url, headers={
             "Authorization": f"Bearer {self.bearer}", "User-Agent": USER_AGENT}, method="GET")
-        return _json(request, self.opener)
+        return _json(request, self.opener, seen=self.rate)
+
+    def poll_wait(self, default: float) -> float:
+        """Seconds until the next search: the rest of X's rate window spread
+        over the calls left in it (less RATE_RESERVE), at least
+        MIN_POLL_SECONDS and never longer than `default`; the whole window
+        when none are left. `default` when X has not said."""
+        remaining = self.rate.get("x-rate-limit-remaining")
+        reset = self.rate.get("x-rate-limit-reset")
+        if remaining is None or reset is None:
+            return default
+        window = max(0.0, reset - self.now())
+        if remaining <= RATE_RESERVE:
+            return window + 1.0
+        return max(MIN_POLL_SECONDS, min(default, window / (remaining - RATE_RESERVE)))
 
     def _user_post(self, url: str, payload: dict) -> dict:
         if not (self.consumer_key and self.consumer_secret and self.access_token and self.access_secret):
@@ -174,7 +210,7 @@ class XClient:
         search already returned, which is longer than a tag stays fresh.
 
         Returns `{"tweets": [...], "users": {id: user}, "media": {key: media},
-        "newest_id": str | None}`. Follows `next_token` to the last page, so
+        "refs": {id: referenced tweet}, "newest_id": str | None}`. Follows `next_token` to the last page, so
         a burst between polls is never skipped: X pages newest first, and a
         caller that advanced `since_id` past a partial read would lose the
         older pages. A backlog deeper than MAX_PAGES raises instead, so
@@ -182,6 +218,7 @@ class XClient:
         tweets: dict[str, dict] = {}
         users: dict[str, dict] = {}
         media: dict[str, dict] = {}
+        refs: dict[str, dict] = {}
         newest: str | None = None
         token: str | None = None
         for _ in range(MAX_PAGES):
@@ -205,6 +242,7 @@ class XClient:
                 tweets[str(tweet.get("id"))] = tweet
             users.update(shaped["users"])
             media.update(shaped["media"])
+            refs.update(shaped["refs"])
             newest = _max_id(newest, shaped["newest_id"])
             token = (page.get("meta") or {}).get("next_token")
             if not token:
@@ -212,7 +250,7 @@ class XClient:
         else:
             raise XError(f"more than {MAX_PAGES} pages of mentions; not advancing past unread ones", 0)
         ordered = sorted(tweets.values(), key=lambda t: _id_int(t.get("id")))
-        return {"tweets": ordered, "users": users, "media": media, "newest_id": newest}
+        return {"tweets": ordered, "users": users, "media": media, "refs": refs, "newest_id": newest}
 
     def lookup(self, ids) -> dict:
         """The given tweets by id, shaped like `mentions` (for a replay)."""
@@ -260,16 +298,19 @@ def _max_id(a: str | None, b: str | None) -> str | None:
 
 def shape_mentions(page: dict) -> dict:
     """One mentions page, reshaped: tweets oldest first, users by id, media
-    by media_key, and the newest id (meta's, else the largest seen)."""
+    by media_key, referenced posts (`includes.tweets`) by id, and the newest
+    id (meta's, else the largest seen)."""
     data = [t for t in (page.get("data") or []) if isinstance(t, dict)]
     includes = page.get("includes") or {}
     users = {str(u["id"]): u for u in includes.get("users") or [] if isinstance(u, dict) and "id" in u}
     media = {str(m["media_key"]): m for m in includes.get("media") or [] if isinstance(m, dict) and "media_key" in m}
+    refs = {str(t["id"]): t for t in includes.get("tweets") or [] if isinstance(t, dict) and "id" in t}
     tweets = sorted(data, key=lambda t: _id_int(t.get("id")))
     newest = (page.get("meta") or {}).get("newest_id")
     if newest is None and tweets:
         newest = str(tweets[-1].get("id"))
-    return {"tweets": tweets, "users": users, "media": media, "newest_id": str(newest) if newest else None}
+    return {"tweets": tweets, "users": users, "media": media, "refs": refs,
+            "newest_id": str(newest) if newest else None}
 
 
 # -- OAuth 2.0 with PKCE (the claim page's sign-in) --------------------------------
