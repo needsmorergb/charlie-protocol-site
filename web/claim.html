@@ -170,6 +170,9 @@
       <p class="warn">
         after 7 days, unclaimed fees go to the $CHARLIE buy-and-burn: they are sent to the protocol's collection wallet, where they buy $CHARLIE and that $CHARLIE is burned.
       </p>
+      <p class="note">
+        fees are not live to the second. about every 30 minutes a payout run collects each coin's fees, credits your share here, and pays any queued claims. a coin's fees wait until they reach 0.005 SOL, so a fresh coin can read 0 for a while. allow up to an hour for new fees or a claim to show up.
+      </p>
     </div>
 
     <p id="closedNote" class="note caution" role="status" hidden>Claims are not open yet.</p>
@@ -383,7 +386,7 @@
       el.textContent = '';
       if (!s || !s.state) return;
       if (s.state === 'queued') {
-        el.textContent = 'claim queued. it is paid on the next payout run.';
+        el.textContent = 'claim queued. it is paid on the next payout run, which comes about every 30 minutes. allow up to an hour.';
       } else if (s.state === 'paid') {
         el.className = 'note good';
         el.appendChild(document.createTextNode('paid ' + sol(s.lamports) + ' SOL. '));
